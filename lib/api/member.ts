@@ -1,0 +1,227 @@
+import { api } from "./client";
+
+/* ===== 보호자: 매칭 요청 ===== */
+export interface GuardianRequest {
+  id: number;
+  mode: string;
+  status: string;
+  scheduled_start: string | null;
+  duration_min: number;
+  special_request: string | null;
+  matched_at: string | null;
+  created_at: string;
+  senior?: { id: number; name: string; care_grade: string | null };
+  category?: { id: number; name: string; base_rate: number };
+}
+
+export interface Candidate {
+  id: number;
+  rank: number;
+  ai_score: number;
+  ai_reasons: string[] | null;
+  response: string;
+  caregiver?: {
+    id: number;
+    name: string | null;
+    gender: string;
+    age: number | null;
+    specialties: string[] | null;
+    rating_avg: number;
+    completed_sessions: number;
+  };
+}
+
+/* ===== 보호자: 어르신(돌봄 대상) ===== */
+export interface Senior {
+  id: number;
+  name: string;
+  age: number | null;
+  birth_date: string | null;
+  gender: string;
+  care_grade: number | null;
+  care_grade_no: string | null;
+  diseases: string[] | null;
+  special_notes: string | null;
+  home_address: string | null;
+  created_at: string | null;
+  current_voucher?: {
+    total_amount?: number;
+    used_amount?: number;
+    remaining_amount?: number;
+  } | null;
+}
+
+export interface VitalSummary {
+  count: number;
+  avg_bp_sys: number;
+  avg_bp_dia: number;
+  avg_blood_sugar: number;
+  avg_heart_rate: number;
+  last_measured_at: string | null;
+}
+
+export interface VitalRecord {
+  id: number;
+  blood_pressure: string | null;
+  blood_pressure_sys: number | null;
+  blood_pressure_dia: number | null;
+  blood_sugar: number | null;
+  body_temperature: number | null;
+  heart_rate: number | null;
+  weight: number | null;
+  measured_at: string | null;
+}
+
+export interface SeniorAnomalyAlert {
+  id: number;
+  risk_type: string;
+  risk_type_ko: string;
+  risk_score: number;
+  severity: string;
+  severity_ko: string;
+  trigger_pattern: string | null;
+  recommendation: string | null;
+  status: string;
+  status_ko: string;
+  detected_at: string | null;
+  detected_ago: string | null;
+}
+
+export interface TimeseriesPoint {
+  recorded_at: string;
+  value: number;
+}
+
+export interface CreateSeniorPayload {
+  name: string;
+  birth_date: string;
+  gender: "M" | "F";
+  care_grade: number;
+  care_grade_no?: string;
+  diseases?: string[];
+  special_notes?: string;
+  home_address: string;
+}
+
+/* ===== 인력 ===== */
+export interface MyMatch {
+  candidate_id: number;
+  rank: number;
+  ai_score: number;
+  ai_reasons: string[];
+  response: string;
+  request_id: number;
+  service_domain: string;
+  mode: string;
+  scheduled_start: string | null;
+  duration_min: number;
+  request_status: string;
+  senior_name: string;
+}
+
+export interface MySession {
+  id: number;
+  status: string;
+  service_domain: string;
+  senior_name: string;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  actual_start: string | null;
+  actual_end: string | null;
+  duration_min: number;
+}
+
+export interface MemberSettlement {
+  id: number;
+  period_start: string;
+  period_end: string;
+  gross_amount: number;
+  withholding_tax: number;
+  net_amount: number;
+  status: string;
+  paid_at: string | null;
+}
+
+export interface MemberNotification {
+  id: number;
+  type: string;
+  title: string;
+  body: string;
+  is_read: boolean;
+  created_ago: string;
+  created_at: string;
+}
+
+export const memberApi = {
+  // 보호자 — 매칭
+  async guardianRequests(status?: string): Promise<GuardianRequest[]> {
+    const { data } = await api.get("/v1/matching/requests", { params: status ? { status } : {} });
+    return data.data ?? [];
+  },
+  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null }> {
+    const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
+    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message };
+  },
+  selectCandidate: (requestId: number, candidateId: number) =>
+    api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
+  async categories(): Promise<{ id: number; name: string }[]> {
+    const { data } = await api.get("/v1/matching/categories");
+    return data.data ?? [];
+  },
+  createRequest: (payload: {
+    senior_id: number;
+    category_id: number;
+    mode: string;
+    scheduled_start: string;
+    duration_min: number;
+    special_request?: string;
+  }) => api.post("/v1/matching/requests", payload),
+
+  // 보호자 — 어르신(돌봄 대상)
+  async seniors(): Promise<Senior[]> {
+    const { data } = await api.get("/v1/seniors");
+    return data.data ?? [];
+  },
+  async seniorDetail(id: number): Promise<Senior> {
+    const { data } = await api.get(`/v1/seniors/${id}`);
+    return data.data;
+  },
+  createSenior: (payload: CreateSeniorPayload) => api.post("/v1/seniors", payload),
+  async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary; data: VitalRecord[] }> {
+    const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
+    return { summary: data.summary, data: data.data ?? [] };
+  },
+  async healthTimeseries(seniorId: number, metric: string, days = 14): Promise<TimeseriesPoint[]> {
+    const { data } = await api.get(`/v1/seniors/${seniorId}/health-timeseries`, { params: { metric, days } });
+    return data.data ?? [];
+  },
+  async seniorAlerts(seniorId: number): Promise<{ data: SeniorAnomalyAlert[]; unresolved: number }> {
+    const { data } = await api.get(`/v1/seniors/${seniorId}/anomaly-alerts`);
+    return { data: data.data ?? [], unresolved: data.meta?.unresolved_count ?? 0 };
+  },
+
+  // 인력
+  async myMatches(): Promise<MyMatch[]> {
+    const { data } = await api.get("/v1/caregivers/me/matches");
+    return data.data ?? [];
+  },
+  async mySessions(): Promise<MySession[]> {
+    const { data } = await api.get("/v1/caregivers/me/sessions");
+    return data.data ?? [];
+  },
+  acceptMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/accept`),
+  rejectMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/reject`),
+  checkin: (sessionId: number) => api.post(`/v1/care-sessions/${sessionId}/checkin`),
+  checkout: (sessionId: number) => api.post(`/v1/care-sessions/${sessionId}/checkout`),
+  async settlements(): Promise<MemberSettlement[]> {
+    const { data } = await api.get("/v1/settlements");
+    return data.data ?? [];
+  },
+
+  // 공통
+  async notifications(): Promise<{ data: MemberNotification[]; unread: number }> {
+    const { data } = await api.get("/v1/notifications");
+    return { data: data.data ?? [], unread: data.meta?.unread_count ?? 0 };
+  },
+  markRead: (id: number) => api.post(`/v1/notifications/${id}/read`),
+};
