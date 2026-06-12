@@ -13,6 +13,7 @@ export interface GuardianRequest {
   service_domain?: string;
   senior?: { id: number; name: string; care_grade: string | null };
   nursing_patient?: { id: number; name: string; hospital_name: string | null };
+  service_address?: { id: number; label: string; address: string };
   category?: { id: number; name: string; base_rate: number };
 }
 
@@ -140,6 +141,33 @@ export interface CreatePatientPayload {
   special_notes?: string;
 }
 
+/* ===== 보호자: 서비스 주소(가사 대상) ===== */
+export type DwellingType = "apartment" | "villa" | "house" | "officetel" | "other";
+
+export interface ServiceAddress {
+  id: number;
+  label: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  dwelling_type: DwellingType | null;
+  size_m2: number | null;
+  has_pets: boolean;
+  entry_note: string | null;
+  created_at: string | null;
+}
+
+export interface CreateAddressPayload {
+  label: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+  dwelling_type?: DwellingType;
+  size_m2?: number;
+  has_pets?: boolean;
+  entry_note?: string;
+}
+
 /* ===== 인력 ===== */
 export interface MyMatch {
   candidate_id: number;
@@ -201,14 +229,15 @@ export const memberApi = {
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
-  async categories(domain?: "senior" | "nursing"): Promise<{ id: number; name: string }[]> {
+  async categories(domain?: "senior" | "nursing" | "housekeeping"): Promise<{ id: number; name: string }[]> {
     const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },
   createRequest: (payload: {
-    service_domain?: "nursing";
+    service_domain?: "nursing" | "housekeeping";
     senior_id?: number;
     nursing_patient_id?: number;
+    service_address_id?: number;
     category_id: number;
     mode: string;
     scheduled_start: string;
@@ -238,6 +267,16 @@ export const memberApi = {
   updatePatient: (id: number, payload: Partial<CreatePatientPayload>) =>
     api.patch(`/v1/nursing/patients/${id}`, payload),
   deletePatient: (id: number) => api.delete(`/v1/nursing/patients/${id}`),
+
+  // 보호자 — 서비스 주소(가사 대상)
+  async addresses(): Promise<ServiceAddress[]> {
+    const { data } = await api.get("/v1/housekeeping/addresses");
+    return data.data ?? [];
+  },
+  createAddress: (payload: CreateAddressPayload) => api.post("/v1/housekeeping/addresses", payload),
+  updateAddress: (id: number, payload: Partial<CreateAddressPayload>) =>
+    api.patch(`/v1/housekeeping/addresses/${id}`, payload),
+  deleteAddress: (id: number) => api.delete(`/v1/housekeeping/addresses/${id}`),
   async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
     return { summary: data.summary, data: data.data ?? [] };

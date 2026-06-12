@@ -82,3 +82,18 @@ export function ageFromBirthDate(birthDate: string | null | undefined): number |
   if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
   return age >= 0 ? age : null;
 }
+
+/* ===== 가사(housekeeping) 도메인 ===== */
+
+/** 주거 형태 (service address dwelling_type) */
+export const DWELLING_OPTIONS = [
+  { value: "apartment", label: "아파트" },
+  { value: "villa", label: "빌라" },
+  { value: "house", label: "주택" },
+  { value: "officetel", label: "오피스텔" },
+  { value: "other", label: "기타" },
+] as const;
+
+export function dwellingLabel(dwelling: string | null | undefined): string {
+  return DWELLING_OPTIONS.find((d) => d.value === dwelling)?.label ?? "미입력";
+}

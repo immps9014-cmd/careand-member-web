@@ -37,9 +37,10 @@ export default function LogsPage() {
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-brand-500" />
                 <span className="font-bold text-warm-800">
-                  {r.senior?.name ?? r.nursing_patient?.name ?? "대상자"}
+                  {r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자"}
                 </span>
                 {r.service_domain === "nursing" && <Badge variant="info">간병</Badge>}
+                {r.service_domain === "housekeeping" && <Badge variant="info">가사</Badge>}
               </div>
               <Badge variant="success">매칭완료</Badge>
             </div>
