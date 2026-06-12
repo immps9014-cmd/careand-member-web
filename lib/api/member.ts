@@ -10,7 +10,9 @@ export interface GuardianRequest {
   special_request: string | null;
   matched_at: string | null;
   created_at: string;
+  service_domain?: string;
   senior?: { id: number; name: string; care_grade: string | null };
+  nursing_patient?: { id: number; name: string; hospital_name: string | null };
   category?: { id: number; name: string; base_rate: number };
 }
 
@@ -103,6 +105,41 @@ export interface CreateSeniorPayload {
   home_address: string;
 }
 
+/* ===== 보호자: 환자(간병 대상) ===== */
+export type PatientMobility = "independent" | "assisted" | "bedridden";
+
+export interface NursingPatient {
+  id: number;
+  name: string;
+  birth_date: string | null;
+  gender: string;
+  hospital_name: string | null;
+  hospital_address: string | null;
+  hospital_lat: number | null;
+  hospital_lng: number | null;
+  ward_room: string | null;
+  mobility: PatientMobility | null;
+  diseases: string[] | null;
+  care_requirements: string[] | null;
+  special_notes: string | null;
+  created_at: string | null;
+}
+
+export interface CreatePatientPayload {
+  name: string;
+  birth_date: string;
+  gender: "M" | "F";
+  hospital_name: string;
+  hospital_address: string;
+  hospital_lat?: number;
+  hospital_lng?: number;
+  ward_room?: string;
+  mobility?: PatientMobility;
+  diseases?: string[];
+  care_requirements?: string[];
+  special_notes?: string;
+}
+
 /* ===== 인력 ===== */
 export interface MyMatch {
   candidate_id: number;
@@ -164,17 +201,21 @@ export const memberApi = {
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
-  async categories(): Promise<{ id: number; name: string }[]> {
-    const { data } = await api.get("/v1/matching/categories");
+  async categories(domain?: "senior" | "nursing"): Promise<{ id: number; name: string }[]> {
+    const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },
   createRequest: (payload: {
-    senior_id: number;
+    service_domain?: "nursing";
+    senior_id?: number;
+    nursing_patient_id?: number;
     category_id: number;
     mode: string;
     scheduled_start: string;
     duration_min: number;
+    recurrence_rule?: { days: number };
     special_request?: string;
+    requirements?: Record<string, unknown>;
   }) => api.post("/v1/matching/requests", payload),
 
   // 보호자 — 어르신(돌봄 대상)
@@ -187,6 +228,16 @@ export const memberApi = {
     return data.data;
   },
   createSenior: (payload: CreateSeniorPayload) => api.post("/v1/seniors", payload),
+
+  // 보호자 — 환자(간병 대상)
+  async patients(): Promise<NursingPatient[]> {
+    const { data } = await api.get("/v1/nursing/patients");
+    return data.data ?? [];
+  },
+  createPatient: (payload: CreatePatientPayload) => api.post("/v1/nursing/patients", payload),
+  updatePatient: (id: number, payload: Partial<CreatePatientPayload>) =>
+    api.patch(`/v1/nursing/patients/${id}`, payload),
+  deletePatient: (id: number) => api.delete(`/v1/nursing/patients/${id}`),
   async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
     return { summary: data.summary, data: data.data ?? [] };

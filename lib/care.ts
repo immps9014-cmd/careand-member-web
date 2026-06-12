@@ -46,3 +46,39 @@ export function severityVariant(severity: string): "danger" | "warn" | "info" | 
       return "outline";
   }
 }
+
+/* ===== 간병(nursing) 도메인 ===== */
+
+/** 거동 상태 (nursing patient mobility) */
+export const MOBILITY_OPTIONS = [
+  { value: "independent", label: "자립" },
+  { value: "assisted", label: "부분 도움" },
+  { value: "bedridden", label: "와상" },
+] as const;
+
+export function mobilityLabel(mobility: string | null | undefined): string {
+  return MOBILITY_OPTIONS.find((m) => m.value === mobility)?.label ?? "미입력";
+}
+
+/** 케어 요구사항 프리셋 (자유입력 병행) */
+export const CARE_REQUIREMENT_PRESETS = [
+  "석션",
+  "욕창케어",
+  "식사보조",
+  "체위변경",
+  "배변보조",
+  "투약보조",
+  "이동보조",
+];
+
+/** 생년월일 → 만 나이 (계산 불가 시 null) */
+export function ageFromBirthDate(birthDate: string | null | undefined): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  if (isNaN(birth.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age >= 0 ? age : null;
+}

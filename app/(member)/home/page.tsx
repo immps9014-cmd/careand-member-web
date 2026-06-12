@@ -64,7 +64,10 @@ function GuardianHome({ name }: { name?: string }) {
             <Card className="p-4 flex items-center justify-between active:bg-warm-50 transition-colors">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-warm-800">{r.senior?.name ?? "대상자"}</span>
+                  <span className="font-bold text-warm-800">
+                    {r.senior?.name ?? r.nursing_patient?.name ?? "대상자"}
+                  </span>
+                  {r.service_domain === "nursing" && <Badge variant="info">간병</Badge>}
                   <Badge variant={REQ_STATUS[r.status]?.variant ?? "outline"}>
                     {REQ_STATUS[r.status]?.label ?? r.status}
                   </Badge>
@@ -72,6 +75,7 @@ function GuardianHome({ name }: { name?: string }) {
                 <div className="text-xs text-warm-500">
                   {r.category?.name ?? "돌봄"} ·{" "}
                   {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"}
+                  {r.nursing_patient?.hospital_name && ` · ${r.nursing_patient.hospital_name}`}
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-warm-300" />

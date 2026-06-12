@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, FileText, Wallet, Bell, User, CalendarClock, HeartPulse } from "lucide-react";
+import { Home, FileText, Wallet, Bell, User, CalendarClock, HeartPulse, Stethoscope } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ interface NavItem {
 const GUARDIAN_NAV: NavItem[] = [
   { href: "/home", label: "홈", icon: Home },
   { href: "/seniors", label: "어르신", icon: HeartPulse },
+  { href: "/patients", label: "환자", icon: Stethoscope },
   { href: "/logs", label: "케어일지", icon: FileText },
   { href: "/notifications", label: "알림", icon: Bell },
   { href: "/mypage", label: "내정보", icon: User },
