@@ -35,13 +35,15 @@
 
 | Task | 내용 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| 2.1 | **[BE]** 승인 시 보호자 알림 발송: `OperationsController::approveCareLog`에서 `NotificationService::notify(TYPE_CARE_SUMMARY_READY)` 호출(세션→match→request→guardian_id) | 승인 시 보호자 notification row + FCM 1건, 재승인 시 중복발송 없음 | - | cc:TODO |
-| 2.2 | **[BE]** 보호자 세션목록 API `GET /v1/guardians/me/sessions`(인력 `caregivers/me/sessions` 미러). 항목: session_id, domain, status, review_status, has_summary, recipient_name, scheduled_at | 본인 매칭 세션만(권한 스코프), 페이징, 타역할 403 | - | cc:TODO |
+| 2.1 | **[BE]** 승인 시 보호자 알림 발송: `OperationsController::approveCareLog`에서 `NotificationService::notify(TYPE_CARE_SUMMARY_READY)` 호출(세션→match→request→guardian_id) | 승인 시 보호자 notification row + FCM 1건, 재승인 시 중복발송 없음 | - | cc:완료 |
+| 2.2 | **[BE]** 보호자 세션목록 API `GET /v1/guardians/me/sessions`(인력 `caregivers/me/sessions` 미러). 항목: session_id, domain, status, review_status, has_summary, recipient_name, scheduled_at | 본인 매칭 세션만(권한 스코프), 페이징, 타역할 403 | - | cc:완료 |
 | 2.3 | **[FE]** logs 목록 UI: 2.2 소비 → 세션별 일지 카드(상태: 작성중/검수중/도착), 도메인 배지, 빈상태 | matched 세션 렌더·`approved`만 "도착" 표기, 빈상태 정상, lint/type/build 통과 | 2.2 | cc:완료 |
 | 2.4 | **[FE]** 일지 상세 UI: `GET /v1/care-sessions/{id}/ai-summary` → guardian_version + categorized(meal/exercise/vital/mood) 카드. medical_version 미노출(INV-7), 미생성/미승인 안내 | 승인 일지 본문 표시, 권한외 404 처리, INV-6/7 준수 | 2.2, 2.3 | cc:완료 |
 | 2.5 | **[BE,opt]** `ProcessVoiceLogJob` 음성요약 완료 시 보호자 FCM(line84 TODO 구현) | 음성일지 처리완료 시 알림 1건 | - | cc:TODO |
-| 2.6 | **[QA]** E2E 스모크: 인력 checkout→일지생성→admin 승인→보호자 알림→보호자 열람(데모계정, mutating 최소) | 풀루프 1회 PASS 기록, 권한경계(타보호자 404) 확인 | 2.1, 2.3, 2.4 | cc:WIP |
-| 2.7 | **[BE]** 보안 게이트(패치중 발견): `getAiSummary`가 보호자에게 미검수 일지+`medical_version` 노출 → INV-6(approved만)·INV-7(medical 미노출) 백엔드 강제 | 보호자가 미승인 세션 ai-summary 호출 시 404, 응답에 medical_version 없음 | - | cc:TODO |
+| 2.6 | **[QA]** E2E 스모크: 인력 checkout→일지생성→admin 승인→보호자 알림→보호자 열람(데모계정, mutating 최소) | 풀루프 1회 PASS 기록, 권한경계(타보호자 404) 확인 | 2.1, 2.3, 2.4 | cc:완료 |
+| 2.7 | **[BE]** 보안 게이트(패치중 발견): `getAiSummary`가 보호자에게 미검수 일지+`medical_version` 노출 → INV-6(approved만)·INV-7(medical 미노출) 백엔드 강제 | 보호자가 미승인 세션 ai-summary 호출 시 404, 응답에 medical_version 없음 | - | cc:완료 |
+
+> **2026-06-15 배포·검증 완료(BE)**: 2.1·2.2·2.7 라이브 반영. 적용 중 **2.1/2.7이 한 번 되돌려진 사고**(`git checkout`로 미커밋 변경 유실 추정) → `carelog-2.1-2.7-redo.patch`로 재적용. E2E 스모크 **C1~C5 전부 PASS**(읽기+RUN_MUTATING 2런 합산): C1 세션목록 / C2 INV-7 medical 미노출(세션26) / C3 INV-6 미승인 404(세션25) / C4 INV-8 타보호자 403 / C5 승인→알림 0→1·재승인 무중복. **남은 것: FE(2.3/2.4) `careand-deploy member` 배포뿐.**
 
 > **BE 패치 초안 작성 완료(2026-06-14, `/home/claude2/careand-backend-patches/`)**: 2.1(승인→알림)·2.2(GuardianController `guardians/me/sessions` 신규)·2.7(getAiSummary 보호자 게이트). `APPLY.md`에 exact old→new 블록+적용/검증/롤백. GuardianController.php `php -l` 통과. careand-backend 읽기전용이라 **사용자가 적용 후 `careand-deploy backend`**.
 > **FE 2.3/2.4 구현 완료(2026-06-14, mock 선행)**: `lib/api/member.ts`(GuardianSession/AiSummary 타입 + guardianSessions/careSessionAiSummary), `lib/logs.ts`(상태배지/도메인/categorized 헬퍼 + mock), `app/(member)/logs/page.tsx`(목록 재작성), `app/(member)/logs/[id]/page.tsx`(상세 신규). lint/type-check/격리빌드 통과(`/logs`·`/logs/[id]` 컴파일). medical_version 미요청/미표시(INV-7), 미승인=백엔드 404 안내(INV-6). mock 미리보기=`NEXT_PUBLIC_ENABLE_LOG_MOCK=1`(라이브 기본 off).
