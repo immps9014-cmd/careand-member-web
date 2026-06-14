@@ -17,6 +17,29 @@ export interface GuardianRequest {
   category?: { id: number; name: string; base_rate: number };
 }
 
+/* ===== 보호자: 케어일지(AI) 수신·열람 — Phase 2 ===== */
+export interface GuardianSession {
+  id: number;
+  status: string; // scheduled|in_progress|completed|cancelled
+  review_status: string; // pending|approved|rejected (일지 검수 상태)
+  has_summary: boolean;
+  service_domain: string;
+  recipient_name: string;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  actual_start: string | null;
+  actual_end: string | null;
+  duration_min: number;
+}
+
+// 보호자에겐 medical_version 미노출(INV-7) — 의도적으로 타입에서 제외.
+export interface AiSummary {
+  guardian_version: string | null;
+  categorized: Record<string, unknown> | null; // meal/exercise/vital/mood ...
+  confidence: number | null;
+  generated_at: string;
+}
+
 export interface Candidate {
   id: number;
   rank: number;
@@ -245,6 +268,15 @@ export const memberApi = {
   async recommendedCaregivers(): Promise<RecommendedCaregiver[]> {
     const { data } = await api.get("/v1/caregivers/recommended");
     return data.data ?? [];
+  },
+  // 보호자 — 케어일지(AI) [Phase 2, BE 2.2/2.7 의존]
+  async guardianSessions(): Promise<GuardianSession[]> {
+    const { data } = await api.get("/v1/guardians/me/sessions");
+    return data.data ?? [];
+  },
+  async careSessionAiSummary(sessionId: number): Promise<AiSummary | null> {
+    const { data } = await api.get(`/v1/care-sessions/${sessionId}/ai-summary`);
+    return data.data ?? null;
   },
   async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
