@@ -171,6 +171,58 @@ function GFeed() {
   );
 }
 
+const REQ_ST: Record<string, { c: string; bg: string; l: string }> = {
+  open: { c: "#B8860B", bg: "#FFF6DD", l: "매칭중" },
+  matching: { c: "#B8860B", bg: "#FFF6DD", l: "매칭중" },
+  matched: { c: "#1F9D63", bg: "#E7F7EF", l: "매칭완료" },
+  cancelled: { c: INK3, bg: LINE, l: "취소" },
+  expired: { c: INK3, bg: LINE, l: "만료" },
+};
+
+function GMyRequests({ go }: { go: GNav }) {
+  const q = useQuery({
+    queryKey: ["member", "guardian", "requests"],
+    queryFn: () => memberApi.guardianRequests(),
+    retry: false,
+    staleTime: 30_000,
+  });
+  const list = q.data ?? [];
+  return (
+    <div style={{ padding: "22px 16px 0", background: BG }}>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>내 매칭 요청</div>
+        <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}건</span>
+      </div>
+      {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+      {!q.isLoading && list.length === 0 && (
+        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>진행 중인 매칭 요청이 없습니다</div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {list.map((r) => {
+          const st = REQ_ST[r.status];
+          const name = r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자";
+          const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "housekeeping" ? "가사" : null;
+          return (
+            <div key={r.id} onClick={() => go(`/request/${r.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "13px 15px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: INK }}>{name}</span>
+                  {dom && <span style={{ fontSize: 10, fontWeight: 700, color: "#3E72D6", background: "#EAF1FF", borderRadius: 6, padding: "2px 6px" }}>{dom}</span>}
+                  {st && <span style={{ fontSize: 10, fontWeight: 800, color: st.c, background: st.bg, borderRadius: 6, padding: "2px 7px" }}>{st.l}</span>}
+                </div>
+                <div style={{ fontSize: 11.5, color: INK2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {(r.category?.name ?? "돌봄")} · {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"}
+                </div>
+              </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function GuardianHome() {
   const router = useRouter();
   const go: GNav = (path) => { if (path) router.push(path); };
@@ -188,6 +240,7 @@ function GuardianHome() {
       <div style={{ background: "#fff", paddingBottom: 2 }}><GHero go={go} /><GPromo /></div>
       <GQuick go={go} />
       <GFeed />
+      <GMyRequests go={go} />
       <div style={{ height: 26 }} />
     </div>
   );
