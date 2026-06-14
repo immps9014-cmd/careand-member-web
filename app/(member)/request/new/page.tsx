@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -80,6 +80,13 @@ export default function NewRequestPage() {
     setDomain(d);
     setCategoryId(""); // 도메인별 카테고리가 다르므로 초기화
   }
+
+  // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
+  useEffect(() => {
+    const d = new URLSearchParams(window.location.search).get("domain");
+    if (d === "nursing" || d === "housekeeping") selectDomain(d);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const create = useMutation({
     mutationFn: () => {
