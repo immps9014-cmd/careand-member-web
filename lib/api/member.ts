@@ -194,6 +194,13 @@ export interface MySession {
   actual_start: string | null;
   actual_end: string | null;
   duration_min: number;
+  photo_required: boolean;
+}
+
+export interface Coords {
+  lat: number;
+  lng: number;
+  accuracy?: number;
 }
 
 export interface MemberSettlement {
@@ -301,8 +308,17 @@ export const memberApi = {
   },
   acceptMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/accept`),
   rejectMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/reject`),
-  checkin: (sessionId: number) => api.post(`/v1/care-sessions/${sessionId}/checkin`),
-  checkout: (sessionId: number) => api.post(`/v1/care-sessions/${sessionId}/checkout`),
+  checkin: (sessionId: number, coords: Coords) =>
+    api.post(`/v1/care-sessions/${sessionId}/checkin`, coords),
+  checkout: (sessionId: number, coords: Coords) =>
+    api.post(`/v1/care-sessions/${sessionId}/checkout`, coords),
+  uploadSessionPhoto: (sessionId: number, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return api.post(`/v1/care-sessions/${sessionId}/photos`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   async settlements(): Promise<MemberSettlement[]> {
     const { data } = await api.get("/v1/settlements");
     return data.data ?? [];
@@ -315,3 +331,34 @@ export const memberApi = {
   },
   markRead: (id: number) => api.post(`/v1/notifications/${id}/read`),
 };
+
+/**
+ * 디바이스 GPS 좌표를 받아온다(출/퇴근 체크용). HTTPS + 위치 권한 필요.
+ * 권한 거부/미지원/타임아웃 시 사용자용 한국어 메시지로 reject.
+ */
+export function getCurrentCoords(): Promise<Coords> {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      reject(new Error("이 기기에서는 위치 확인을 지원하지 않습니다."));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        }),
+      (err) => {
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용한 뒤 다시 시도해주세요."
+            : err.code === err.TIMEOUT
+              ? "현재 위치 확인이 지연되고 있습니다. GPS 신호가 좋은 곳에서 다시 시도해주세요."
+              : "현재 위치를 확인할 수 없습니다. GPS를 켜고 다시 시도해주세요.";
+        reject(new Error(msg));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}

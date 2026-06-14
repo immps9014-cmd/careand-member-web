@@ -1,14 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ChevronRight, Check, X, LogIn, LogOut, Plus, Clock, MapPin, Wallet, Sparkles } from "lucide-react";
+import { ChevronRight, Check, X, LogIn, LogOut, Plus, Clock, MapPin, Wallet, Sparkles, Camera } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
-import { memberApi } from "@/lib/api/member";
+import { memberApi, getCurrentCoords } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/utils";
 
@@ -101,6 +102,9 @@ function CaregiverHome() {
   const matches = useQuery({ queryKey: ["member", "cg", "matches"], queryFn: memberApi.myMatches });
   const sessions = useQuery({ queryKey: ["member", "cg", "sessions"], queryFn: memberApi.mySessions });
 
+  // 세션별 이번 진행 중 업로드한 완료 사진 수(클라이언트 측 추적)
+  const [photoCount, setPhotoCount] = useState<Record<number, number>>({});
+
   const accept = useMutation({
     mutationFn: (cid: number) => memberApi.acceptMatch(cid),
     onSuccess: () => { toast.success("수락했습니다."); qc.invalidateQueries({ queryKey: ["member", "cg"] }); },
@@ -112,13 +116,27 @@ function CaregiverHome() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
   const checkin = useMutation({
-    mutationFn: (sid: number) => memberApi.checkin(sid),
+    mutationFn: async (sid: number) => {
+      const coords = await getCurrentCoords();
+      return memberApi.checkin(sid, coords);
+    },
     onSuccess: () => { toast.success("출근 체크 완료"); qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] }); },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
   const checkout = useMutation({
-    mutationFn: (sid: number) => memberApi.checkout(sid),
+    mutationFn: async (sid: number) => {
+      const coords = await getCurrentCoords();
+      return memberApi.checkout(sid, coords);
+    },
     onSuccess: () => { toast.success("퇴근 체크 완료"); qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const uploadPhoto = useMutation({
+    mutationFn: ({ sid, file }: { sid: number; file: File }) => memberApi.uploadSessionPhoto(sid, file),
+    onSuccess: (_d, v) => {
+      toast.success("완료 사진이 등록되었습니다.");
+      setPhotoCount((p) => ({ ...p, [v.sid]: (p[v.sid] ?? 0) + 1 }));
+    },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
@@ -223,10 +241,43 @@ function CaregiverHome() {
                 </Button>
               )}
               {s.status === "in_progress" && (
-                <Button size="lg" variant="danger" className="w-full" disabled={checkout.isPending}
-                  onClick={() => checkout.mutate(s.id)}>
-                  <LogOut className="w-4 h-4" /> 퇴근 체크
-                </Button>
+                <div className="space-y-2">
+                  {s.photo_required && (
+                    <>
+                      <label className={`flex items-center justify-center gap-2 w-full h-11 rounded-md border text-sm font-semibold cursor-pointer transition-colors ${
+                        (photoCount[s.id] ?? 0) > 0
+                          ? "border-warm-200 text-warm-600 active:bg-warm-50"
+                          : "border-brand-300 text-brand-700 bg-brand-50 active:bg-brand-100"
+                      } ${uploadPhoto.isPending ? "opacity-60 pointer-events-none" : ""}`}>
+                        <Camera className="w-4 h-4" />
+                        {(photoCount[s.id] ?? 0) > 0
+                          ? `완료 사진 ${photoCount[s.id]}장 등록됨 · 추가 촬영`
+                          : "완료 사진 촬영 (필수)"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          disabled={uploadPhoto.isPending}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) uploadPhoto.mutate({ sid: s.id, file: f });
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+                      {(photoCount[s.id] ?? 0) === 0 && (
+                        <p className="text-[11px] text-warm-400 text-center">
+                          완료 사진을 1장 이상 등록해야 퇴근 체크가 완료됩니다
+                        </p>
+                      )}
+                    </>
+                  )}
+                  <Button size="lg" variant="danger" className="w-full" disabled={checkout.isPending}
+                    onClick={() => checkout.mutate(s.id)}>
+                    <LogOut className="w-4 h-4" /> 퇴근 체크
+                  </Button>
+                </div>
               )}
             </Card>
           );
