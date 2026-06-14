@@ -1,0 +1,8 @@
+{
+  "name": "careand-member-web",
+  "version": "0.1.0",
+  "description": "Care& 회원 웹 (보호자·요양보호사 모바일우선). Next.js 14 App Router + TS + Tailwind + TanStack Query. ※라이브 서비스 — 배포는 careand-deploy member(root)로만.",
+  "skills": [
+    "./skills/"
+  ]
+}

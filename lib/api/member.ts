@@ -203,6 +203,18 @@ export interface Coords {
   accuracy?: number;
 }
 
+export interface RecommendedCaregiver {
+  id: number;
+  name: string;
+  rating: string;
+  rating_count: number;
+  completed_sessions: number;
+  spec: string;
+  base_rate: number | null;
+  distance_km: number | null;
+  tag: string | null;
+}
+
 export interface MemberSettlement {
   id: number;
   period_start: string;
@@ -228,6 +240,10 @@ export const memberApi = {
   // 보호자 — 매칭
   async guardianRequests(status?: string): Promise<GuardianRequest[]> {
     const { data } = await api.get("/v1/matching/requests", { params: status ? { status } : {} });
+    return data.data ?? [];
+  },
+  async recommendedCaregivers(): Promise<RecommendedCaregiver[]> {
+    const { data } = await api.get("/v1/caregivers/recommended");
     return data.data ?? [];
   },
   async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null }> {

@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
-import { memberApi, getCurrentCoords } from "@/lib/api/member";
+import { memberApi, getCurrentCoords, type RecommendedCaregiver } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/utils";
 
@@ -127,45 +127,61 @@ function GStars({ n }: { n: string }) {
   return <span style={{ color: "#F2A900", fontSize: 11, fontWeight: 800 }}>★ {n}</span>;
 }
 
-interface GCgData { nm: string; av: string; fg: string; bg: string; rate: string; spec: string; dist: string; price: number; tag?: string }
+const FEED_PALETTE: { fg: string; bg: string }[] = [
+  { fg: "#1F9D63", bg: "#E7F7EF" },
+  { fg: "#7A5CE0", bg: "#F2ECFF" },
+  { fg: "#3E72D6", bg: "#EAF1FF" },
+  { fg: "#E07712", bg: "#FFF0E1" },
+  { fg: "#0E9C8A", bg: "#E7F4F2" },
+  { fg: "#D14A8E", bg: "#FDEBF3" },
+];
 
-function GCgCard({ c }: { c: GCgData }) {
+function GCgCard({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg: string }; go: GNav }) {
+  const display = c.name.replace(/^\[.*?\]\s*/, "");
+  const av = display.charAt(0) || "?";
+  const meta = [c.spec, c.distance_km != null ? `${c.distance_km}km` : null].filter(Boolean).join(" · ");
   return (
-    <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
-      <div style={{ height: 108, background: c.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: c.fg, boxShadow: "0 4px 12px rgba(0,0,0,.08)" }}>{c.av}</div>
+    <div onClick={() => go("/request/new")} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
+      <div style={{ height: 108, background: pal.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: pal.fg, boxShadow: "0 4px 12px rgba(0,0,0,.08)" }}>{av}</div>
         {c.tag && <span style={{ position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 800, color: "#fff", background: CORAL, borderRadius: 7, padding: "3px 8px" }}>{c.tag}</span>}
         <span style={{ position: "absolute", bottom: 9, right: 9, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={CORAL} strokeWidth="2"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /></svg></span>
       </div>
       <div style={{ padding: "10px 12px 12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13.5, fontWeight: 800, color: INK }}>{c.nm}</span><GStars n={c.rate} /></div>
-        <div style={{ fontSize: 11.5, color: INK2, marginTop: 4 }}>{c.spec} · {c.dist}</div>
-        <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 3 }}>
-          <span style={{ fontSize: 11, color: INK3, fontWeight: 600 }}>시간당</span>
-          <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{c.price.toLocaleString()}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>원~</span>
-        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13.5, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span><GStars n={c.rating} /></div>
+        <div style={{ fontSize: 11.5, color: INK2, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta}</div>
+        {c.base_rate != null && (
+          <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 3 }}>
+            <span style={{ fontSize: 11, color: INK3, fontWeight: 600 }}>시간당</span>
+            <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{c.base_rate.toLocaleString()}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>원~</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function GFeed() {
-  // ※ 추천 인력 목록 API 미구현 → 디자인 적용용 샘플. 추천 인력 엔드포인트 신설 시 연동 예정.
-  const list: GCgData[] = [
-    { nm: "곽지은", av: "곽", fg: "#1F9D63", bg: "#E7F7EF", rate: "4.9", spec: "시니어 돌봄 5년", dist: "2.1km", price: 15000, tag: "BEST" },
-    { nm: "한지숙", av: "한", fg: "#7A5CE0", bg: "#F2ECFF", rate: "4.8", spec: "요양보호사 1급", dist: "3.2km", price: 16000, tag: "인증" },
-    { nm: "인나영", av: "인", fg: "#3E72D6", bg: "#EAF1FF", rate: "5.0", spec: "간병 전문", dist: "1.4km", price: 18000 },
-    { nm: "서민정", av: "서", fg: "#E07712", bg: "#FFF0E1", rate: "4.7", spec: "가사·돌봄", dist: "2.8km", price: 14000 },
-  ];
+function GFeed({ go }: { go: GNav }) {
+  const q = useQuery({
+    queryKey: ["member", "guardian", "recommended"],
+    queryFn: memberApi.recommendedCaregivers,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const list = q.data ?? [];
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 추천 인력</div>
-        <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>전체 →</span>
+        <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
       </div>
+      {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+      {!q.isLoading && list.length === 0 && (
+        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 인력이 아직 없습니다</div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        {list.map((c) => <GCgCard key={c.nm} c={c} />)}
+        {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
       </div>
     </div>
   );
@@ -239,7 +255,7 @@ function GuardianHome() {
       <GTopBar go={go} unread={unread} />
       <div style={{ background: "#fff", paddingBottom: 2 }}><GHero go={go} /><GPromo /></div>
       <GQuick go={go} />
-      <GFeed />
+      <GFeed go={go} />
       <GMyRequests go={go} />
       <div style={{ height: 26 }} />
     </div>
