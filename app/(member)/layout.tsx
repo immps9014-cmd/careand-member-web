@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, FileText, Wallet, Bell, User, CalendarClock, HeartPulse, Stethoscope, MapPin } from "lucide-react";
+import { toast } from "sonner";
+import { Home, FileText, Wallet, Bell, User, CalendarClock } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { cn } from "@/lib/utils";
 
@@ -13,16 +14,6 @@ interface NavItem {
   icon: typeof Home;
 }
 
-const GUARDIAN_NAV: NavItem[] = [
-  { href: "/home", label: "홈", icon: Home },
-  { href: "/seniors", label: "어르신", icon: HeartPulse },
-  { href: "/patients", label: "환자", icon: Stethoscope },
-  { href: "/addresses", label: "주소", icon: MapPin },
-  { href: "/logs", label: "케어일지", icon: FileText },
-  { href: "/notifications", label: "알림", icon: Bell },
-  { href: "/mypage", label: "내정보", icon: User },
-];
-
 const CAREGIVER_NAV: NavItem[] = [
   { href: "/home", label: "홈", icon: Home },
   { href: "/schedule", label: "일정", icon: CalendarClock },
@@ -30,6 +21,43 @@ const CAREGIVER_NAV: NavItem[] = [
   { href: "/notifications", label: "알림", icon: Bell },
   { href: "/mypage", label: "내정보", icon: User },
 ];
+
+/* ===== 보호자 하단 탭 (코랄 · 5탭 + 중앙 매칭요청 FAB) ===== */
+const CORAL = "#FF5A4D", CORAL2 = "#FF8A3D", INK3 = "#9AA0AD", LINE = "#EFF1F4";
+
+function GuardianTab({ href, label, icon, active }: { href: string; label: string; icon: React.ReactNode; active: boolean }) {
+  return (
+    <Link href={href} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: active ? CORAL : INK3, textDecoration: "none" }}>
+      <div style={{ width: 24, height: 24 }}>{icon}</div>
+      <span style={{ fontSize: 10.5, fontWeight: active ? 800 : 600 }}>{label}</span>
+    </Link>
+  );
+}
+
+function GuardianTabBar({ pathname }: { pathname: string }) {
+  const is = (p: string) => pathname === p || pathname.startsWith(p + "/");
+  return (
+    <nav style={{ position: "fixed", bottom: 0, width: "100%", maxWidth: 480, background: "rgba(255,255,255,.96)", backdropFilter: "blur(10px)", borderTop: `1px solid ${LINE}`, paddingBottom: "calc(8px + var(--safe-bot,0px))", zIndex: 20 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", padding: "9px 8px 4px" }}>
+        <GuardianTab href="/home" label="홈" active={is("/home")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>} />
+        <GuardianTab href="/logs" label="케어일지" active={is("/logs")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h6M9 16h4" /></svg>} />
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <Link href="/request/new" style={{ transform: "translateY(-16px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none" }}>
+            <div style={{ width: 58, height: 58, borderRadius: "50%", background: `linear-gradient(140deg,${CORAL2},${CORAL})`, boxShadow: "0 8px 20px rgba(255,90,77,.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M12 5v14M5 12h14" /></svg>
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: CORAL }}>매칭요청</span>
+          </Link>
+        </div>
+        <button onClick={() => toast("관심 인력 기능은 준비 중입니다.")} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: INK3, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <div style={{ width: 24, height: 24 }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg></div>
+          <span style={{ fontSize: 10.5, fontWeight: 600 }}>관심 인력</span>
+        </button>
+        <GuardianTab href="/mypage" label="내 정보" active={is("/mypage")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c.7-3.6 3.4-5.6 7-5.6s6.3 2 7 5.6" /></svg>} />
+      </div>
+    </nav>
+  );
+}
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -48,8 +76,19 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     );
   }
 
-  const nav = user.role === "caregiver" ? CAREGIVER_NAV : GUARDIAN_NAV;
+  /* ===== 보호자: 새 코랄 디자인 셸 (상단바는 각 페이지가 보유) ===== */
+  if (user.role !== "caregiver") {
+    return (
+      <div className="min-h-screen flex justify-center" style={{ background: "#F6F7F9" }}>
+        <div className="w-full flex flex-col relative" style={{ maxWidth: 480, minHeight: "100vh", background: "#F6F7F9", boxShadow: "0 0 60px rgba(28,32,48,.08)" }}>
+          <main className="flex-1" style={{ paddingBottom: "calc(78px + var(--safe-bot,0px))" }}>{children}</main>
+          <GuardianTabBar pathname={pathname} />
+        </div>
+      </div>
+    );
+  }
 
+  /* ===== 요양보호사(케어플로우): 기존 레이아웃 보존 ===== */
   return (
     <div className="min-h-screen bg-warm-100 flex justify-center">
       <div className="w-full max-w-md bg-warm-50 min-h-screen flex flex-col relative shadow-xl">
@@ -61,7 +100,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
             </div>
             <span className="font-en font-extrabold text-warm-800">Care&</span>
             <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">
-              {user.role === "caregiver" ? "인력" : "보호자"}
+              인력
             </span>
           </div>
         </header>
@@ -71,7 +110,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
         {/* 하단 내비 */}
         <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-warm-100 flex">
-          {nav.map((item) => {
+          {CAREGIVER_NAV.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
             return (

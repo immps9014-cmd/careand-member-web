@@ -10,32 +10,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ===== Care& Brand · Purple Violet =====
+        // ===== Care& Brand · Coral =====
         brand: {
-          50: "#F5F3FF",
-          100: "#EDE9FE",
-          200: "#DDD6FE",
-          300: "#C4B5FD",
-          400: "#A78BFA",
-          500: "#7C3AED", // Primary
-          600: "#6D28D9",
-          700: "#5B21B6",
-          800: "#4C1D95",
-          900: "#2E1065",
-          DEFAULT: "#7C3AED",
+          50: "#FFF1EF",
+          100: "#FFE3DE",
+          200: "#FFC8C0",
+          300: "#FFA89D",
+          400: "#FF8175",
+          500: "#FF5A4D", // Primary
+          600: "#ED4133",
+          700: "#C72E22",
+          800: "#9E251B",
+          900: "#6E1812",
+          DEFAULT: "#FF5A4D",
         },
-        // ===== Care& Neutral (Slate) =====
+        // ===== Care& Neutral (Ink / cool gray) =====
         warm: {
-          50: "#F8FAFC",
-          100: "#F1F5F9",
-          200: "#E2E8F0",
-          300: "#CBD5E1",
-          400: "#94A3B8",
-          500: "#64748B",
-          600: "#475569",
-          700: "#334155",
-          800: "#1E293B",
-          900: "#0F172A",
+          50: "#F6F7F9",
+          100: "#EFF1F4",
+          200: "#E3E6EB",
+          300: "#CBD0D8",
+          400: "#9AA0AD",
+          500: "#5B6172",
+          600: "#434A5A",
+          700: "#2E3342",
+          800: "#1C2030",
+          900: "#0E111A",
         },
         // ===== Semantic =====
         danger: {
@@ -51,38 +51,38 @@ const config: Config = {
           bg: "#EFF6FF",
         },
         // ===== shadcn/ui 호환 =====
-        background: "#F8FAFC",
-        foreground: "#1E293B",
+        background: "#F6F7F9",
+        foreground: "#1C2030",
         primary: {
-          DEFAULT: "#7C3AED",
+          DEFAULT: "#FF5A4D",
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#1E293B",
+          DEFAULT: "#EFF1F4",
+          foreground: "#1C2030",
         },
         muted: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#64748B",
+          DEFAULT: "#EFF1F4",
+          foreground: "#5B6172",
         },
         accent: {
-          DEFAULT: "#EDE9FE",
-          foreground: "#5B21B6",
+          DEFAULT: "#FFE3DE",
+          foreground: "#C72E22",
         },
         destructive: {
           DEFAULT: "#EF4444",
           foreground: "#FFFFFF",
         },
-        border: "#E2E8F0",
-        input: "#E2E8F0",
-        ring: "#7C3AED",
+        border: "#E3E6EB",
+        input: "#E3E6EB",
+        ring: "#FF5A4D",
         card: {
           DEFAULT: "#FFFFFF",
-          foreground: "#1E293B",
+          foreground: "#1C2030",
         },
         popover: {
           DEFAULT: "#FFFFFF",
-          foreground: "#1E293B",
+          foreground: "#1C2030",
         },
       },
       fontFamily: {
@@ -113,10 +113,10 @@ const config: Config = {
         "2xl": "28px",
       },
       boxShadow: {
-        sm: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(124,58,237,0.04)",
-        card: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(124,58,237,0.06)",
-        md: "0 4px 16px rgba(124,58,237,0.10)",
-        lg: "0 12px 40px rgba(124,58,237,0.15)",
+        sm: "0 1px 3px rgba(28,32,48,0.04), 0 1px 2px rgba(28,32,48,0.04)",
+        card: "0 1px 3px rgba(28,32,48,0.04), 0 4px 16px rgba(28,32,48,0.06)",
+        md: "0 4px 16px rgba(255,90,77,0.10)",
+        lg: "0 12px 40px rgba(255,90,77,0.15)",
       },
       keyframes: {
         "fade-in": {
