@@ -19,10 +19,13 @@
 
 | Task | 내용 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| 1.1 | ESLint 베이스라인 설정(`next lint` 정상화, config 파일 커밋) | `npm run lint` 가 비대화형으로 exit 0/명확한 룰셋 | - | cc:TODO |
-| 1.2 | 타입체크 게이트 확인 | `npm run type-check`(tsc --noEmit) 에러 0 | - | cc:TODO |
-| 1.3 | 빌드 스모크 게이트 | `npm run build` 성공 + BUILD_ID 생성 | 1.1, 1.2 | cc:TODO |
-| 1.4 | API base 잔재 점검 | 빌드 산출물에 `localhost:8000` 미참조(INV-3) | 1.3 | cc:TODO |
+| 1.1 | ESLint 베이스라인 설정(`next lint` 정상화, config 파일 커밋) | `npm run lint` 가 비대화형으로 exit 0/명확한 룰셋 | - | cc:완료 |
+| 1.2 | 타입체크 게이트 확인 | `npm run type-check`(tsc --noEmit) 에러 0 | - | cc:완료 |
+| 1.3 | 빌드 스모크 게이트 | `npm run build` 성공 + BUILD_ID 생성 | 1.1, 1.2 | cc:완료 |
+| 1.4 | API base 잔재 점검 | 빌드 산출물에 `localhost:8000` 미참조(INV-3) | 1.3 | cc:완료 |
+
+> 2026-06-14 결과: 1.2 통과(에러0) · 1.1 통과(eslint v9↔Next14 비호환 발견 → **eslint를 ^8.57.1로 핀**, `.eslintrc.json` 추가, lint 스크립트 `next lint` 유지) · 1.3 격리빌드 19라우트 컴파일 성공(라이브 .next 무영향) · 1.4 localhost:8000 0건.
+> ⚠️ 변경분(package.json/package-lock/.eslintrc.json)은 **review 후 `careand-deploy member`(root)로 반영** 필요.
 
 ## Phase 2: 기능 계획 (placeholder)
 
