@@ -116,11 +116,11 @@ export default function SeniorDetailPage({ params }: { params: Promise<{ id: str
           {vitals.data && (
             <div className="grid grid-cols-3 gap-2 mb-5">
               <VitalStat icon={<Activity className="w-4 h-4" />} label="평균 혈압"
-                value={vitals.data.summary.avg_bp_sys ? `${Math.round(vitals.data.summary.avg_bp_sys)}/${Math.round(vitals.data.summary.avg_bp_dia)}` : "-"} unit="mmHg" />
+                value={vitals.data.summary?.avg_bp_sys ? `${Math.round(vitals.data.summary.avg_bp_sys)}/${Math.round(vitals.data.summary.avg_bp_dia)}` : "-"} unit="mmHg" />
               <VitalStat icon={<Droplet className="w-4 h-4" />} label="평균 혈당"
-                value={vitals.data.summary.avg_blood_sugar ? Math.round(vitals.data.summary.avg_blood_sugar).toString() : "-"} unit="mg/dL" />
+                value={vitals.data.summary?.avg_blood_sugar ? Math.round(vitals.data.summary.avg_blood_sugar).toString() : "-"} unit="mg/dL" />
               <VitalStat icon={<Heart className="w-4 h-4" />} label="평균 심박"
-                value={vitals.data.summary.avg_heart_rate ? Math.round(vitals.data.summary.avg_heart_rate).toString() : "-"} unit="bpm" />
+                value={vitals.data.summary?.avg_heart_rate ? Math.round(vitals.data.summary.avg_heart_rate).toString() : "-"} unit="bpm" />
             </div>
           )}
 

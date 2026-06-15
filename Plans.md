@@ -43,6 +43,7 @@
 | 2.6 | **[QA]** E2E 스모크: 인력 checkout→일지생성→admin 승인→보호자 알림→보호자 열람(데모계정, mutating 최소) | 풀루프 1회 PASS 기록, 권한경계(타보호자 404) 확인 | 2.1, 2.3, 2.4 | cc:완료 |
 | 2.7 | **[BE]** 보안 게이트(패치중 발견): `getAiSummary`가 보호자에게 미검수 일지+`medical_version` 노출 → INV-6(approved만)·INV-7(medical 미노출) 백엔드 강제 | 보호자가 미승인 세션 ai-summary 호출 시 404, 응답에 medical_version 없음 | - | cc:완료 |
 
+> **2026-06-15 Phase 2 end-to-end 라이브 완성**: BE(2.1/2.2/2.7) + FE(2.3/2.4 `careand-deploy member`, BUILD_ID GczOk…, 실데이터 모드) 전부 배포. 보호자 앱 `/app/logs` 200, smoke C1~C5 PASS. (잔여 minor: mock dead-code가 번들에 남음=무해, 추후 정리 가능. 2.5 음성FCM=opt 미구현.)
 > **2026-06-15 배포·검증 완료(BE)**: 2.1·2.2·2.7 라이브 반영. 적용 중 **2.1/2.7이 한 번 되돌려진 사고**(`git checkout`로 미커밋 변경 유실 추정) → `carelog-2.1-2.7-redo.patch`로 재적용. E2E 스모크 **C1~C5 전부 PASS**(읽기+RUN_MUTATING 2런 합산): C1 세션목록 / C2 INV-7 medical 미노출(세션26) / C3 INV-6 미승인 404(세션25) / C4 INV-8 타보호자 403 / C5 승인→알림 0→1·재승인 무중복. **남은 것: FE(2.3/2.4) `careand-deploy member` 배포뿐.**
 
 > **BE 패치 초안 작성 완료(2026-06-14, `/home/claude2/careand-backend-patches/`)**: 2.1(승인→알림)·2.2(GuardianController `guardians/me/sessions` 신규)·2.7(getAiSummary 보호자 게이트). `APPLY.md`에 exact old→new 블록+적용/검증/롤백. GuardianController.php `php -l` 통과. careand-backend 읽기전용이라 **사용자가 적용 후 `careand-deploy backend`**.

@@ -332,9 +332,10 @@ export const memberApi = {
   updateAddress: (id: number, payload: Partial<CreateAddressPayload>) =>
     api.patch(`/v1/housekeeping/addresses/${id}`, payload),
   deleteAddress: (id: number) => api.delete(`/v1/housekeeping/addresses/${id}`),
-  async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary; data: VitalRecord[] }> {
+  async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary | null; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
-    return { summary: data.summary, data: data.data ?? [] };
+    // 측정 이력이 없는(신규) 어르신은 백엔드가 summary: null을 줄 수 있음 → 명시적 null 폴백
+    return { summary: data.summary ?? null, data: data.data ?? [] };
   },
   async healthTimeseries(seniorId: number, metric: string, days = 14): Promise<TimeseriesPoint[]> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/health-timeseries`, { params: { metric, days } });
