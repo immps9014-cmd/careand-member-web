@@ -18,7 +18,9 @@ export default function NewSeniorPage() {
   const qc = useQueryClient();
 
   const [name, setName] = useState("");
-  const [birth, setBirth] = useState("");
+  const [birthY, setBirthY] = useState<number | "">("");
+  const [birthM, setBirthM] = useState<number | "">("");
+  const [birthD, setBirthD] = useState<number | "">("");
   const [gender, setGender] = useState<"M" | "F">("F");
   const [grade, setGrade] = useState<number | "">("");
   const [gradeNo, setGradeNo] = useState("");
@@ -41,6 +43,34 @@ export default function NewSeniorPage() {
   }
 
   const fullAddress = [baseAddress, detailAddress.trim()].filter(Boolean).join(" ");
+
+  // 생년월일: 년/월/일 드롭다운 → "YYYY-MM-DD". 어르신 생년월일을 연도부터 바로 선택.
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1920 + 1 }, (_, i) => 1920 + i); // 1920~올해(오름차순)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const daysInBirthMonth =
+    birthY !== "" && birthM !== "" ? new Date(birthY, birthM, 0).getDate() : 31;
+  const days = Array.from({ length: daysInBirthMonth }, (_, i) => i + 1);
+  const birth =
+    birthY !== "" && birthM !== "" && birthD !== ""
+      ? `${birthY}-${String(birthM).padStart(2, "0")}-${String(birthD).padStart(2, "0")}`
+      : "";
+
+  // 년/월 변경 시 선택된 일이 그 달의 마지막 날을 넘으면 초기화(예: 2/30 방지)
+  function handleBirthYear(v: string) {
+    const y = v ? Number(v) : "";
+    setBirthY(y);
+    if (y !== "" && birthM !== "" && birthD !== "" && birthD > new Date(y, birthM, 0).getDate()) {
+      setBirthD("");
+    }
+  }
+  function handleBirthMonth(v: string) {
+    const m = v ? Number(v) : "";
+    setBirthM(m);
+    if (birthY !== "" && m !== "" && birthD !== "" && birthD > new Date(birthY, m, 0).getDate()) {
+      setBirthD("");
+    }
+  }
 
   const create = useMutation({
     mutationFn: () =>
@@ -84,7 +114,38 @@ export default function NewSeniorPage() {
 
         <div>
           <label className="block text-xs font-semibold text-warm-600 mb-1.5">생년월일</label>
-          <Input type="date" value={birth} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setBirth(e.target.value)} />
+          <div className="grid grid-cols-3 gap-2">
+            <select
+              value={birthY}
+              onChange={(e) => handleBirthYear(e.target.value)}
+              className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
+            >
+              <option value="">년도</option>
+              {years.map((y) => (
+                <option key={y} value={y}>{y}년</option>
+              ))}
+            </select>
+            <select
+              value={birthM}
+              onChange={(e) => handleBirthMonth(e.target.value)}
+              className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
+            >
+              <option value="">월</option>
+              {months.map((m) => (
+                <option key={m} value={m}>{m}월</option>
+              ))}
+            </select>
+            <select
+              value={birthD}
+              onChange={(e) => setBirthD(e.target.value ? Number(e.target.value) : "")}
+              className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
+            >
+              <option value="">일</option>
+              {days.map((d) => (
+                <option key={d} value={d}>{d}일</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>

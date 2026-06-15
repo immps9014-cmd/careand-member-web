@@ -35,7 +35,9 @@
     ".next/types/**/*.ts",
     ".next.verify-seniorfix/types/**/*.ts",
     ".next.verify-useparams/types/**/*.ts",
-    ".next.verify-cta/types/**/*.ts"
+    ".next.verify-cta/types/**/*.ts",
+    ".next.verify-birth/types/**/*.ts",
+    ".next.verify-pbirth/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
