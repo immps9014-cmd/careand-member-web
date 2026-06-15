@@ -472,22 +472,18 @@ export default function NewRequestPage() {
             요청을 보내면 AI가 잘 맞는 후보 <b className="text-warm-600">3~5명</b>을 빠르게 추천해 드려요.
           </span>
         </div>
-      </div>
 
-      {/* 하단 고정 CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-warm-200/70 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-        <div className="mx-auto max-w-screen-sm px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <Button
-            variant="brand"
-            size="lg"
-            className="w-full rounded-2xl shadow-md"
-            disabled={!valid || create.isPending}
-            onClick={() => create.mutate()}
-          >
-            <Sparkle className="h-[18px] w-[18px]" />
-            {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
-          </Button>
-        </div>
+        {/* 제출 CTA — 본문 끝 인라인(하단 GuardianTabBar z-20과 겹치지 않도록 고정배치 대신) */}
+        <Button
+          variant="brand"
+          size="lg"
+          className="mt-5 w-full rounded-2xl shadow-md"
+          disabled={!valid || create.isPending}
+          onClick={() => create.mutate()}
+        >
+          <Sparkle className="h-[18px] w-[18px]" />
+          {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
+        </Button>
       </div>
     </div>
   );
