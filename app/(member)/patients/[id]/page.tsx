@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,8 +10,8 @@ import { memberApi, type CreatePatientPayload } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { PatientForm } from "../patient-form";
 
-export default function PatientEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function PatientEditPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const patientId = Number(id);
   const router = useRouter();
   const qc = useQueryClient();

@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,8 +10,8 @@ import { memberApi, type CreateAddressPayload } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { AddressForm } from "../address-form";
 
-export default function AddressEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AddressEditPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const addressId = Number(id);
   const router = useRouter();
   const qc = useQueryClient();

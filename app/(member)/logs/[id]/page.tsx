@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, FileText, Utensils, Activity, HeartPulse, Smile, Sparkles } from "lucide-react";
@@ -23,8 +22,8 @@ const CATEGORY_ICON: Record<string, typeof Utensils> = {
  * INV-7: medical_version 은 요청/표시하지 않음(백엔드도 보호자에겐 미전송).
  * INV-6: 미승인 일지는 백엔드가 404(SUMMARY_NOT_APPROVED) → 안내 표시.
  */
-export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function LogDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const sessionId = Number(id);
   const validId = Number.isInteger(sessionId) && sessionId > 0;
   const router = useRouter();
