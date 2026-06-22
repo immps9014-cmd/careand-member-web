@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera } from "lucide-react";
+import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -170,19 +170,25 @@ function GFeed({ go }: { go: GNav }) {
     staleTime: 60_000,
   });
   const list = q.data ?? [];
+  const [open, setOpen] = useState(true);
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
+      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 추천 인력</div>
         <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
-      </div>
-      {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
-      {!q.isLoading && list.length === 0 && (
-        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 인력이 아직 없습니다</div>
+        <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+      {open && (
+        <>
+          {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+          {!q.isLoading && list.length === 0 && (
+            <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 인력이 아직 없습니다</div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
+          </div>
+        </>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
-      </div>
     </div>
   );
 }
@@ -203,12 +209,16 @@ function GMyRequests({ go }: { go: GNav }) {
     staleTime: 30_000,
   });
   const list = q.data ?? [];
+  const [open, setOpen] = useState(true);
   return (
     <div style={{ padding: "22px 16px 0", background: BG }}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
+      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>내 매칭 요청</div>
         <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}건</span>
-      </div>
+        <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+      {open && (
+        <>
       {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
       {!q.isLoading && list.length === 0 && (
         <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>진행 중인 매칭 요청이 없습니다</div>
@@ -235,6 +245,8 @@ function GMyRequests({ go }: { go: GNav }) {
           );
         })}
       </div>
+        </>
+      )}
     </div>
   );
 }
