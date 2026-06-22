@@ -27,7 +27,10 @@ export default function HomePage() {
 const CORAL = "#FF5A4D", CORAL2 = "#FF8A3D", INK = "#1C2030", INK2 = "#5B6172", INK3 = "#9AA0AD", LINE = "#EFF1F4", BG = "#F6F7F9";
 type GNav = (path: string | null) => void;
 
+const ROLE_KO: Record<string, string> = { guardian: "보호자", caregiver: "인력", organization: "기관", admin: "관리자" };
+
 function GTopBar({ go, unread }: { go: GNav; unread: number }) {
+  const user = useAuth((s) => s.user);
   return (
     <div style={{ background: "#fff", padding: "calc(10px + var(--safe-top,0px)) 16px 10px", position: "sticky", top: 0, zIndex: 10 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
@@ -41,6 +44,10 @@ function GTopBar({ go, unread }: { go: GNav; unread: number }) {
           {unread > 0 && (
             <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: CORAL, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
           )}
+        </div>
+        <div onClick={() => go("/mypage")} style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: INK3 }}>{ROLE_KO[user?.role ?? "guardian"] ?? "회원"}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
         </div>
       </div>
       <div style={{ display: "flex", gap: 16, marginTop: 14 }}>
@@ -283,6 +290,8 @@ const SESSION_STATUS: Record<string, { variant: "success" | "outline" | "warn"; 
 
 function CaregiverHome() {
   const qc = useQueryClient();
+  const router = useRouter();
+  const user = useAuth((s) => s.user);
   const matches = useQuery({ queryKey: ["member", "cg", "matches"], queryFn: memberApi.myMatches });
   const sessions = useQuery({ queryKey: ["member", "cg", "sessions"], queryFn: memberApi.mySessions });
 
@@ -328,7 +337,13 @@ function CaregiverHome() {
 
   return (
     <div className="p-5">
-      <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">오늘의 케어</h1>
+      <div className="flex items-start justify-between">
+        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">오늘의 케어</h1>
+        <div onClick={() => router.push("/mypage")} className="flex flex-col items-end leading-tight cursor-pointer">
+          <span className="text-[10px] font-bold text-warm-400">{ROLE_KO[user?.role ?? "caregiver"] ?? "인력"}</span>
+          <span className="text-[13px] font-extrabold text-warm-800 max-w-[90px] truncate">{user?.name ?? ""}</span>
+        </div>
+      </div>
       <p className="text-sm text-warm-500 mt-1 mb-5">수락 대기 {pending.length}건 · 케어 플로우</p>
 
       {/* 매칭 알림 (수락 대기) */}
