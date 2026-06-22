@@ -2,6 +2,7 @@
   "name": "Care& 통합돌봄",
   "short_name": "Care&",
   "description": "AI 기반 통합돌봄 서비스",
+  "id": "/app/",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",

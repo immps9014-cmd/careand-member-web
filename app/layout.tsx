@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   },
   description: "AI 기반 통합돌봄 서비스 - 보호자·인력 회원 앱",
   applicationName: "Care&",
-  manifest: "/app/manifest.webmanifest",
+  // manifest는 <head>에 raw <link>로 직접 주입 — Next가 자동으로 붙이는
+  // crossorigin="use-credentials"가 일부 Android Chrome에서 manifest 인식을
+  // 방해하는 이슈를 회피하기 위함.
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -41,6 +43,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="manifest" href="/app/manifest.webmanifest" />
+      </head>
       <body>
         <Providers>
           {children}
