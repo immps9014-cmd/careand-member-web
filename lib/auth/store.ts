@@ -46,7 +46,7 @@ export const authStore = create<AuthState>()(
         }),
     }),
     {
-      name: "careand-admin-auth",
+      name: "careand-member-auth",
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
