@@ -5,19 +5,18 @@ import { LogOut, Mail, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/store";
 import { authApi } from "@/lib/api/auth";
-
-const ROLE_LABEL: Record<string, string> = {
-  guardian: "보호자",
-  caregiver: "인력",
-  organization: "기관",
-  admin: "관리자",
-};
+import { memberApi } from "@/lib/api/member";
+import { caregiverRoleLabel } from "@/lib/caregiverType";
+import { roleLabel } from "@/lib/role";
 
 export default function MyPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const isCaregiver = user?.role === "caregiver";
+  const cg = useQuery({ queryKey: ["mypage", "caregiver"], queryFn: memberApi.myCaregiver, enabled: isCaregiver, retry: false });
 
   async function handleLogout() {
     await authApi.logout();
@@ -36,7 +35,7 @@ export default function MyPage() {
           </div>
           <div>
             <div className="font-bold text-warm-800 text-lg">{user?.name}</div>
-            <Badge variant="success">{ROLE_LABEL[user?.role ?? ""] ?? user?.role}</Badge>
+            <Badge variant="success">{isCaregiver ? caregiverRoleLabel(cg.data?.service_domains) : roleLabel(user?.role)}</Badge>
           </div>
         </div>
 

@@ -18,8 +18,10 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
 
   setUser: (user: User) => void;
+  setHasHydrated: (v: boolean) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
@@ -31,8 +33,10 @@ export const authStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      hasHydrated: false,
 
       setUser: (user) => set({ user, isAuthenticated: true }),
+      setHasHydrated: (v) => set({ hasHydrated: v }),
 
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken, isAuthenticated: true }),
@@ -53,6 +57,10 @@ export const authStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // persist 복원 완료 후에만 인증 판정을 하도록 플래그 세팅
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

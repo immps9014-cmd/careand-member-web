@@ -53,7 +53,7 @@ export function AddressForm({
   function handleSubmit() {
     onSubmit({
       label: label.trim(),
-      // 좌표는 서버가 주소로 자동 지오코딩 (인력 체크인 검증용)
+      // 좌표는 서버가 주소로 자동 지오코딩 (돌봄전문가 체크인 검증용)
       address: fullAddress,
       dwelling_type: dwelling,
       size_m2: sizeM2 === "" ? undefined : Number(sizeM2),
@@ -145,7 +145,7 @@ export function AddressForm({
           onChange={(e) => setEntryNote(e.target.value)}
           rows={3}
           maxLength={500}
-          placeholder="공동현관 비밀번호, 주차 안내 등 (확정된 인력에게만 전달됩니다)"
+          placeholder="공동현관 비밀번호, 주차 안내 등 (확정된 돌봄전문가에게만 전달됩니다)"
           className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus:outline-none focus:border-brand-500 resize-none"
         />
       </div>

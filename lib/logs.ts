@@ -1,16 +1,9 @@
 // 보호자 케어일지(AI) UI 공유 헬퍼 — Phase 2 (2.3 목록 / 2.4 상세)
 import type { GuardianSession, AiSummary } from "@/lib/api/member";
+import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 /** mock 미리보기 토글: NEXT_PUBLIC_ENABLE_LOG_MOCK=1 일 때만 mock 사용(라이브 기본 off). */
 export const LOG_MOCK_ENABLED = process.env.NEXT_PUBLIC_ENABLE_LOG_MOCK === "1";
-
-const DOMAIN_LABEL: Record<string, string> = {
-  senior: "시니어 돌봄",
-  nursing: "간병",
-  housekeeping: "가사",
-  postpartum: "산후",
-  companion: "병원동행",
-};
 
 export function domainLabel(domain: string): string {
   return DOMAIN_LABEL[domain] ?? "돌봄";

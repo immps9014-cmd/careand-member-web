@@ -37,7 +37,7 @@ const MAIN_NAV: NavItem[] = [
 ];
 
 const OPS_NAV: NavItem[] = [
-  { href: "/caregiver-approval", label: "인력 자격검증", icon: ShieldCheck },
+  { href: "/caregiver-approval", label: "돌봄전문가 자격검증", icon: ShieldCheck },
   { href: "/contracts", label: "계약·일정", icon: CalendarClock },
   { href: "/care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
   { href: "/announcements", label: "공지·푸시", icon: Megaphone },

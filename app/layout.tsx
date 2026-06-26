@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "Care&",
     template: "%s · Care&",
   },
-  description: "AI 기반 통합돌봄 서비스 - 보호자·인력 회원 앱",
+  description: "AI 기반 통합돌봄 서비스 - 보호자·돌봄전문가 회원 앱",
   applicationName: "Care&",
   // manifest는 <head>에 raw <link>로 직접 주입 — Next가 자동으로 붙이는
   // crossorigin="use-credentials"가 일부 Android Chrome에서 manifest 인식을
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FF5A4D",
+  themeColor: "#10B981",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/store";
 
 const MODES = [
   { key: "normal", label: "일반" },
@@ -30,7 +31,7 @@ const MODES = [
 type Domain = "senior" | "nursing" | "housekeeping";
 
 const DOMAINS: { key: Domain; label: string; desc: string; icon: typeof HeartPulse }[] = [
-  { key: "senior", label: "시니어 돌봄", desc: "어르신 방문", icon: HeartPulse },
+  { key: "senior", label: "요양보호", desc: "어르신 방문", icon: HeartPulse },
   { key: "nursing", label: "병원 간병", desc: "입원 환자", icon: Stethoscope },
   { key: "housekeeping", label: "가사 서비스", desc: "청소·정리", icon: Sparkles },
 ];
@@ -42,6 +43,9 @@ const SELECT_CLASS =
 export default function NewRequestPage() {
   const router = useRouter();
   const [domain, setDomain] = useState<Domain>("senior");
+  // 병원 간병(nursing)은 기관(organization) 발주 전용 → 보호자에게는 도메인 자체를 숨김
+  const role = useAuth((s) => s.user?.role);
+  const availableDomains = DOMAINS.filter((d) => d.key !== "nursing" || role !== "guardian");
 
   // 시니어 플로우 상태 (기존 동작 유지)
   const [seniorId, setSeniorId] = useState<number | "">("");
@@ -84,9 +88,9 @@ export default function NewRequestPage() {
   // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
   useEffect(() => {
     const d = new URLSearchParams(window.location.search).get("domain");
-    if (d === "nursing" || d === "housekeeping") selectDomain(d);
+    if ((d === "nursing" || d === "housekeeping") && availableDomains.some((x) => x.key === d)) selectDomain(d);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [role]);
 
   const create = useMutation({
     mutationFn: () => {
@@ -142,6 +146,7 @@ export default function NewRequestPage() {
         ? addressId && categoryId && start && duration >= 60 && duration <= 720
         : seniorId && categoryId && start && duration >= 60;
 
+  const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "housekeeping" && addresses.isSuccess && addresses.data.length === 0;
   const noCategories = categories.isSuccess && categories.data.length === 0;
@@ -174,13 +179,13 @@ export default function NewRequestPage() {
         </button>
         <h1 className="text-2xl font-extrabold tracking-tight text-warm-800">새 매칭 요청</h1>
         <p className="text-sm text-warm-500 mt-1.5 leading-relaxed">
-          돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 인력을 찾아 드려요.
+          돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 돌봄전문가를 찾아 드려요.
         </p>
 
         {/* 1단계: 서비스 종류(도메인) 선택 */}
         <label className={SECTION_LABEL + " mt-5"}>어떤 서비스가 필요하세요?</label>
-        <div className="grid grid-cols-3 gap-2.5">
-          {DOMAINS.map((d) => {
+        <div className={`grid gap-2.5 ${availableDomains.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+          {availableDomains.map((d) => {
             const Icon = d.icon;
             const active = domain === d.key;
             return (
@@ -220,18 +225,29 @@ export default function NewRequestPage() {
           {domain === "senior" && (
             <div>
               <label className={SECTION_LABEL}>돌봄 대상</label>
-              <select
-                value={seniorId}
-                onChange={(e) => setSeniorId(e.target.value ? Number(e.target.value) : "")}
-                className={SELECT_CLASS}
-              >
-                <option value="">대상자를 선택하세요</option>
-                {seniors.data?.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} {s.age ? `(${s.age}세)` : ""}
-                  </option>
-                ))}
-              </select>
+              {noSeniors ? (
+                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
+                  <p className="text-xs text-warm-500 mb-2.5">등록된 어르신이 없습니다. 먼저 어르신을 등록해주세요.</p>
+                  <Link href="/seniors/new">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Plus className="w-4 h-4" /> 어르신 등록하러 가기
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <select
+                  value={seniorId}
+                  onChange={(e) => setSeniorId(e.target.value ? Number(e.target.value) : "")}
+                  className={SELECT_CLASS}
+                >
+                  <option value="">대상자를 선택하세요</option>
+                  {seniors.data?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} {s.age ? `(${s.age}세)` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
 

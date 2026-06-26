@@ -1,94 +1,105 @@
 "use client";
+import { DOMAIN_LABEL as DOMAIN, caregiverUi, caregiverPrimaryDomain } from "@/lib/caregiverType";
+import { roleLabel } from "@/lib/role";
+import { UI } from "@/lib/theme";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown } from "lucide-react";
+import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown, ShieldCheck, XCircle, Phone, ClipboardList, Users, Search, ChevronRight, HeartPulse, Stethoscope } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
-import { memberApi, getCurrentCoords, type RecommendedCaregiver } from "@/lib/api/member";
+import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile } from "@/lib/api/member";
+import { organizationApi } from "@/lib/api/organization";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { formatDateTime } from "@/lib/utils";
-
-const DOMAIN: Record<string, string> = {
-  senior: "시니어", postpartum: "산후", nursing: "간병", care: "간병", companion: "동행", housekeeping: "가사",
-};
+import { formatDateTime, formatKRW } from "@/lib/utils";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
   if (user?.role === "caregiver") return <CaregiverHome />;
+  if (user?.role === "organization") return <OrgHome />;
   return <GuardianHome />;
 }
 
-/* ============ 보호자 홈 (코랄 디자인) ============ */
-const CORAL = "#FF5A4D", CORAL2 = "#FF8A3D", INK = "#1C2030", INK2 = "#5B6172", INK3 = "#9AA0AD", LINE = "#EFF1F4", BG = "#F6F7F9";
+/* ============ 보호자 홈 ============ */
+// 디자인 토큰 SSOT 참조 (값은 lib/theme.ts). ACCENT=brand-500, ACCENT_SOFT=brand-400, INK/INK2/INK3=warm, LINE/BG=warm.
+const ACCENT = UI.accent, ACCENT_SOFT = UI.accentSoft, INK = UI.ink, INK2 = UI.ink2, INK3 = UI.ink3, LINE = UI.line, BG = UI.bg;
 type GNav = (path: string | null) => void;
 
-const ROLE_KO: Record<string, string> = { guardian: "보호자", caregiver: "인력", organization: "기관", admin: "관리자" };
-
-function GTopBar({ go, unread }: { go: GNav; unread: number }) {
+function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "어떤 돌봄이 필요하세요?" }: { go: GNav; unread: number; searchTo?: string; searchPlaceholder?: string }) {
   const user = useAuth((s) => s.user);
   return (
-    <div style={{ background: "#fff", padding: "calc(10px + var(--safe-top,0px)) 16px 10px", position: "sticky", top: 0, zIndex: 10 }}>
+    <div style={{ background: "#fff", padding: "calc(12px + var(--safe-top,0px)) 16px 12px", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${LINE}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-        <div style={{ fontSize: 23, fontWeight: 900, letterSpacing: "-.03em", color: CORAL, fontStyle: "italic" }}>Care&amp;</div>
-        <div onClick={() => go("/request/new")} style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${CORAL}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={CORAL} strokeWidth="2.6"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-          <span style={{ fontSize: 13, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>어떤 돌봄이 필요하세요?</span>
+        <div style={{ fontSize: 23, fontWeight: 900, letterSpacing: "-.03em", color: ACCENT, fontStyle: "italic" }}>Care&amp;</div>
+        <div onClick={() => go(searchTo)} style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2.6"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+          <span style={{ fontSize: 13, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{searchPlaceholder}</span>
         </div>
         <div onClick={() => go("/notifications")} style={{ position: "relative", cursor: "pointer" }}>
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.9"><path d="M5 7h14l-1.2 10.5a2 2 0 01-2 1.8H8.2a2 2 0 01-2-1.8z" /><path d="M9 7a3 3 0 016 0" /></svg>
           {unread > 0 && (
-            <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: CORAL, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
+            <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: ACCENT, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
           )}
         </div>
         <div onClick={() => go("/mypage")} style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: INK3 }}>{ROLE_KO[user?.role ?? "guardian"] ?? "회원"}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: INK3 }}>{roleLabel(user?.role)}</span>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 16, marginTop: 14 }}>
-        {([["홈", true], ["실시간 케어", false], ["건강관리", false], ["생활돌봄", false]] as [string, boolean][]).map(([t, on]) => (
-          <div key={t} style={{ position: "relative", paddingBottom: 8, whiteSpace: "nowrap" }}>
-            <span style={{ fontSize: 15, fontWeight: on ? 800 : 600, color: on ? INK : INK3 }}>{t}</span>
-            {on && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 3, borderRadius: 3, background: CORAL }} />}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
-function GHero({ go }: { go: GNav }) {
+/* 핵심 CTA — 새 돌봄 요청(실제 동작) */
+function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
   return (
-    <div style={{ padding: "14px 16px 0" }}>
-      <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "22px 20px", minHeight: 158 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>우리 어르신께 꼭 맞는 돌봄</div>
-        <div style={{ fontSize: 23, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.28, marginTop: 7 }}>안심부터 정성까지,<br /><span style={{ color: "#0E6B43" }}>첫 방문 케어 특가</span></div>
-        <button onClick={() => go("/request/new")} style={{ marginTop: 14, height: 34, padding: "0 16px", borderRadius: 18, border: "none", background: "#0E6B43", color: "#fff", fontSize: 12.5, fontWeight: 800, cursor: "pointer" }}>지금 매칭받기 →</button>
-        <div style={{ position: "absolute", right: 14, top: 24, width: 96, height: 96, borderRadius: "50%", background: "rgba(255,255,255,.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
+    <div style={{ padding: "16px 16px 4px" }}>
+      {noSeniors && (
+        <div
+          onClick={() => go("/seniors/new")}
+          style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12, padding: "12px 14px", borderRadius: 14, background: "#FFECEC", border: "1px solid rgba(224,72,78,.3)", cursor: "pointer" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘우리 어르신’ 정보를 입력하세요</div>
+            <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>어르신을 등록해야 돌봄을 요청할 수 있어요</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
         </div>
-        <div style={{ position: "absolute", right: 16, bottom: 14, background: "rgba(20,40,30,.5)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 14, padding: "3px 10px" }}>2 / 8</div>
+      )}
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>우리 어르신께 꼭 맞는 돌봄</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
+        <button onClick={() => go("/request/new")} style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: "#0E6B43", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(14,107,67,.28)" }}>
+          새 돌봄 요청하기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
+        </div>
       </div>
     </div>
   );
 }
 
-function GPromo() {
+/* 가사관리(청소·수리·정리수납) — 돌봄과 별도 진입 흐름 → 가사 도메인으로 바로 요청 (히어로 CTA) */
+function GHousekeepingCta({ go }: { go: GNav }) {
   return (
     <div style={{ padding: "12px 16px 0" }}>
-      <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 15, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 2px rgba(28,32,48,.04)" }}>
-        <div style={{ flex: 1 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: CORAL }}>Care&amp;</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: INK }}>는 첫 상담이 </span>
-          <span style={{ fontSize: 15, fontWeight: 800, color: INK, background: "linear-gradient(transparent 60%,#FFE1B0 60%)" }}>무료 상담</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: INK }}>입니다</span>
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#EFE9FF,#E2D8FF 60%,#DCD3FF)", padding: "24px 20px", minHeight: 150 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#7A5CE0" }}>청소 · 수리 · 정리수납</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#2E2150", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 가사관리를<br />지금 바로 요청하세요</div>
+        <button onClick={() => go("/request/new?domain=housekeeping")} style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
+          가사 관리 요청하기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Sparkles size={50} color="#6A45D8" strokeWidth={1.7} />
         </div>
-        <div style={{ width: 54, height: 42, borderRadius: 11, background: `linear-gradient(135deg,${CORAL2},${CORAL})`, color: "#fff", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-4deg)", boxShadow: "0 6px 14px rgba(255,90,77,.3)" }}>FREE</div>
       </div>
     </div>
   );
@@ -98,32 +109,34 @@ function GQuickIcon({ bg, children }: { bg: string; children: React.ReactNode })
   return <div style={{ width: 50, height: 50, borderRadius: 16, background: bg, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(28,32,48,.07)" }}>{children}</div>;
 }
 
-function GQuick({ go }: { go: GNav }) {
-  const items: { l: string; badge?: boolean; bg: string; to: string | null; ic: React.ReactNode }[] = [
-    { l: "새 매칭", badge: true, bg: "#FFEAE5", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF5A4D" strokeWidth="2"><path d="M4 8h12l-3-3M20 16H8l3 3" /></svg> },
-    { l: "우리 어르신", bg: "#EAF1FF", to: "/seniors", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3E72D6" strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
-    { l: "간병", bg: "#FFECEC", to: "/request/new?domain=nursing", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="4" /><path d="M12 8.5v7M8.5 12h7" /></svg> },
-    { l: "가사관리", bg: "#FFF3E2", to: "/request/new?domain=housekeeping", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E07712" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg> },
-    { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
+/* 자주 쓰는 핵심 메뉴(6) + 보조 메뉴 */
+function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
+  // 어르신 미등록 시 '우리 어르신' 타일을 빨간색으로 강조해 등록을 유도
+  const items: { l: string; bg: string; to: string; ic: React.ReactNode; alert?: boolean }[] = [
+    { l: "우리 어르신", bg: noSeniors ? "#FFECEC" : "#EAF1FF", to: noSeniors ? "/seniors/new" : "/seniors", alert: noSeniors, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={noSeniors ? "#E0484E" : "#3E72D6"} strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
     { l: "방문일정", bg: "#F2ECFF", to: "/schedule", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></svg> },
-    { l: "긴급요청", bg: "#FFE9EC", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
+    { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
     { l: "정산내역", bg: "#E7F4F2", to: "/settlements", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
-    { l: "돌봄콘텐츠", bg: "#FDEBF3", to: null, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D14A8E" strokeWidth="2"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M11 9l4 3-4 3z" /></svg> },
-    { l: "후기·리뷰", bg: "#FFF6DD", to: null, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="#E8A800" stroke="#E8A800" strokeWidth="1.5"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z" /></svg> },
-    { l: "공지사항", bg: "#EAF1FF", to: "/notifications", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3E72D6" strokeWidth="2"><path d="M4 9v6h3l8 4V5L7 9z" /><path d="M18 9a4 4 0 010 6" /></svg> },
-    { l: "고객센터", bg: "#EEEEF3", to: "/mypage", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5B6172" strokeWidth="2"><path d="M5 12a7 7 0 0114 0v5a2 2 0 01-2 2h-2v-6h4M5 12v5a2 2 0 002 2h0" /></svg> },
+    { l: "긴급요청", bg: "#FFE9EC", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
+  ];
+  const sub: { l: string; to: string }[] = [
+    { l: "공지사항", to: "/notifications" },
+    { l: "고객센터", to: "/mypage" },
   ];
   return (
-    <div style={{ padding: "18px 10px 4px", background: "#fff", margin: "14px 0 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "18px 4px" }}>
+    <div style={{ padding: "18px 12px 16px", background: "#fff", margin: "14px 0 0" }}>
+      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "20px 4px" }}>
         {items.map((it) => (
-          <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer" }}>
-            <div style={{ position: "relative" }}>
-              <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
-              {it.badge && <span style={{ position: "absolute", top: -3, right: -3, width: 9, height: 9, borderRadius: "50%", background: CORAL, border: "2px solid #fff" }} />}
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
+          <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
+            <span style={{ fontSize: 12.5, fontWeight: it.alert ? 800 : 600, color: it.alert ? "#C2353B" : INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
           </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 22, marginTop: 18, paddingTop: 15, borderTop: `1px solid ${LINE}`, justifyContent: "center" }}>
+        {sub.map((it) => (
+          <button key={it.l} onClick={() => go(it.to)} style={{ background: "none", border: 0, padding: 0, fontSize: 12.5, fontWeight: 600, color: INK2, cursor: "pointer" }}>{it.l}</button>
         ))}
       </div>
     </div>
@@ -151,8 +164,8 @@ function GCgCard({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; b
     <div onClick={() => go("/request/new")} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
       <div style={{ height: 108, background: pal.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: pal.fg, boxShadow: "0 4px 12px rgba(0,0,0,.08)" }}>{av}</div>
-        {c.tag && <span style={{ position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 800, color: "#fff", background: CORAL, borderRadius: 7, padding: "3px 8px" }}>{c.tag}</span>}
-        <span style={{ position: "absolute", bottom: 9, right: 9, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={CORAL} strokeWidth="2"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /></svg></span>
+        {c.tag && <span style={{ position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 7, padding: "3px 8px" }}>{c.tag}</span>}
+        <span style={{ position: "absolute", bottom: 9, right: 9, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /></svg></span>
       </div>
       <div style={{ padding: "10px 12px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13.5, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span><GStars n={c.rating} /></div>
@@ -160,7 +173,7 @@ function GCgCard({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; b
         {c.base_rate != null && (
           <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 3 }}>
             <span style={{ fontSize: 11, color: INK3, fontWeight: 600 }}>시간당</span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{c.base_rate.toLocaleString()}</span>
+            <span style={{ fontSize: 16, fontWeight: 900, color: ACCENT }}>{c.base_rate.toLocaleString()}</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>원~</span>
           </div>
         )}
@@ -181,7 +194,7 @@ function GFeed({ go }: { go: GNav }) {
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 추천 인력</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 추천 돌봄전문가</div>
         <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
         <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
@@ -189,7 +202,7 @@ function GFeed({ go }: { go: GNav }) {
         <>
           {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
           {!q.isLoading && list.length === 0 && (
-            <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 인력이 아직 없습니다</div>
+            <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 돌봄전문가가 아직 없습니다</div>
           )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
@@ -268,20 +281,140 @@ function GuardianHome() {
     staleTime: 30_000,
   });
   const unread = notif.data?.unread ?? 0;
+  const seniors = useQuery({ queryKey: ["member", "seniors"], queryFn: () => memberApi.seniors() });
+  const noSeniors = seniors.isSuccess && (seniors.data?.length ?? 0) === 0;
 
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
-      <div style={{ background: "#fff", paddingBottom: 2 }}><GHero go={go} /><GPromo /></div>
-      <GQuick go={go} />
+      <div style={{ background: "#fff", paddingBottom: 2 }}><GCta go={go} noSeniors={noSeniors} /></div>
+      <GHousekeepingCta go={go} />
+      <GQuick go={go} noSeniors={noSeniors} />
+      <GMyRequests go={go} />
       <GFeed go={go} />
+      <div style={{ height: 26 }} />
+    </div>
+  );
+}
+
+/* ============ 기관(에이전시) 홈 ============ */
+const ORG_STATUS: Record<string, { l: string; c: string; bg: string; desc: string }> = {
+  pending: { l: "승인 대기", c: "#B8860B", bg: "#FFF6DD", desc: "사업자 정보 검수가 완료되면 간병인 매칭을 요청하실 수 있어요." },
+  active: { l: "승인 완료", c: "#1F9D63", bg: "#E7F7EF", desc: "간병인이 필요할 때 언제든 매칭을 요청하세요." },
+  rejected: { l: "승인 반려", c: "#E0484E", bg: "#FFECEC", desc: "사업자 정보 확인이 필요합니다. 고객센터로 문의해주세요." },
+};
+
+function OrgStatusBanner({ status, name }: { status?: string; name?: string }) {
+  const st = ORG_STATUS[status ?? "pending"] ?? ORG_STATUS.pending;
+  return (
+    <div style={{ padding: "16px 16px 0" }}>
+      <div style={{ background: st.bg, borderRadius: 16, padding: "16px 18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14.5, fontWeight: 900, color: INK }}>{name || "기관"}</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, color: st.c, background: "#fff", borderRadius: 7, padding: "3px 8px" }}>{st.l}</span>
+        </div>
+        <div style={{ fontSize: 12.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>{st.desc}</div>
+      </div>
+    </div>
+  );
+}
+
+/* 발주 CTA — 간병인 매칭 요청. 승인 전에는 비활성. */
+function OrgCta({ go, enabled }: { go: GNav; enabled: boolean }) {
+  return (
+    <div style={{ padding: "16px 16px 4px" }}>
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>기관 매칭 서비스</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 간병인을<br />지금 바로 요청하세요</div>
+        <button
+          onClick={() => enabled ? go("/request/new") : toast("기관 승인 후 매칭 요청이 가능합니다.")}
+          style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: enabled ? "#0E6B43" : "#9FBBAB", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: enabled ? "0 6px 16px rgba(14,107,67,.28)" : "none" }}
+        >
+          간병인 매칭 요청하기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" /><path d="M4 21c.7-3.8 3.6-6 8-6s7.3 2.2 8 6" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrgHome() {
+  const router = useRouter();
+  const go: GNav = (path) => { if (path) router.push(path); };
+  const notif = useQuery({ queryKey: ["member", "guardian", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
+  const org = useQuery({ queryKey: ["member", "org", "me"], queryFn: organizationApi.me, retry: false, staleTime: 30_000 });
+  const unread = notif.data?.unread ?? 0;
+  const status = org.data?.status;
+
+  return (
+    <div style={{ background: BG }}>
+      <GTopBar go={go} unread={unread} />
+      <OrgStatusBanner status={status} name={org.data?.name} />
+      <div style={{ background: "#fff", marginTop: 14, paddingBottom: 2 }}><OrgCta go={go} enabled={status === "active"} /></div>
+      <OrgRecipientsCard go={go} />
+      <OrgManageCard go={go} enabled={status === "active"} />
       <GMyRequests go={go} />
       <div style={{ height: 26 }} />
     </div>
   );
 }
 
-/* ============ 인력 홈 ============ */
+/* 기관 — 돌봄대상(어르신/환자) 등록·관리 진입. 발주 전에 미리 준비 가능하므로 승인 전에도 활성. */
+function OrgRecipientsCard({ go }: { go: GNav }) {
+  const rows = [
+    { label: "어르신 등록·관리", desc: "요양보호 대상 어르신", to: "/seniors", bg: "#E7F7EF", ic: <HeartPulse size={22} color="#1F9D63" /> },
+    { label: "환자 등록·관리", desc: "병원 간병 대상 환자", to: "/patients", bg: "#FFF1E8", ic: <Stethoscope size={22} color="#E07A3E" /> },
+  ];
+  return (
+    <div style={{ padding: "12px 16px 0" }}>
+      <div style={{ fontSize: 12.5, fontWeight: 800, color: INK2, margin: "2px 2px 8px" }}>돌봄대상 관리</div>
+      <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden" }}>
+        {rows.map((r, i) => (
+          <div
+            key={r.to}
+            onClick={() => go(r.to)}
+            style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 13, cursor: "pointer", borderTop: i > 0 ? `1px solid ${LINE}` : "none" }}
+          >
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: r.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              {r.ic}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 800, color: INK }}>{r.label}</div>
+              <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>{r.desc}</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* 기관 콘솔 — 소속 간병인 관리 진입 */
+function OrgManageCard({ go, enabled }: { go: GNav; enabled: boolean }) {
+  return (
+    <div style={{ padding: "12px 16px 0" }}>
+      <div
+        onClick={() => enabled ? go("/caregivers") : toast("기관 승인 후 이용할 수 있습니다.")}
+        style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 13, cursor: "pointer", opacity: enabled ? 1 : 0.6 }}
+      >
+        <div style={{ width: 46, height: 46, borderRadius: 14, background: "#EAF1FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Users size={22} color="#3E72D6" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 800, color: INK }}>소속 간병인 관리</div>
+          <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>소속 간병인 추가·초대·해제</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+      </div>
+    </div>
+  );
+}
+
+/* ============ 돌봄전문가 홈 ============ */
 const SESSION_STATUS: Record<string, { variant: "success" | "outline" | "warn"; label: string }> = {
   in_progress: { variant: "success", label: "진행중" },
   completed: { variant: "outline", label: "완료" },
@@ -291,9 +424,15 @@ const SESSION_STATUS: Record<string, { variant: "success" | "outline" | "warn"; 
 function CaregiverHome() {
   const qc = useQueryClient();
   const router = useRouter();
+  const go: GNav = (path) => { if (path) router.push(path); };
   const user = useAuth((s) => s.user);
-  const matches = useQuery({ queryKey: ["member", "cg", "matches"], queryFn: memberApi.myMatches });
-  const sessions = useQuery({ queryKey: ["member", "cg", "sessions"], queryFn: memberApi.mySessions });
+  const profile = useQuery({ queryKey: ["member", "cg", "me"], queryFn: memberApi.myCaregiver, retry: false });
+  const isActive = profile.data?.status === "active";
+  const matches = useQuery({ queryKey: ["member", "cg", "matches"], queryFn: memberApi.myMatches, enabled: isActive });
+  const sessions = useQuery({ queryKey: ["member", "cg", "sessions"], queryFn: memberApi.mySessions, enabled: isActive });
+  const settlements = useQuery({ queryKey: ["member", "cg", "settlements"], queryFn: memberApi.settlements, enabled: isActive });
+  const notif = useQuery({ queryKey: ["member", "cg", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
+  const unread = notif.data?.unread ?? 0;
 
   // 세션별 이번 진행 중 업로드한 완료 사진 수(클라이언트 측 추적)
   const [photoCount, setPhotoCount] = useState<Record<number, number>>({});
@@ -335,16 +474,74 @@ function CaregiverHome() {
 
   const pending = matches.data?.filter((m) => m.response === "pending") ?? [];
 
+  // 가입 직후: 자격 검수(pending)·반려(rejected)·등록 미완료(404) → 온보딩 화면
+  if (profile.isLoading && !profile.data) {
+    return <div className="p-8 text-center text-warm-400 text-sm">불러오는 중…</div>;
+  }
+  if (profile.isError || profile.data?.status === "pending" || profile.data?.status === "rejected") {
+    return <CaregiverOnboarding profile={profile.data ?? null} name={user?.name ?? null} />;
+  }
+
+  // 이번 달 요약(수입·완료 케어) — 기존 정산/세션 데이터로 클라이언트 집계
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const monthCareCount = (sessions.data ?? []).filter(
+    (s) => s.status === "completed" && (s.actual_end ?? s.scheduled_start ?? "").slice(0, 7) === ym
+  ).length;
+  const monthIncome = (settlements.data ?? [])
+    .filter((st) => (st.period_start ?? "").slice(0, 7) === ym)
+    .reduce((sum, st) => sum + Number(st.net_amount ?? 0), 0);
+
+  // 가사 직군은 "가사" 어휘로, 요양보호·간병은 공통 "케어"
+  const ui = caregiverUi(profile.data?.service_domains);
+
   return (
-    <div className="p-5">
-      <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">오늘의 케어</h1>
-        <div onClick={() => router.push("/mypage")} className="flex flex-col items-end leading-tight cursor-pointer">
-          <span className="text-[10px] font-bold text-warm-400">{ROLE_KO[user?.role ?? "caregiver"] ?? "인력"}</span>
-          <span className="text-[13px] font-extrabold text-warm-800 max-w-[90px] truncate">{user?.name ?? ""}</span>
+    <div style={{ background: BG }}>
+      <GTopBar go={go} unread={unread} searchTo="/open-requests" searchPlaceholder={ui.searchPlaceholder} />
+      <div className="p-5">
+        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">{ui.homeTitle}</h1>
+        <p className="text-sm text-warm-500 mt-1 mb-5">수락 대기 {pending.length}건 · {ui.actionNoun} 플로우</p>
+
+      {/* 이번 달 요약 */}
+      <Card className="p-5 mb-6 border-brand-200" style={{ background: "rgba(63,125,82,.06)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">이번 달 요약</h2>
+          <span className="text-[11px] font-semibold text-warm-400">{now.getMonth() + 1}월</span>
         </div>
-      </div>
-      <p className="text-sm text-warm-500 mt-1 mb-5">수락 대기 {pending.length}건 · 케어 플로우</p>
+        <div className="flex divide-x divide-warm-200">
+          <div className="flex-1 pr-4">
+            <div className="flex items-center gap-1.5 text-xs text-warm-500 mb-1"><Wallet className="w-3.5 h-3.5" /> 수입</div>
+            <div className="text-xl font-extrabold text-warm-800 tabular-nums">{formatKRW(monthIncome)}</div>
+          </div>
+          <div className="flex-1 pl-4">
+            <div className="flex items-center gap-1.5 text-xs text-warm-500 mb-1"><Sparkles className="w-3.5 h-3.5" /> 완료 {ui.actionNoun}</div>
+            <div className="text-xl font-extrabold text-warm-800 tabular-nums">{monthCareCount}건</div>
+          </div>
+        </div>
+        {(profile.data?.completed_sessions ?? 0) > 0 && (
+          <div className="mt-3 pt-3 border-t border-warm-200/70 flex items-center justify-between text-[11px] text-warm-400">
+            <span>누적 {profile.data?.completed_sessions}건 완료</span>
+            {(profile.data?.rating_count ?? 0) > 0 && (
+              <span>⭐ {profile.data?.rating_avg?.toFixed(1)} ({profile.data?.rating_count})</span>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* 케어 요청 둘러보기 (돌봄전문가 주도 pull) */}
+      <Card
+        className="p-4 mb-6 border-brand-200 flex items-center gap-3 cursor-pointer active:scale-[.99] transition"
+        onClick={() => router.push("/open-requests")}
+      >
+        <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
+          <Search className="w-5 h-5 text-brand-600" />
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-extrabold text-warm-800">{ui.actionNoun} 요청 둘러보기</div>
+          <div className="text-xs text-warm-500 mt-0.5">내 직군의 열린 요청에 직접 지원해보세요</div>
+        </div>
+        <ChevronRight className="w-5 h-5 text-warm-300" />
+      </Card>
 
       {/* 매칭 알림 (수락 대기) */}
       <div className="flex items-center justify-between mb-3">
@@ -407,7 +604,7 @@ function CaregiverHome() {
       </div>
 
       {/* 오늘 일정 */}
-      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">내 케어 일정</h2>
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">내 {ui.actionNoun} 일정</h2>
       {sessions.data?.length === 0 && (
         <Card className="p-6 text-center text-warm-400 text-sm">예정된 일정이 없습니다</Card>
       )}
@@ -430,7 +627,7 @@ function CaregiverHome() {
               </div>
               {active && (
                 <div className="flex items-center gap-2 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold px-3 py-2 mb-3">
-                  <Sparkles className="w-3.5 h-3.5" /> 케어 진행 중입니다
+                  <Sparkles className="w-3.5 h-3.5" /> {ui.actionNoun} 진행 중입니다
                 </div>
               )}
               {s.status === "scheduled" && (
@@ -472,6 +669,10 @@ function CaregiverHome() {
                       )}
                     </>
                   )}
+                  <Button size="lg" variant="outline" className="w-full"
+                    onClick={() => router.push(`/session/${s.id}`)}>
+                    <ClipboardList className="w-4 h-4" /> 활동 기록
+                  </Button>
                   <Button size="lg" variant="danger" className="w-full" disabled={checkout.isPending}
                     onClick={() => checkout.mutate(s.id)}>
                     <LogOut className="w-4 h-4" /> 퇴근 체크
@@ -482,6 +683,128 @@ function CaregiverHome() {
           );
         })}
       </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ============ 돌봄전문가 가입 후 온보딩(검수 대기 / 반려) ============ */
+function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | null; name: string | null }) {
+  const router = useRouter();
+  // 가사(housekeeping)는 국가자격증이 없으므로 라이선스 중심 문구를 등록/신원 기반으로 분기
+  const isHk = caregiverPrimaryDomain(profile?.service_domains) === "housekeeping";
+  const c = isHk
+    ? {
+        reviewWord: "등록 검수",
+        rejectFallback: "제출하신 등록 정보를 확인할 수 없었어요. 정보를 다시 확인해 주세요.",
+        reRegister: "등록 정보 다시 등록",
+        welcomeSub: "가입이 접수되었어요. 등록 검수가 끝나면 가사 요청을 받을 수 있어요.",
+        reviewingDesc: "제출하신 등록 정보를 확인하고 있어요.",
+        verifyLabel: "신원 확인",
+        verifyDesc: "본인·연락처 확인",
+        showLicenseRow: false,
+      }
+    : {
+        reviewWord: "자격 검수",
+        rejectFallback: "제출하신 자격 정보를 확인할 수 없었어요. 자격증 정보를 다시 확인해 주세요.",
+        reRegister: "자격 정보 다시 등록",
+        welcomeSub: "가입이 접수되었어요. 자격 검수가 끝나면 매칭 제안을 받을 수 있어요.",
+        reviewingDesc: "제출하신 자격 정보를 확인하고 있어요.",
+        verifyLabel: "자격증 진위확인",
+        verifyDesc: "보건복지부 자격 확인",
+        showLicenseRow: true,
+      };
+
+  if (profile?.status === "rejected") {
+    return (
+      <div className="p-5">
+        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">{c.reviewWord} 결과</h1>
+        <p className="text-sm text-warm-500 mt-1 mb-5">{name ? `${name} 님, ` : ""}아쉽지만 이번 신청은 반려되었어요.</p>
+        <Card className="p-6 text-center" style={{ background: "#FBEEED", borderColor: "rgba(194,84,80,.3)" }}>
+          <div className="w-16 h-16 mx-auto rounded-full bg-white flex items-center justify-center">
+            <XCircle className="w-8 h-8 text-danger" />
+          </div>
+          <div className="mt-4 text-lg font-extrabold text-warm-800">{c.reviewWord} 반려</div>
+          <p className="text-sm text-warm-600 mt-2 leading-relaxed">
+            {profile?.rejection_reason || c.rejectFallback}
+          </p>
+        </Card>
+        <div className="mt-6 space-y-2">
+          <Button variant="brand" size="lg" className="w-full" onClick={() => router.push("/signup")}>{c.reRegister}</Button>
+          <a href="tel:16000000" className="flex items-center justify-center gap-2 w-full h-11 rounded-md border border-warm-200 text-sm font-semibold text-warm-600">
+            <Phone className="w-4 h-4" /> 고객센터 문의
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const specialties = profile?.specialties?.length ? profile.specialties.join(" · ") : "미입력";
+  return (
+    <div className="p-5">
+      <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">{name ? `${name} 님,` : ""} 환영합니다 👋</h1>
+      <p className="text-sm text-warm-500 mt-1 mb-5">{c.welcomeSub}</p>
+
+      <Card className="p-6 text-center border-brand-200" style={{ background: "rgba(63,125,82,.06)" }}>
+        <div className="w-16 h-16 mx-auto rounded-full bg-brand-100 flex items-center justify-center">
+          <ShieldCheck className="w-8 h-8 text-brand-600" />
+        </div>
+        <div className="mt-4 text-lg font-extrabold text-warm-800">{c.reviewWord} 중</div>
+        <p className="text-sm text-warm-600 mt-2 leading-relaxed">
+          {c.reviewingDesc}<br />보통 1~2 영업일 이내 완료되며, 결과는 알림으로 알려드려요.
+        </p>
+      </Card>
+
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mt-7 mb-3">진행 상황</h2>
+      <Card className="p-5">
+        <OnbStep state="done" label="가입 완료" desc="계정이 생성되었어요" />
+        <OnbStep state={!isHk && profile?.license_verified ? "done" : "active"} label={c.verifyLabel} desc={c.verifyDesc} />
+        <OnbStep state="active" label="관리자 검수" desc="신원·자격 최종 확인" />
+        <OnbStep state="todo" label="활동 시작" desc={isHk ? "가사 요청을 받을 수 있어요" : "매칭 제안을 받을 수 있어요"} last />
+      </Card>
+
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mt-7 mb-3">제출한 정보</h2>
+      <Card className="px-5 divide-y divide-warm-100">
+        <OnbRow label="이름" value={profile?.name ?? name ?? "-"} />
+        {c.showLicenseRow && <OnbRow label="자격번호" value={profile?.license_no ?? "-"} />}
+        <OnbRow label="가능 서비스" value={specialties} />
+        <OnbRow label="활동 지역" value={profile?.base_address ?? "-"} />
+      </Card>
+
+      <Button variant="outline" size="lg" className="w-full mt-5" onClick={() => router.push("/mypage")}>내 정보 보기</Button>
+      <p className="text-xs text-warm-400 text-center mt-4">검수 관련 문의: 고객센터 1600-0000</p>
+    </div>
+  );
+}
+
+function OnbStep({ state, label, desc, last }: { state: "done" | "active" | "todo"; label: string; desc: string; last?: boolean }) {
+  return (
+    <div className="flex gap-3">
+      <div className="flex flex-col items-center">
+        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+          state === "done" ? "bg-brand-500 text-white" : state === "active" ? "bg-brand-100 text-brand-700 ring-2 ring-brand-400" : "bg-warm-100 text-warm-400"
+        }`}>
+          {state === "done" ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+        </div>
+        {!last && <div className={`w-0.5 flex-1 my-1 ${state === "done" ? "bg-brand-300" : "bg-warm-200"}`} style={{ minHeight: 20 }} />}
+      </div>
+      <div className={last ? "" : "pb-4"}>
+        <div className={`text-sm font-bold ${state === "todo" ? "text-warm-400" : "text-warm-800"}`}>
+          {label}
+          {state === "active" && <span className="ml-2 text-[11px] font-bold text-brand-600">진행중</span>}
+        </div>
+        <div className="text-xs text-warm-400 mt-0.5">{desc}</div>
+      </div>
+    </div>
+  );
+}
+
+function OnbRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-3">
+      <span className="text-sm text-warm-500">{label}</span>
+      <span className="text-sm font-semibold text-warm-800 text-right max-w-[60%] truncate">{value}</span>
     </div>
   );
 }

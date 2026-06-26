@@ -24,7 +24,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
   const select = useMutation({
     mutationFn: (candidateId: number) => memberApi.selectCandidate(requestId, candidateId),
     onSuccess: () => {
-      toast.success("선택한 인력에게 수락 요청을 보냈습니다.");
+      toast.success("선택한 돌봄전문가에게 수락 요청을 보냈습니다.");
       qc.invalidateQueries({ queryKey: ["member"] });
       router.push("/home");
     },
@@ -39,9 +39,9 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
 
-      <h1 className="text-xl font-extrabold text-warm-800 mb-1">AI 추천 인력</h1>
+      <h1 className="text-xl font-extrabold text-warm-800 mb-1">AI 추천 돌봄전문가</h1>
       <p className="text-sm text-warm-500 mb-5">
-        AI가 추천한 인력 중 1순위를 선택하거나 다른 후보를 선택하세요
+        AI가 추천한 돌봄전문가 중 1순위를 선택하거나 다른 후보를 선택하세요
       </p>
 
       {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
@@ -57,12 +57,15 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
           <Card key={c.id} className="p-4">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-warm-800">{c.caregiver?.name ?? "인력"}</span>
-                {c.rank === 1 && <Badge variant="success">AI 1순위</Badge>}
+                <span className="font-bold text-warm-800">{c.caregiver?.name ?? "돌봄전문가"}</span>
+                {c.source === "self" && <Badge variant="brand">지원함</Badge>}
+                {c.source !== "self" && c.rank === 1 && <Badge variant="success">AI 1순위</Badge>}
                 {c.response === "accepted" && <Badge variant="success">수락됨</Badge>}
                 {c.response === "rejected" && <Badge variant="danger">거절</Badge>}
               </div>
-              <span className="text-xs text-warm-400 font-en">AI {(c.ai_score * 100).toFixed(0)}점</span>
+              <span className="text-xs text-warm-400 font-en">
+                {c.source === "self" ? "직접 지원" : `AI ${(c.ai_score * 100).toFixed(0)}점`}
+              </span>
             </div>
 
             <div className="flex items-center gap-3 text-xs text-warm-500 mb-2">
@@ -91,7 +94,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
               onClick={() => select.mutate(c.id)}
             >
               <Check className="w-4 h-4" />
-              {data?.request_status === "matched" ? "매칭 완료됨" : "이 인력 선택"}
+              {data?.request_status === "matched" ? "매칭 완료됨" : "이 돌봄전문가 선택"}
             </Button>
           </Card>
         ))}

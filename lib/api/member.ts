@@ -45,6 +45,7 @@ export interface Candidate {
   rank: number;
   ai_score: number;
   ai_reasons: string[] | null;
+  source?: string; // ai=시스템 추천, self=돌봄전문가 직접 지원
   response: string;
   caregiver?: {
     id: number;
@@ -191,7 +192,34 @@ export interface CreateAddressPayload {
   entry_note?: string;
 }
 
-/* ===== 인력 ===== */
+/* ===== 돌봄전문가: 열린 요청 탐색(pull) / 기피 ===== */
+export interface OpenRequest {
+  request_id: number;
+  service_domain: string;
+  category: string | null;
+  recipient_name: string; // 마스킹됨 (예: 오○○○○○)
+  recipient_age: number | null;
+  recipient_gender: string | null;
+  care_grade: string | null;
+  region: string | null;
+  distance_km: number | null;
+  scheduled_start: string | null;
+  duration_min: number;
+  mode: string;
+  special_request: string | null;
+  created_at: string | null;
+}
+
+export interface MyBlock {
+  id: number;
+  target_type: string;
+  target_id: number;
+  target_name: string;
+  reason: string | null;
+  created_at: string | null;
+}
+
+/* ===== 돌봄전문가 ===== */
 export interface MyMatch {
   candidate_id: number;
   rank: number;
@@ -218,6 +246,51 @@ export interface MySession {
   actual_end: string | null;
   duration_min: number;
   photo_required: boolean;
+}
+
+/* ===== 돌봄전문가: 케어 활동 기록 입력 ===== */
+export interface CareActivityItem {
+  id: number;
+  session_id: number;
+  category: string;
+  data: Record<string, unknown> | unknown[] | null;
+  memo: string | null;
+  performed_at: string | null;
+}
+
+export interface VoiceLogItem {
+  id: number;
+  status: string; // uploaded|transcribing|transcribed|summarized|failed
+  duration_sec: number;
+  stt_text: string | null;
+  created_at: string;
+}
+
+export interface SessionDetail {
+  id: number;
+  status: string;
+  duration_min: number;
+  match?: { senior?: { id: number | null; name: string | null } | null } | null;
+  activities?: CareActivityItem[];
+  voice_logs?: VoiceLogItem[];
+}
+
+export interface CaregiverProfile {
+  id: number;
+  name: string | null;
+  gender: "M" | "F" | null;
+  age: number | null;
+  license_no: string | null;        // 마스킹된 값
+  license_verified: boolean;
+  specialties: string[] | null;
+  rating_avg: number;
+  rating_count: number;
+  completed_sessions: number;
+  grade_level: number;
+  status: "pending" | "active" | "rejected" | string;
+  rejection_reason?: string | null;
+  base_address: string | null;
+  service_domains: string | null;  // 돌봄전문가 직군 (senior=요양보호/nursing=간병/housekeeping=가사)
 }
 
 export interface Coords {
@@ -346,7 +419,11 @@ export const memberApi = {
     return { data: data.data ?? [], unresolved: data.meta?.unresolved_count ?? 0 };
   },
 
-  // 인력
+  // 돌봄전문가
+  async myCaregiver(): Promise<CaregiverProfile> {
+    const { data } = await api.get("/v1/caregivers/me");
+    return data.data;
+  },
   async myMatches(): Promise<MyMatch[]> {
     const { data } = await api.get("/v1/caregivers/me/matches");
     return data.data ?? [];
@@ -357,6 +434,19 @@ export const memberApi = {
   },
   acceptMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/accept`),
   rejectMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/reject`),
+  // 돌봄전문가 주도(pull): 열린 요청 탐색 / 직접 지원 / 기피(차단)
+  async openRequests(): Promise<OpenRequest[]> {
+    const { data } = await api.get("/v1/matching/open-requests");
+    return data.data ?? [];
+  },
+  applyToRequest: (requestId: number) => api.post(`/v1/matching/requests/${requestId}/apply`),
+  async myBlocks(): Promise<MyBlock[]> {
+    const { data } = await api.get("/v1/matching/blocks");
+    return data.data ?? [];
+  },
+  blockTarget: (requestId: number, reason?: string) =>
+    api.post("/v1/matching/blocks", { request_id: requestId, reason }),
+  unblock: (blockId: number) => api.delete(`/v1/matching/blocks/${blockId}`),
   checkin: (sessionId: number, coords: Coords) =>
     api.post(`/v1/care-sessions/${sessionId}/checkin`, coords),
   checkout: (sessionId: number, coords: Coords) =>
@@ -365,6 +455,22 @@ export const memberApi = {
     const fd = new FormData();
     fd.append("file", file);
     return api.post(`/v1/care-sessions/${sessionId}/photos`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  async careSessionDetail(sessionId: number): Promise<SessionDetail> {
+    const { data } = await api.get(`/v1/care-sessions/${sessionId}`);
+    return data.data;
+  },
+  addSessionActivity: (
+    sessionId: number,
+    payload: { category: string; data: Record<string, unknown>; memo: string | null },
+  ) => api.post(`/v1/care-sessions/${sessionId}/activities`, payload),
+  uploadVoiceLog: (sessionId: number, blob: Blob, durationSec: number, filename = "voice.webm") => {
+    const fd = new FormData();
+    fd.append("file", blob, filename);
+    fd.append("duration_sec", String(durationSec));
+    return api.post(`/v1/care-sessions/${sessionId}/voice-log`, fd, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },

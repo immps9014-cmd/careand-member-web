@@ -1,4 +1,5 @@
 "use client";
+import { DOMAIN_LABEL as DOMAIN } from "@/lib/caregiverType";
 
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock } from "lucide-react";
@@ -7,9 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { memberApi } from "@/lib/api/member";
 import { formatDateTime } from "@/lib/utils";
 
-const DOMAIN: Record<string, string> = {
-  senior: "시니어", postpartum: "산후", care: "간병", companion: "동행", housekeeping: "가사",
-};
 const STATUS: Record<string, { variant: "warn" | "success" | "outline"; label: string }> = {
   scheduled: { variant: "warn", label: "예정" },
   in_progress: { variant: "success", label: "진행중" },

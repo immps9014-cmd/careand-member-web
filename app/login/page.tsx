@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
 import { useAuth } from "@/lib/auth/store";
+import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
 
 export default function LoginPage() {
@@ -25,8 +27,8 @@ export default function LoginPage() {
         toast.error("관리자는 관리자 콘솔(/admin)로 접속하세요.");
         return;
       }
-      if (!["guardian", "caregiver"].includes(data.user.role)) {
-        toast.error("보호자·인력 회원만 이용할 수 있습니다.");
+      if (!canUseMemberApp(data.user.role)) {
+        toast.error("회원앱을 이용할 수 없는 계정입니다.");
         return;
       }
       setTokens(data.access_token, data.refresh_token);
@@ -57,7 +59,7 @@ export default function LoginPage() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl">회원 로그인</CardTitle>
-            <CardDescription>보호자·인력 회원 계정으로 로그인하세요.</CardDescription>
+            <CardDescription>보호자·돌봄전문가·기관 회원 계정으로 로그인하세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -102,8 +104,15 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
+        <div className="mt-5 text-center">
+          <span className="text-sm text-warm-500">아직 회원이 아니신가요? </span>
+          <Link href="/signup" className="text-sm font-bold text-brand-600 hover:text-brand-700">
+            회원가입
+          </Link>
+        </div>
+
         <p className="text-center text-xs text-warm-500 mt-6">
-          © 2026 Care&. 보호자·인력 회원 앱
+          © 2026 Care&. 보호자·돌봄전문가·기관 회원 앱
         </p>
       </div>
     </div>
