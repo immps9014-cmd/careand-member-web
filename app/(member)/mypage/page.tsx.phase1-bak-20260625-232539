@@ -1,0 +1,68 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { LogOut, Mail, ShieldCheck } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth/store";
+import { authApi } from "@/lib/api/auth";
+import { memberApi } from "@/lib/api/member";
+import { caregiverRoleLabel } from "@/lib/caregiverType";
+
+const ROLE_LABEL: Record<string, string> = {
+  guardian: "보호자",
+  caregiver: "돌봄전문가",
+  organization: "기관",
+  admin: "관리자",
+};
+
+export default function MyPage() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const isCaregiver = user?.role === "caregiver";
+  const cg = useQuery({ queryKey: ["mypage", "caregiver"], queryFn: memberApi.myCaregiver, enabled: isCaregiver, retry: false });
+
+  async function handleLogout() {
+    await authApi.logout();
+    logout();
+    router.replace("/login");
+  }
+
+  return (
+    <div className="p-5">
+      <h1 className="text-xl font-extrabold text-warm-800 mb-5">내 정보</h1>
+
+      <Card className="p-5 mb-4">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-xl">
+            {user?.name?.[0] ?? "회"}
+          </div>
+          <div>
+            <div className="font-bold text-warm-800 text-lg">{user?.name}</div>
+            <Badge variant="success">{isCaregiver ? caregiverRoleLabel(cg.data?.service_domains) : (ROLE_LABEL[user?.role ?? ""] ?? user?.role)}</Badge>
+          </div>
+        </div>
+
+        <div className="space-y-2.5 text-sm">
+          <div className="flex items-center gap-3 text-warm-600">
+            <Mail className="w-4 h-4 text-warm-400" />
+            <span className="font-en">{user?.email ?? "-"}</span>
+          </div>
+          <div className="flex items-center gap-3 text-warm-600">
+            <ShieldCheck className="w-4 h-4 text-warm-400" />
+            <span>{user?.status === "active" ? "활성 계정" : user?.status}</span>
+          </div>
+        </div>
+      </Card>
+
+      <Button variant="outline" className="w-full" onClick={handleLogout}>
+        <LogOut className="w-4 h-4" />
+        로그아웃
+      </Button>
+
+      <p className="text-center text-xs text-warm-400 mt-6">Care& 회원 앱 v1.0</p>
+    </div>
+  );
+}
