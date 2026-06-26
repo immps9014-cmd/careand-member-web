@@ -74,31 +74,15 @@ function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
       <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
         <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>우리 어르신께 꼭 맞는 돌봄</div>
         <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
-        <button onClick={() => go("/request/new")} style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: "#0E6B43", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(14,107,67,.28)" }}>
-          새 돌봄 요청하기
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </button>
-        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* 가사관리(청소·수리·정리수납) — 돌봄과 별도 진입 흐름 → 가사 도메인으로 바로 요청 (히어로 CTA) */
-function GHousekeepingCta({ go }: { go: GNav }) {
-  return (
-    <div style={{ padding: "12px 16px 0" }}>
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#EFE9FF,#E2D8FF 60%,#DCD3FF)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#7A5CE0" }}>청소 · 수리 · 정리수납</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#2E2150", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 가사관리를<br />지금 바로 요청하세요</div>
-        <button onClick={() => go("/request/new?domain=housekeeping")} style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
-          가사 관리 요청하기
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </button>
-        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Sparkles size={50} color="#6A45D8" strokeWidth={1.7} />
+        <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={() => go("/request/new")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#0E6B43", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(14,107,67,.28)" }}>
+            새 돌봄 요청하기
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
+          <button onClick={() => go("/request/new?domain=housekeeping")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
+            가사 관리 요청하기
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -288,7 +272,6 @@ function GuardianHome() {
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
       <div style={{ background: "#fff", paddingBottom: 2 }}><GCta go={go} noSeniors={noSeniors} /></div>
-      <GHousekeepingCta go={go} />
       <GQuick go={go} noSeniors={noSeniors} />
       <GMyRequests go={go} />
       <GFeed go={go} />
