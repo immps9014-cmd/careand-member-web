@@ -124,3 +124,11 @@ export function getApiErrorMessage(error: unknown): string {
   }
   return error instanceof Error ? error.message : "알 수 없는 오류";
 }
+
+/**
+ * 에러의 HTTP 상태코드 추출(없으면 undefined — 네트워크 오류 등).
+ * 404(자원 없음)와 일시 오류(5xx·네트워크)를 구분할 때 사용.
+ */
+export function getApiErrorStatus(error: unknown): number | undefined {
+  return axios.isAxiosError(error) ? error.response?.status : undefined;
+}

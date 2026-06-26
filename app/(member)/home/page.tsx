@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
 import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile } from "@/lib/api/member";
 import { organizationApi } from "@/lib/api/organization";
-import { getApiErrorMessage } from "@/lib/api/client";
+import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
 import { formatDateTime, formatKRW } from "@/lib/utils";
 
 export default function HomePage() {
@@ -344,7 +344,7 @@ function OrgCta({ go, enabled }: { go: GNav; enabled: boolean }) {
 function OrgHome() {
   const router = useRouter();
   const go: GNav = (path) => { if (path) router.push(path); };
-  const notif = useQuery({ queryKey: ["member", "guardian", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
+  const notif = useQuery({ queryKey: ["member", "org", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
   const org = useQuery({ queryKey: ["member", "org", "me"], queryFn: organizationApi.me, retry: false, staleTime: 30_000 });
   const unread = notif.data?.unread ?? 0;
   const status = org.data?.status;
@@ -478,8 +478,18 @@ function CaregiverHome() {
   if (profile.isLoading && !profile.data) {
     return <div className="p-8 text-center text-warm-400 text-sm">불러오는 중…</div>;
   }
-  if (profile.isError || profile.data?.status === "pending" || profile.data?.status === "rejected") {
+  const profileErrStatus = getApiErrorStatus(profile.error);
+  // 미등록(404)·검수중·반려만 온보딩으로. 일시 오류(네트워크·5xx)는 온보딩이 아니라 재시도 안내.
+  if (profile.data?.status === "pending" || profile.data?.status === "rejected" || (profile.isError && profileErrStatus === 404)) {
     return <CaregiverOnboarding profile={profile.data ?? null} name={user?.name ?? null} />;
+  }
+  if (profile.isError) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-warm-500 text-sm mb-3">프로필을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+        <Button variant="outline" size="sm" onClick={() => profile.refetch()}>다시 시도</Button>
+      </div>
+    );
   }
 
   // 이번 달 요약(수입·완료 케어) — 기존 정산/세션 데이터로 클라이언트 집계
