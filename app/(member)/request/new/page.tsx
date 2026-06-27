@@ -37,6 +37,7 @@ const DOMAINS: { key: Domain; label: string; desc: string; icon: typeof HeartPul
 ];
 
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
+const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const SELECT_CLASS =
   "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
@@ -67,6 +68,9 @@ export default function NewRequestPage() {
   const [addressId, setAddressId] = useState<number | "">("");
   const [photoRequired, setPhotoRequired] = useState(true);
 
+  // 역경매: 희망 상한 시급(선택)
+  const [budget, setBudget] = useState("");
+
   const seniors = useQuery({ queryKey: ["member", "seniors"], queryFn: () => memberApi.seniors() });
   const patients = useQuery({
     queryKey: ["member", "patients"],
@@ -81,6 +85,25 @@ export default function NewRequestPage() {
   const categories = useQuery({
     queryKey: ["member", "categories", domain],
     queryFn: () => memberApi.categories(domain),
+  });
+
+  // 적정 간병비 미리보기 — 입력이 충분하면 실시간 산출
+  const estimateEnabled = !!(categoryId && start && duration >= 60);
+  const priceEstimate = useQuery({
+    queryKey: ["member", "price-estimate", domain, categoryId, mode, start, duration, seniorId, patientId, addressId],
+    queryFn: () =>
+      memberApi.pricingEstimate({
+        service_domain: domain,
+        category_id: Number(categoryId),
+        mode,
+        scheduled_start: `${start}:00+09:00`,
+        duration_min: Number(duration),
+        ...(domain === "senior" && seniorId ? { senior_id: Number(seniorId) } : {}),
+        ...(domain === "nursing" && patientId ? { nursing_patient_id: Number(patientId) } : {}),
+        ...(domain === "housekeeping" && addressId ? { service_address_id: Number(addressId) } : {}),
+      }),
+    enabled: estimateEnabled,
+    staleTime: 30_000,
   });
 
   // 방문목욕(BATH)은 동성 매칭이 하드 조건 → 선호 성별 수동선택 대신 안내만 표시
@@ -124,6 +147,7 @@ export default function NewRequestPage() {
       // 방문목욕은 백엔드가 동성 매칭을 강제하므로 수동 선호 성별은 전송하지 않음.
       const effPreferred = sameGenderForced ? "" : effectiveGender;
       const genderReq = effPreferred ? { preferred_gender: effPreferred } : {};
+      const budgetReq = budget && Number(budget) > 0 ? { budget_hourly: Number(budget) } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
         return memberApi.createRequest({
@@ -135,6 +159,7 @@ export default function NewRequestPage() {
           duration_min: Number(duration),
           ...(recurring ? { recurrence_rule: { days: Number(days) } } : {}),
           ...(effPreferred ? { requirements: genderReq } : {}),
+          ...budgetReq,
           special_request: memo || undefined,
         });
       }
@@ -147,6 +172,7 @@ export default function NewRequestPage() {
           scheduled_start: scheduled,
           duration_min: Number(duration),
           requirements: { photo_required: photoRequired, ...genderReq },
+          ...budgetReq,
           special_request: memo || undefined,
         });
       }
@@ -158,6 +184,7 @@ export default function NewRequestPage() {
         scheduled_start: scheduled,
         duration_min: Number(duration),
         ...(effPreferred ? { requirements: genderReq } : {}),
+        ...budgetReq,
         special_request: memo || undefined,
       });
     },
@@ -553,6 +580,42 @@ export default function NewRequestPage() {
               className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-400 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
             />
           </div>
+        </Card>
+
+        {/* 적정 간병비 + 희망 상한 (역경매) */}
+        <Card className="mt-3.5 p-4">
+          <label className={SECTION_LABEL}>적정 간병비</label>
+          {!estimateEnabled ? (
+            <p className="text-[12.5px] text-warm-400 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
+          ) : priceEstimate.isLoading ? (
+            <p className="text-[12.5px] text-warm-400 mt-1">권장 시급 계산 중…</p>
+          ) : priceEstimate.data ? (
+            <div className="mt-1.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[22px] font-extrabold text-brand-700 tabular-nums">{won(priceEstimate.data.suggested)}</span>
+                <span className="text-[12px] text-warm-400">권장 시급</span>
+              </div>
+              <div className="text-[12px] text-warm-500 mt-0.5 tabular-nums">
+                권장 범위 {won(priceEstimate.data.floor)} ~ {won(priceEstimate.data.ceil)}
+                {" · 예상 총액 "}
+                {won(priceEstimate.data.suggested * (duration / 60) * (domain === "nursing" ? days : 1))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[12.5px] text-warm-400 mt-1">권장 시급을 불러오지 못했습니다.</p>
+          )}
+
+          <label className={SECTION_LABEL + " mt-4"}>희망 상한 시급 (선택)</label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            step={500}
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            placeholder={priceEstimate.data ? String(priceEstimate.data.suggested) : "예) 20000"}
+            className="tabular-nums"
+          />
+          <p className="text-[11px] text-warm-400 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
         </Card>
 
         {/* 요청 전 안내 (정적 라벨) */}

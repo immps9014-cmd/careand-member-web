@@ -423,6 +423,19 @@ function CaregiverHome() {
   // 세션별 이번 진행 중 업로드한 완료 사진 수(클라이언트 측 추적)
   const [photoCount, setPhotoCount] = useState<Record<number, number>>({});
 
+  // 역경매: 후보별 입찰가 입력값
+  const [bidInputs, setBidInputs] = useState<Record<number, string>>({});
+
+  const submitBid = useMutation({
+    mutationFn: ({ cid, amount, note }: { cid: number; amount: number; note?: string }) =>
+      memberApi.submitBid(cid, amount, note),
+    onSuccess: (res) => {
+      toast.success(res.warn_out_of_band ? "입찰 등록 — 권장 범위를 벗어났습니다." : "입찰을 등록했습니다.");
+      qc.invalidateQueries({ queryKey: ["member", "cg"] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
   const accept = useMutation({
     mutationFn: (cid: number) => memberApi.acceptMatch(cid),
     onSuccess: () => { toast.success("수락했습니다."); qc.invalidateQueries({ queryKey: ["member", "cg"] }); },
@@ -579,9 +592,50 @@ function CaregiverHome() {
                 <span className="flex items-center gap-1.5 text-xs text-warm-500"><MapPin className="w-3.5 h-3.5" /> 이동 거리</span>
                 <span className="text-sm font-medium text-warm-400">위치 확인 필요</span>
               </div>
-              <div className="flex items-center justify-between py-2.5">
-                <span className="flex items-center gap-1.5 text-xs text-warm-500"><Wallet className="w-3.5 h-3.5" /> 예상 수당</span>
-                <span className="text-sm font-medium text-warm-400">수락 후 정산</span>
+              {m.price_guide?.suggested != null && (
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="flex items-center gap-1.5 text-xs text-warm-500"><Wallet className="w-3.5 h-3.5" /> 권장 시급</span>
+                  <span className="text-sm font-semibold text-warm-700 tabular-nums">
+                    {formatKRW(m.price_guide.suggested)}
+                    {m.price_guide.floor != null && m.price_guide.ceil != null && (
+                      <span className="text-[11px] font-medium text-warm-400"> ({formatKRW(m.price_guide.floor)}~{formatKRW(m.price_guide.ceil)})</span>
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 역경매 입찰 */}
+            <div className="rounded-lg border border-brand-200 bg-brand-50/50 px-3.5 py-3 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-warm-600">희망 수당(시급) 입찰</span>
+                {m.bid_status === "bid" && m.bid_hourly != null && (
+                  <Badge variant="success">입찰 {formatKRW(m.bid_hourly)}</Badge>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  step={500}
+                  className="flex-1 rounded-lg border border-warm-200 px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-brand-400"
+                  placeholder={m.price_guide?.suggested != null ? String(m.price_guide.suggested) : "시급(원)"}
+                  value={bidInputs[m.candidate_id] ?? (m.bid_hourly != null ? String(m.bid_hourly) : "")}
+                  onChange={(e) => setBidInputs((p) => ({ ...p, [m.candidate_id]: e.target.value }))}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={submitBid.isPending}
+                  onClick={() => {
+                    const raw = bidInputs[m.candidate_id] ?? (m.bid_hourly != null ? String(m.bid_hourly) : "");
+                    const amount = Number(raw);
+                    if (!amount || amount <= 0) { toast.error("입찰 시급을 입력하세요."); return; }
+                    submitBid.mutate({ cid: m.candidate_id, amount });
+                  }}
+                >
+                  {m.bid_status === "bid" ? "수정" : "입찰"}
+                </Button>
               </div>
             </div>
 

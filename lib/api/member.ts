@@ -40,6 +40,14 @@ export interface AiSummary {
   generated_at: string;
 }
 
+export interface PriceEstimate {
+  floor: number;
+  suggested: number;
+  ceil: number;
+  n_samples?: number;
+  inputs?: { base_rate?: number; min_hourly?: number; is_night?: boolean; is_holiday?: boolean; is_emergency?: boolean };
+}
+
 export interface Candidate {
   id: number;
   rank: number;
@@ -47,6 +55,10 @@ export interface Candidate {
   ai_reasons: string[] | null;
   source?: string; // ai=시스템 추천, self=돌봄전문가 직접 지원
   response: string;
+  // 역경매 입찰
+  bid_hourly: number | null;
+  bid_note: string | null;
+  bid_status: "none" | "invited" | "bid" | "withdrawn";
   caregiver?: {
     id: number;
     name: string | null;
@@ -233,6 +245,11 @@ export interface MyMatch {
   duration_min: number;
   request_status: string;
   senior_name: string;
+  // 역경매 입찰
+  bid_hourly: number | null;
+  bid_note: string | null;
+  bid_status: "none" | "invited" | "bid" | "withdrawn";
+  price_guide: { floor: number | null; suggested: number | null; ceil: number | null } | null;
 }
 
 export interface MySession {
@@ -291,6 +308,8 @@ export interface CaregiverProfile {
   rejection_reason?: string | null;
   base_address: string | null;
   service_domains: string | null;  // 돌봄전문가 직군 (senior=요양보호/nursing=간병/housekeeping=가사)
+  default_rate: number | null;     // 역경매 표준 희망 시급
+  auto_bid: boolean;               // 초대 시 default_rate로 자동 입찰
 }
 
 export interface Coords {
@@ -351,12 +370,26 @@ export const memberApi = {
     const { data } = await api.get(`/v1/care-sessions/${sessionId}/ai-summary`);
     return data.data ?? null;
   },
-  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null }> {
+  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
-    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message };
+    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null };
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
+  // 적정 간병비 미리보기 (요청 생성 전)
+  async pricingEstimate(params: {
+    service_domain?: string;
+    category_id: number;
+    mode?: string;
+    scheduled_start?: string;
+    duration_min?: number;
+    senior_id?: number;
+    nursing_patient_id?: number;
+    service_address_id?: number;
+  }): Promise<PriceEstimate> {
+    const { data } = await api.get("/v1/matching/pricing/estimate", { params });
+    return data.data;
+  },
   async categories(domain?: "senior" | "nursing" | "housekeeping"): Promise<{ id: number; code?: string; name: string }[]> {
     const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
@@ -373,6 +406,7 @@ export const memberApi = {
     recurrence_rule?: { days: number };
     special_request?: string;
     requirements?: Record<string, unknown>;
+    budget_hourly?: number;
   }) => api.post("/v1/matching/requests", payload),
 
   // 보호자 — 어르신(돌봄 대상)
@@ -434,6 +468,14 @@ export const memberApi = {
   },
   acceptMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/accept`),
   rejectMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/reject`),
+  // 역경매: 입찰가 제시/수정
+  async submitBid(candidateId: number, bidHourly: number, bidNote?: string): Promise<{ warn_out_of_band: boolean }> {
+    const { data } = await api.post(`/v1/matching/candidates/${candidateId}/bid`, { bid_hourly: bidHourly, bid_note: bidNote ?? null });
+    return { warn_out_of_band: !!data.warn_out_of_band };
+  },
+  // 역경매: 표준 희망 시급 / 자동입찰 설정
+  updateCaregiver: (payload: { default_rate?: number | null; auto_bid?: boolean }) =>
+    api.patch("/v1/caregivers/me/profile", payload),
   // 돌봄전문가 주도(pull): 열린 요청 탐색 / 직접 지원 / 기피(차단)
   async openRequests(): Promise<OpenRequest[]> {
     const { data } = await api.get("/v1/matching/open-requests");
