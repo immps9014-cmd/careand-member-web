@@ -357,7 +357,7 @@ export const memberApi = {
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
-  async categories(domain?: "senior" | "nursing" | "housekeeping"): Promise<{ id: number; name: string }[]> {
+  async categories(domain?: "senior" | "nursing" | "housekeeping"): Promise<{ id: number; code?: string; name: string }[]> {
     const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },

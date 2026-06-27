@@ -81,6 +81,10 @@ export default function NewRequestPage() {
     queryFn: () => memberApi.categories(domain),
   });
 
+  // 방문목욕(BATH)은 동성 매칭이 하드 조건 → 선호 성별 수동선택 대신 안내만 표시
+  const selectedCategory = categories.data?.find((c) => c.id === categoryId);
+  const sameGenderForced = selectedCategory?.code === "BATH";
+
   function selectDomain(d: Domain) {
     if (d === domain) return;
     setDomain(d);
@@ -98,8 +102,10 @@ export default function NewRequestPage() {
     mutationFn: () => {
       // datetime-local(2026-06-12T14:00) → Y-m-d\TH:i:sP (+09:00)
       const scheduled = `${start}:00+09:00`;
-      // 선호 성별 지정 시에만 requirements에 실어 보냄 (무관이면 키 자체 생략)
-      const genderReq = preferredGender ? { preferred_gender: preferredGender } : {};
+      // 선호 성별 지정 시에만 requirements에 실어 보냄 (무관이면 키 자체 생략).
+      // 방문목욕은 백엔드가 동성 매칭을 강제하므로 수동 선호 성별은 전송하지 않음.
+      const effPreferred = sameGenderForced ? "" : preferredGender;
+      const genderReq = effPreferred ? { preferred_gender: effPreferred } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
         return memberApi.createRequest({
@@ -110,7 +116,7 @@ export default function NewRequestPage() {
           scheduled_start: scheduled,
           duration_min: Number(duration),
           ...(recurring ? { recurrence_rule: { days: Number(days) } } : {}),
-          ...(preferredGender ? { requirements: genderReq } : {}),
+          ...(effPreferred ? { requirements: genderReq } : {}),
           special_request: memo || undefined,
         });
       }
@@ -133,7 +139,7 @@ export default function NewRequestPage() {
         mode,
         scheduled_start: scheduled,
         duration_min: Number(duration),
-        ...(preferredGender ? { requirements: genderReq } : {}),
+        ...(effPreferred ? { requirements: genderReq } : {}),
         special_request: memo || undefined,
       });
     },
@@ -473,32 +479,43 @@ export default function NewRequestPage() {
             </div>
           )}
 
-          {/* 선호 돌봄전문가 성별 (선택) — 모든 도메인 공통, 매칭 가산 신호 */}
+          {/* 선호 돌봄전문가 성별 (선택) — 모든 도메인 공통. 방문목욕은 동성 강제라 안내로 대체 */}
           <div className="mt-4">
             <label className={SECTION_LABEL}>선호 성별 (선택)</label>
-            <div className="grid grid-cols-3 gap-2">
-              {([["", "무관"], ["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
-                const on = preferredGender === v;
-                return (
-                  <button
-                    key={l}
-                    type="button"
-                    onClick={() => setPreferredGender(v)}
-                    className={
-                      "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
-                      (on
-                        ? "border-brand-500 bg-brand-500 text-white"
-                        : "border-warm-200 bg-white text-warm-600")
-                    }
-                  >
-                    {l}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-warm-400 mt-1.5">
-              선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)
-            </p>
+            {sameGenderForced ? (
+              <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
+                <p className="text-[13px] font-bold text-brand-700">동성 돌봄전문가만 배정돼요</p>
+                <p className="text-[11.5px] text-warm-500 mt-1 leading-relaxed">
+                  방문목욕은 신체 노출을 동반하므로 어르신과 같은 성별의 돌봄전문가만 매칭됩니다.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  {([["", "무관"], ["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
+                    const on = preferredGender === v;
+                    return (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => setPreferredGender(v)}
+                        className={
+                          "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                          (on
+                            ? "border-brand-500 bg-brand-500 text-white"
+                            : "border-warm-200 bg-white text-warm-600")
+                        }
+                      >
+                        {l}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-warm-400 mt-1.5">
+                  선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)
+                </p>
+              </>
+            )}
           </div>
 
           {/* 메모 */}
