@@ -56,6 +56,8 @@ export default function NewRequestPage() {
   const [memo, setMemo] = useState("");
   // 선호 돌봄전문가 성별 ("" = 무관). 매칭에서 소프트 가산 신호로만 쓰임.
   const [preferredGender, setPreferredGender] = useState<"" | "M" | "F">("");
+  // 보호자가 선호 성별을 직접 건드렸는지 — true면 자동 권장값보다 사용자 선택을 우선
+  const [genderTouched, setGenderTouched] = useState(false);
 
   // 간병 플로우 상태
   const [patientId, setPatientId] = useState<number | "">("");
@@ -85,6 +87,22 @@ export default function NewRequestPage() {
   const selectedCategory = categories.data?.find((c) => c.id === categoryId);
   const sameGenderForced = selectedCategory?.code === "BATH";
 
+  // 신체 케어 비중이 큰 카테고리는 동성 매칭을 기본 권장(소프트) — 대상자 성별로 프리셋하되 변경 가능
+  const GENDER_RECOMMENDED_CODES = ["NURSING_HOSPITAL", "VISIT_CARE", "NIGHT_CARE", "SHORT_STAY"];
+  const genderRecommended = !!selectedCategory?.code && GENDER_RECOMMENDED_CODES.includes(selectedCategory.code);
+  const recipientGender: "M" | "F" | "" =
+    domain === "nursing"
+      ? ((patients.data?.find((p) => p.id === patientId)?.gender as "M" | "F") ?? "")
+      : domain === "senior"
+        ? ((seniors.data?.find((s) => s.id === seniorId)?.gender as "M" | "F") ?? "")
+        : "";
+  // 실제 적용 선호 성별: 직접 선택했으면 그 값, 아니면 권장 카테고리 한정 대상자 성별 자동 적용
+  const effectiveGender: "" | "M" | "F" = genderTouched
+    ? preferredGender
+    : genderRecommended && recipientGender
+      ? recipientGender
+      : preferredGender;
+
   function selectDomain(d: Domain) {
     if (d === domain) return;
     setDomain(d);
@@ -104,7 +122,7 @@ export default function NewRequestPage() {
       const scheduled = `${start}:00+09:00`;
       // 선호 성별 지정 시에만 requirements에 실어 보냄 (무관이면 키 자체 생략).
       // 방문목욕은 백엔드가 동성 매칭을 강제하므로 수동 선호 성별은 전송하지 않음.
-      const effPreferred = sameGenderForced ? "" : preferredGender;
+      const effPreferred = sameGenderForced ? "" : effectiveGender;
       const genderReq = effPreferred ? { preferred_gender: effPreferred } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
@@ -493,12 +511,15 @@ export default function NewRequestPage() {
               <>
                 <div className="grid grid-cols-3 gap-2">
                   {([["", "무관"], ["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
-                    const on = preferredGender === v;
+                    const on = effectiveGender === v;
                     return (
                       <button
                         key={l}
                         type="button"
-                        onClick={() => setPreferredGender(v)}
+                        onClick={() => {
+                          setPreferredGender(v);
+                          setGenderTouched(true);
+                        }}
                         className={
                           "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
                           (on
@@ -512,7 +533,9 @@ export default function NewRequestPage() {
                   })}
                 </div>
                 <p className="text-[11px] text-warm-400 mt-1.5">
-                  선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)
+                  {genderRecommended && !genderTouched && recipientGender
+                    ? "이 서비스는 신체 케어가 포함돼 동성 돌봄을 권장합니다. 대상자와 같은 성별로 기본 선택했어요. (변경 가능)"
+                    : "선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)"}
                 </p>
               </>
             )}
