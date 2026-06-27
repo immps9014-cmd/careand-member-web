@@ -1,0 +1,17 @@
+{
+  "pkg": "careand-member-web",
+  "globalName": "CareandUI",
+  "projectId": "4ff6f2d2-7479-40b4-b7ac-51ac34856f05",
+  "shape": "package",
+  "srcDir": "components/ui",
+  "tsconfig": "tsconfig.json",
+  "componentSrcMap": {
+    "Badge": "components/ui/badge.tsx",
+    "Button": "components/ui/button.tsx",
+    "Card": "components/ui/card.tsx",
+    "Input": "components/ui/input.tsx",
+    "Table": "components/ui/table.tsx"
+  },
+  "cssEntry": ".design-sync/ds-tailwind.css",
+  "readmeHeader": ".design-sync/conventions.md"
+}
