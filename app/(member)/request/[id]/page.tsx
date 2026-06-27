@@ -66,6 +66,8 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       return av - bv;
     }
     if (sort === "rating") return (b.caregiver?.rating_avg ?? 0) - (a.caregiver?.rating_avg ?? 0);
+    // 추천순: 가성비 반영 점수(value_score) 우선, 없으면 AI rank
+    if (a.value_score != null && b.value_score != null) return b.value_score - a.value_score;
     return a.rank - b.rank;
   });
 
@@ -151,6 +153,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                 {c.bid_hourly != null ? (
                   <span className="flex items-center gap-1.5">
                     <span className="text-base font-extrabold text-warm-800 tabular-nums">{won(c.bid_hourly)}</span>
+                    {c.value_reason === "가성비 좋음" && <Badge variant="success">가성비</Badge>}
                     {tone && <Badge variant={tone.variant}>{tone.label}</Badge>}
                   </span>
                 ) : (

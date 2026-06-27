@@ -59,6 +59,9 @@ export interface Candidate {
   bid_hourly: number | null;
   bid_note: string | null;
   bid_status: "none" | "invited" | "bid" | "withdrawn";
+  // 가성비 재랭킹(입찰 반영) — 미산정 시 null
+  value_score: number | null;
+  value_reason: string | null;
   caregiver?: {
     id: number;
     name: string | null;
