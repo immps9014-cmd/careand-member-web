@@ -54,6 +54,8 @@ export default function NewRequestPage() {
   const [start, setStart] = useState("");
   const [duration, setDuration] = useState(120);
   const [memo, setMemo] = useState("");
+  // 선호 돌봄전문가 성별 ("" = 무관). 매칭에서 소프트 가산 신호로만 쓰임.
+  const [preferredGender, setPreferredGender] = useState<"" | "M" | "F">("");
 
   // 간병 플로우 상태
   const [patientId, setPatientId] = useState<number | "">("");
@@ -96,6 +98,8 @@ export default function NewRequestPage() {
     mutationFn: () => {
       // datetime-local(2026-06-12T14:00) → Y-m-d\TH:i:sP (+09:00)
       const scheduled = `${start}:00+09:00`;
+      // 선호 성별 지정 시에만 requirements에 실어 보냄 (무관이면 키 자체 생략)
+      const genderReq = preferredGender ? { preferred_gender: preferredGender } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
         return memberApi.createRequest({
@@ -106,6 +110,7 @@ export default function NewRequestPage() {
           scheduled_start: scheduled,
           duration_min: Number(duration),
           ...(recurring ? { recurrence_rule: { days: Number(days) } } : {}),
+          ...(preferredGender ? { requirements: genderReq } : {}),
           special_request: memo || undefined,
         });
       }
@@ -117,7 +122,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          requirements: { photo_required: photoRequired },
+          requirements: { photo_required: photoRequired, ...genderReq },
           special_request: memo || undefined,
         });
       }
@@ -128,6 +133,7 @@ export default function NewRequestPage() {
         mode,
         scheduled_start: scheduled,
         duration_min: Number(duration),
+        ...(preferredGender ? { requirements: genderReq } : {}),
         special_request: memo || undefined,
       });
     },
@@ -466,6 +472,34 @@ export default function NewRequestPage() {
               </p>
             </div>
           )}
+
+          {/* 선호 돌봄전문가 성별 (선택) — 모든 도메인 공통, 매칭 가산 신호 */}
+          <div className="mt-4">
+            <label className={SECTION_LABEL}>선호 성별 (선택)</label>
+            <div className="grid grid-cols-3 gap-2">
+              {([["", "무관"], ["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
+                const on = preferredGender === v;
+                return (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setPreferredGender(v)}
+                    className={
+                      "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                      (on
+                        ? "border-brand-500 bg-brand-500 text-white"
+                        : "border-warm-200 bg-white text-warm-600")
+                    }
+                  >
+                    {l}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-warm-400 mt-1.5">
+              선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)
+            </p>
+          </div>
 
           {/* 메모 */}
           <div className="mt-4">
