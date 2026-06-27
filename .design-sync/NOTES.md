@@ -18,9 +18,15 @@ sed -i '/@import url("https:\/\//d' .design-sync/ds-tailwind.css   # ★ 원격 
 - **★ 원격 폰트 @import 제거 필수**: `app/globals.css` 상단의 Pretendard(jsdelivr)·Plus Jakarta Sans(Google Fonts) `@import url(https://...)`를 **반드시 sed로 제거**. 안 하면 헤드리스 render check가 `page.goto 15s timeout`(egress가 폰트 호스트 차단)으로 전부 실패하고, 디자인 환경에서도 load를 막음.
 - **safelist** 없이 content만 쓰면 컴포넌트가 실제 쓴 음영만 컴파일됨 → 디자인 에이전트가 새 레이아웃에 `bg-brand-300` 등 쓰면 미해결. safelist로 brand/warm 전 스케일을 강제 동봉.
 
-## Known render warns (재sync 시 신규 아님)
-- `[FONT_MISSING] "Pretendard", "Plus Jakarta Sans"` — 원격 @import 제거로 인한 의도된 결과. **시스템 폰트 폴백 수용**(사용자 미반대). 브랜드 폰트를 동봉하려면 Pretendard woff2를 리포에 넣고 `cfg.extraFonts`로 `@font-face` 연결.
-- `[FONT_REMOTE]`(제거 전) / `[NO_DIST]` — 정상.
+## 폰트 — 동봉 완료(시스템 폴백 아님)
+- **Pretendard + Plus Jakarta Sans 동봉됨** → `[FONT_MISSING]` 해소(validate 경고 0). variable woff2를 `.design-sync/fonts/`에 두고 `cfg.extraFonts`로 `@font-face` 연결:
+  - `.design-sync/fonts/PretendardVariable.woff2`(2MB, 전 weight) + `pretendard.css`(@font-face, family "Pretendard", weight 45 920).
+  - `.design-sync/fonts/PlusJakartaSans-latin.woff2`(28K, `.font-en` 영문/숫자 강조) + `plus-jakarta.css`(weight 200 800).
+  - woff2 출처: `npm i pretendard` / `npm i @fontsource-variable/plus-jakarta-sans`(미러), `dist`의 variable woff2 복사. 둘 다 리포에 커밋(durable).
+- `[NO_DIST]` — 정상(synth-entry).
+
+## ★ npm install 후 자기참조 심링크 재생성 필수
+`npm i <any>`는 `node_modules/careand-member-web` 자기참조 심링크를 **extraneous로 prune**함("removed N packages") → 직후 빌드가 `ENOENT .../careand-member-web/package.json`로 실패. **모든 npm install 직후** `ln -sfn /root/careand-member-web node_modules/careand-member-web` 재실행.
 
 ## 박스 환경 (lt-server 103.55.191.157, egress 화이트리스트)
 - npm: registry.npmjs.org는 Cloudflare 차단 → **`--registry https://registry.npmmirror.com/`**(Alibaba 미러)로 설치. (참고: /root/npm-tunnel-on.sh 역터널은 fallback)

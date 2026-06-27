@@ -13,5 +13,6 @@
     "Table": "components/ui/table.tsx"
   },
   "cssEntry": ".design-sync/ds-tailwind.css",
-  "readmeHeader": ".design-sync/conventions.md"
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [".design-sync/fonts/pretendard.css", ".design-sync/fonts/plus-jakarta.css"]
 }
