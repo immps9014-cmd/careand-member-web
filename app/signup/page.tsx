@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 type Role = "guardian" | "caregiver" | "organization";
 /** 가입 화면에서 사용자가 고르는 카드. 가사요청자(housekeeping)는 백엔드상 guardian으로 가입한다. */
 type Kind = "guardian" | "housekeeping" | "caregiver" | "organization";
-type Step = "role" | "phone" | "otp" | "account" | "caregiver" | "organization" | "done";
+type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["자녀", "배우자", "부모", "형제", "기타"];
 const SPECIALTIES = ["시니어돌봄", "병원간병", "가사서비스", "방문목욕", "치매전문"];
@@ -43,9 +43,10 @@ export default function SignupPage() {
   // 백엔드 role은 카드 선택에서 파생 — 가사요청자는 guardian으로 가입
   const role: Role | null = kind === "housekeeping" ? "guardian" : kind;
 
-  // 인증
+  // 인증 (회원정보 화면에 인라인으로 통합)
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [verifyToken, setVerifyToken] = useState("");
 
   // 계정
@@ -72,15 +73,16 @@ export default function SignupPage() {
   const [orgPhone, setOrgPhone] = useState("");
   const [bizType, setBizType] = useState("");
 
-  const totalSteps = role === "caregiver" || role === "organization" ? 4 : 3;
-  const stepIndex: Record<Step, number> = { role: 0, phone: 1, otp: 2, account: 3, caregiver: 4, organization: 4, done: 5 };
+  const totalSteps = role === "caregiver" || role === "organization" ? 3 : 2;
+  const stepIndex: Record<Step, number> = { role: 0, account: 1, caregiver: 2, organization: 2, done: 3 };
 
   // ===== mutations =====
   const sendOtpM = useMutation({
     mutationFn: () => authApi.sendOtp(phone),
     onSuccess: () => {
       setOtp("");
-      setStep("otp");
+      setOtpSent(true);
+      toast.success("인증번호를 전송했어요.");
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -93,8 +95,8 @@ export default function SignupPage() {
         toast.error("인증 확인에 실패했어요. 인증번호를 다시 입력해주세요.");
         return;
       }
-      setVerifyToken(token);
-      setStep("account"); // 인증 성공 → 개인정보 입력 단계로
+      setVerifyToken(token); // 인라인 인증 완료 — 단계 이동 없음
+      toast.success("휴대폰 인증이 완료됐어요.");
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -159,6 +161,7 @@ export default function SignupPage() {
   // ===== validation =====
   const phoneValid = /^01[0-9]\d{7,8}$/.test(phone);
   const submitAccount = () => {
+    if (!verifyToken) { toast.error("휴대폰 인증을 완료해주세요."); return; }
     if (name.trim().length < 2) { toast.error("이름을 2자 이상 입력해주세요."); return; }
     if (!/^[A-Za-z0-9][A-Za-z0-9._@+-]{3,}$/.test(email)) {
       toast.error("아이디는 영문/숫자로 시작하는 4자 이상이어야 해요."); return;
@@ -176,9 +179,7 @@ export default function SignupPage() {
     bizNo.trim().length >= 8 && orgName.trim().length >= 2 && representative.trim().length >= 2 && orgPhone.trim().length >= 8;
 
   const back = () => {
-    if (step === "phone") setStep("role");
-    else if (step === "otp") setStep("phone");
-    else if (step === "account") setStep("otp");
+    if (step === "account") setStep("role");
     // caregiver/done 단계는 뒤로가기 비활성(가입 진행 후)
   };
 
@@ -201,7 +202,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md px-5 py-5 flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center gap-2 h-9">
-          {["phone", "otp", "account"].includes(step) ? (
+          {step === "account" ? (
             <button onClick={back} className="text-warm-700 -ml-1" aria-label="뒤로">
               <ChevronLeft className="w-7 h-7" />
             </button>
@@ -273,7 +274,7 @@ export default function SignupPage() {
                 size="lg"
                 className="w-full"
                 disabled={!kind}
-                onClick={() => setStep("phone")}
+                onClick={() => setStep("account")}
               >
                 다음
               </Button>
@@ -295,97 +296,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* ===== STEP: 휴대폰 ===== */}
-        {step === "phone" && (
-          <div className="flex-1 pt-6">
-            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">휴대폰 번호를 입력해주세요</h1>
-            <p className="text-sm text-warm-500 mt-2">본인 확인을 위해 인증번호를 보내드려요.</p>
-
-            <div className="mt-7">
-              <label className="text-sm font-semibold text-warm-700 block mb-1.5">휴대폰 번호</label>
-              <Input
-                inputMode="numeric"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                placeholder="01012345678"
-                maxLength={11}
-              />
-              <p className="text-xs text-warm-500 mt-1.5">‘-’ 없이 숫자만 입력해주세요</p>
-            </div>
-
-            <div className="mt-7">
-              <Button
-                variant="brand"
-                size="lg"
-                className="w-full"
-                disabled={!phoneValid || sendOtpM.isPending}
-                onClick={() => sendOtpM.mutate()}
-              >
-                {sendOtpM.isPending ? "전송 중..." : "인증번호 받기"}
-              </Button>
-              <button
-                type="button"
-                onClick={back}
-                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                이전으로 돌아가기
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ===== STEP: OTP ===== */}
-        {step === "otp" && (
-          <div className="flex-1 pt-6">
-            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">인증번호 6자리</h1>
-            <p className="text-sm text-warm-500 mt-2">{phone} 으로 보내드린 번호를 입력해주세요.</p>
-
-            <div className="mt-7">
-              <Input
-                inputMode="numeric"
-                autoFocus
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="000000"
-                maxLength={6}
-                className="text-center text-2xl tracking-[0.4em] h-14"
-              />
-              <button
-                onClick={() => sendOtpM.mutate()}
-                disabled={sendOtpM.isPending}
-                className="text-xs font-semibold text-brand-600 mt-3"
-              >
-                인증번호 재전송
-              </button>
-              <p className="text-[11px] text-warm-400 mt-2">
-                개발 테스트 중에는 인증번호 <b className="text-warm-600">123456</b> 을 입력하세요.
-              </p>
-            </div>
-
-            <div className="mt-7">
-              <Button
-                variant="brand"
-                size="lg"
-                className="w-full"
-                disabled={otp.length !== 6 || verifyOtpM.isPending}
-                onClick={() => verifyOtpM.mutate()}
-              >
-                {verifyOtpM.isPending ? "확인 중..." : "확인"}
-              </Button>
-              <button
-                type="button"
-                onClick={back}
-                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                이전으로 돌아가기
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ===== STEP: 계정 정보 ===== */}
+        {/* ===== STEP: 계정 정보 (휴대폰 인증 통합) ===== */}
         {step === "account" && (
           <div className="flex-1 pt-6 pb-4">
             <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">거의 다 왔어요!</h1>
@@ -400,6 +311,64 @@ export default function SignupPage() {
             </p>
 
             <div className="mt-6 space-y-4">
+              {/* 휴대폰 인증 (인라인) */}
+              <Field label="휴대폰 번호">
+                <div className="flex gap-2">
+                  <Input
+                    inputMode="numeric"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    placeholder="01012345678"
+                    maxLength={11}
+                    disabled={!!verifyToken}
+                    autoComplete="tel"
+                  />
+                  <Button
+                    type="button"
+                    variant="brand"
+                    className="shrink-0 px-4"
+                    disabled={!phoneValid || sendOtpM.isPending || !!verifyToken}
+                    onClick={() => sendOtpM.mutate()}
+                  >
+                    {verifyToken ? "인증완료" : sendOtpM.isPending ? "전송중" : otpSent ? "재전송" : "인증요청"}
+                  </Button>
+                </div>
+              </Field>
+
+              {otpSent && !verifyToken && (
+                <Field label="인증번호 6자리">
+                  <div className="flex gap-2">
+                    <Input
+                      inputMode="numeric"
+                      autoFocus
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="000000"
+                      maxLength={6}
+                      className="tracking-[0.3em]"
+                    />
+                    <Button
+                      type="button"
+                      variant="brand"
+                      className="shrink-0 px-4"
+                      disabled={otp.length !== 6 || verifyOtpM.isPending}
+                      onClick={() => verifyOtpM.mutate()}
+                    >
+                      {verifyOtpM.isPending ? "확인중" : "확인"}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-warm-400 mt-1.5">
+                    개발 테스트 중에는 인증번호 <b className="text-warm-600">123456</b> 을 입력하세요.
+                  </p>
+                </Field>
+              )}
+
+              {verifyToken && (
+                <p className="flex items-center gap-1 text-xs font-semibold text-brand-600">
+                  <Check className="w-4 h-4" strokeWidth={3} /> 휴대폰 인증이 완료됐어요.
+                </p>
+              )}
+
               <Field label="이름">
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" autoComplete="name" />
               </Field>
