@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
-import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile } from "@/lib/api/member";
+import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile, type MyMatch } from "@/lib/api/member";
 import { organizationApi } from "@/lib/api/organization";
 import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
 import { formatDateTime, formatKRW } from "@/lib/utils";
@@ -471,7 +471,15 @@ function CaregiverHome() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
-  const pending = matches.data?.filter((m) => m.response === "pending") ?? [];
+  // 매칭이 안 된 채 지나간 제안은 숨긴다.
+  // - 예정 시각(scheduled_start)이 이미 지난 제안: 매칭되지 못하고 지나간 실적
+  // - 요청이 더 이상 매칭 대기 상태가 아닌 경우(이미 성사/취소/만료)
+  const isStaleProposal = (m: MyMatch) => {
+    if (m.request_status && !["open", "matching", "pending"].includes(m.request_status)) return true;
+    if (m.scheduled_start && new Date(m.scheduled_start).getTime() < Date.now()) return true;
+    return false;
+  };
+  const pending = matches.data?.filter((m) => m.response === "pending" && !isStaleProposal(m)) ?? [];
 
   // 가입 직후: 자격 검수(pending)·반려(rejected)·등록 미완료(404) → 온보딩 화면
   if (profile.isLoading && !profile.data) {
