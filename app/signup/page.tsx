@@ -34,6 +34,13 @@ function maxBirthDate(minAge: number) {
   return d.toISOString().slice(0, 10);
 }
 
+/** 가입 후 돌아갈 내부 경로(신청화면 등). 외부/프로토콜 리다이렉트 차단. */
+function safeRedirect(): string | null {
+  if (typeof window === "undefined") return null;
+  const r = new URLSearchParams(window.location.search).get("redirect");
+  return r && /^\/(?![/\\])/.test(r) ? r : null;
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const { setUser, setTokens } = useAuth();
@@ -620,7 +627,13 @@ export default function SignupPage() {
                 variant="brand"
                 size="lg"
                 className="w-full"
-                onClick={() => router.push(kind === "housekeeping" ? "/request/new?domain=housekeeping" : "/home")}
+                onClick={() => {
+                  // 돌봄전문가·기관은 검수 대기 → 항상 홈. 보호자·가사요청자만 신청 동선으로.
+                  if (role === "caregiver" || role === "organization") return router.push("/home");
+                  // 공개웹 "신청하기"로 진입한 경우 복귀 URL(신청화면)을 최우선.
+                  const back = safeRedirect();
+                  router.push(back ?? (kind === "housekeeping" ? "/request/new?domain=housekeeping" : "/home"));
+                }}
               >
                 {role === "caregiver" || role === "organization"
                   ? "홈으로 이동"

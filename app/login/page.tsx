@@ -13,19 +13,34 @@ import { useAuth, setAuthCookie } from "@/lib/auth/store";
 import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
 
+/** 로그인 후 돌아갈 내부 경로. 외부/프로토콜 리다이렉트 차단(오픈 리다이렉트 방지). */
+function safeRedirect(): string {
+  if (typeof window === "undefined") return "/home";
+  const r = new URLSearchParams(window.location.search).get("redirect");
+  // 반드시 단일 슬래시로 시작하는 앱 내부 경로만 허용("//", "/\" 등은 차단)
+  if (r && /^\/(?![/\\])/.test(r)) return r;
+  return "/home";
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { setUser, setTokens, isAuthenticated, hasHydrated } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // 로그인→회원가입 이동 시에도 복귀 URL(redirect)을 이어받는다.
+  const [signupHref, setSignupHref] = useState("/signup");
+  useEffect(() => {
+    const r = new URLSearchParams(window.location.search).get("redirect");
+    if (r && /^\/(?![/\\])/.test(r)) setSignupHref(`/signup?redirect=${encodeURIComponent(r)}`);
+  }, []);
 
   // 기존 세션 자가복구: localStorage엔 로그인돼 있으나 게이트 쿠키가 없어
   // 미들웨어에 튕겨온 경우 — 쿠키를 심고 홈으로 복귀시킨다(강제 재로그인 방지).
   useEffect(() => {
     if (hasHydrated && isAuthenticated) {
       setAuthCookie();
-      router.replace("/home");
+      router.replace(safeRedirect());
     }
   }, [hasHydrated, isAuthenticated, router]);
 
@@ -43,7 +58,7 @@ export default function LoginPage() {
       setTokens(data.access_token, data.refresh_token);
       setUser(data.user);
       toast.success(`${data.user.name} 님 환영합니다`);
-      router.push("/home");
+      router.push(safeRedirect());
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -123,7 +138,7 @@ export default function LoginPage() {
 
         <div className="mt-5 text-center">
           <span className="text-sm text-warm-500">아직 회원이 아니신가요? </span>
-          <Link href="/signup" className="text-sm font-bold text-brand-600 hover:text-brand-700">
+          <Link href={signupHref} className="text-sm font-bold text-brand-600 hover:text-brand-700">
             회원가입
           </Link>
         </div>

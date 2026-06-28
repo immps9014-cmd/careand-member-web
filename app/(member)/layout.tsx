@@ -75,8 +75,12 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     // 하이드레이션 완료 전 판정 금지 (쿨드로드 /login 튕김 방지)
-    if (hasHydrated && !isAuthenticated) router.replace("/login");
-  }, [hasHydrated, isAuthenticated, router]);
+    if (hasHydrated && !isAuthenticated) {
+      // 신청하다 튕긴 경우 등 — 현재 경로(+쿼리)를 복귀 URL로 보존해 로그인 후 되돌린다.
+      const back = pathname + (typeof window !== "undefined" ? window.location.search : "");
+      router.replace(`/login?redirect=${encodeURIComponent(back)}`);
+    }
+  }, [hasHydrated, isAuthenticated, router, pathname]);
 
   if (!hasHydrated || !isAuthenticated || !user) {
     return (

@@ -24,10 +24,12 @@ export function middleware(req: NextRequest) {
 
   const authed = req.cookies.get("careand_auth")?.value === "1";
   if (!authed) {
+    // 복귀 URL은 경로+쿼리 전체 보존(신청화면의 ?domain= 등). 로그인 페이지가 redirect 파라미터로 되돌린다.
+    const back = pathname + req.nextUrl.search;
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
-    url.searchParams.set("next", pathname);
+    url.searchParams.set("redirect", back);
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
