@@ -183,13 +183,13 @@ export default function SignupPage() {
   };
 
   // 역할 선택(첫 화면)에서 '뒤로' = 직전 페이지로 복귀.
-  // 신규회원등록(인트로 /portal.html)에서 왔으면 인트로로, 직접 진입했으면 인트로로 폴백.
+  // 공개 웹(/www)에서 왔으면 거기로, 직접 진입(히스토리 없음)했으면 공개 웹 홈으로 폴백.
   const exitToPrev = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
-      // basePath(/app) 바깥의 인트로 페이지 — Next Link가 아닌 절대 경로로 이동
-      window.location.href = "/portal.html";
+      // basePath(/app) 바깥의 공개 웹 — Next Link가 아닌 절대 경로로 이동
+      window.location.href = "/www";
     }
   };
 
@@ -206,8 +206,9 @@ export default function SignupPage() {
               <ChevronLeft className="w-7 h-7" />
             </button>
           ) : step === "role" ? (
-            <button onClick={exitToPrev} className="text-warm-700 -ml-1" aria-label="뒤로">
-              <ChevronLeft className="w-7 h-7" />
+            <button onClick={exitToPrev} className="flex items-center gap-0.5 text-warm-700 -ml-1 text-sm font-semibold" aria-label="Care& 홈으로 돌아가기">
+              <ChevronLeft className="w-6 h-6" />
+              홈으로
             </button>
           ) : (
             <div className="w-6" />
