@@ -2,7 +2,9 @@
 node_modules/
 .next/
 .next.prev/
+.next.prev-*
 .next-preview/
+.next-preview-*
 *.tsbuildinfo
 .ds-sync/
 ds-bundle/
