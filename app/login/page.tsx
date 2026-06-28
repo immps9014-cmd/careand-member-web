@@ -70,14 +70,14 @@ export default function LoginPage() {
               className="space-y-4"
             >
               <div>
-                <label className="text-sm font-semibold text-warm-700 block mb-1.5">이메일</label>
+                <label className="text-sm font-semibold text-warm-700 block mb-1.5">아이디</label>
                 <Input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@careand.kr"
+                  placeholder="아이디를 입력하세요"
                   required
-                  autoComplete="email"
+                  autoComplete="username"
                 />
               </div>
               <div>

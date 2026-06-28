@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Check } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
@@ -16,6 +16,8 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 type Role = "guardian" | "caregiver" | "organization";
+/** 가입 화면에서 사용자가 고르는 카드. 가사요청자(housekeeping)는 백엔드상 guardian으로 가입한다. */
+type Kind = "guardian" | "housekeeping" | "caregiver" | "organization";
 type Step = "role" | "phone" | "otp" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["자녀", "배우자", "부모", "형제", "기타"];
@@ -37,7 +39,9 @@ export default function SignupPage() {
   const { setUser, setTokens } = useAuth();
 
   const [step, setStep] = useState<Step>("role");
-  const [role, setRole] = useState<Role | null>(null);
+  const [kind, setKind] = useState<Kind | null>(null);
+  // 백엔드 role은 카드 선택에서 파생 — 가사요청자는 guardian으로 가입
+  const role: Role | null = kind === "housekeeping" ? "guardian" : kind;
 
   // 인증
   const [phone, setPhone] = useState("");
@@ -105,7 +109,8 @@ export default function SignupPage() {
         password,
         password_confirmation: passwordConfirm,
         role: role as Role,
-        ...(role === "guardian" ? { relation } : {}),
+        ...(kind === "housekeeping" ? { intent: "housekeeping" as const } : {}),
+        ...(kind === "guardian" ? { relation } : {}),
         agree_terms: agreeTerms,
         agree_privacy: agreePrivacy,
       }),
@@ -155,7 +160,9 @@ export default function SignupPage() {
   const phoneValid = /^01[0-9]\d{7,8}$/.test(phone);
   const submitAccount = () => {
     if (name.trim().length < 2) { toast.error("이름을 2자 이상 입력해주세요."); return; }
-    if (!/\S+@\S+\.\S+/.test(email)) { toast.error("올바른 이메일 형식을 입력해주세요."); return; }
+    if (!/^[A-Za-z0-9][A-Za-z0-9._@+-]{3,}$/.test(email)) {
+      toast.error("아이디는 영문/숫자로 시작하는 4자 이상이어야 해요."); return;
+    }
     if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
       toast.error("비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요."); return;
     }
@@ -175,6 +182,17 @@ export default function SignupPage() {
     // caregiver/done 단계는 뒤로가기 비활성(가입 진행 후)
   };
 
+  // 역할 선택(첫 화면)에서 '뒤로' = 직전 페이지로 복귀.
+  // 신규회원등록(인트로 /portal.html)에서 왔으면 인트로로, 직접 진입했으면 인트로로 폴백.
+  const exitToPrev = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      // basePath(/app) 바깥의 인트로 페이지 — Next Link가 아닌 절대 경로로 이동
+      window.location.href = "/portal.html";
+    }
+  };
+
   const toggleSpecialty = (s: string) =>
     setSpecialties((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
 
@@ -188,9 +206,9 @@ export default function SignupPage() {
               <ChevronLeft className="w-7 h-7" />
             </button>
           ) : step === "role" ? (
-            <Link href="/login" className="text-warm-700 -ml-1" aria-label="뒤로">
+            <button onClick={exitToPrev} className="text-warm-700 -ml-1" aria-label="뒤로">
               <ChevronLeft className="w-7 h-7" />
-            </Link>
+            </button>
           ) : (
             <div className="w-6" />
           )}
@@ -219,22 +237,29 @@ export default function SignupPage() {
 
             <div className="mt-7 space-y-3">
               <RoleCard
-                active={role === "guardian"}
-                onClick={() => setRole("guardian")}
+                active={kind === "guardian"}
+                onClick={() => setKind("guardian")}
                 icon={<HeartHandshake className="w-6 h-6" />}
                 title="보호자"
                 desc="돌봄이 필요한 가족을 위해 돌봄전문가를 찾아요"
               />
               <RoleCard
-                active={role === "caregiver"}
-                onClick={() => setRole("caregiver")}
+                active={kind === "housekeeping"}
+                onClick={() => setKind("housekeeping")}
+                icon={<Sparkles className="w-6 h-6" />}
+                title="가사 서비스"
+                desc="청소 · 정리 등 집안일 도우미를 찾아요"
+              />
+              <RoleCard
+                active={kind === "caregiver"}
+                onClick={() => setKind("caregiver")}
                 icon={<Stethoscope className="w-6 h-6" />}
                 title="돌봄전문가"
                 desc="요양보호사 · 간병인 · 가사도우미로 활동해요"
               />
               <RoleCard
-                active={role === "organization"}
-                onClick={() => setRole("organization")}
+                active={kind === "organization"}
+                onClick={() => setKind("organization")}
                 icon={<Building2 className="w-6 h-6" />}
                 title="기관"
                 desc="요양·간병 기관으로 간병인 매칭을 요청해요"
@@ -246,7 +271,7 @@ export default function SignupPage() {
                 variant="brand"
                 size="lg"
                 className="w-full"
-                disabled={!role}
+                disabled={!kind}
                 onClick={() => setStep("phone")}
               >
                 다음
@@ -257,6 +282,14 @@ export default function SignupPage() {
                   로그인
                 </Link>
               </p>
+              <button
+                type="button"
+                onClick={exitToPrev}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                메인으로 돌아가기
+              </button>
             </div>
           </div>
         )}
@@ -289,6 +322,14 @@ export default function SignupPage() {
               >
                 {sendOtpM.isPending ? "전송 중..." : "인증번호 받기"}
               </Button>
+              <button
+                type="button"
+                onClick={back}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                이전으로 돌아가기
+              </button>
             </div>
           </div>
         )}
@@ -331,6 +372,14 @@ export default function SignupPage() {
               >
                 {verifyOtpM.isPending ? "확인 중..." : "확인"}
               </Button>
+              <button
+                type="button"
+                onClick={back}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                이전으로 돌아가기
+              </button>
             </div>
           </div>
         )}
@@ -344,6 +393,8 @@ export default function SignupPage() {
                 ? "활동에 사용할 계정 정보를 입력해주세요."
                 : role === "organization"
                 ? "기관 담당자 계정 정보를 입력해주세요."
+                : kind === "housekeeping"
+                ? "가사 서비스를 신청할 계정 정보를 입력해주세요."
                 : "마지막으로 보호자 정보를 알려주세요."}
             </p>
 
@@ -351,13 +402,13 @@ export default function SignupPage() {
               <Field label="이름">
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" autoComplete="name" />
               </Field>
-              <Field label="이메일">
+              <Field label="아이디">
                 <Input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  autoComplete="email"
+                  placeholder="영문/숫자 4자 이상"
+                  autoComplete="username"
                 />
               </Field>
               <Field label="비밀번호 (8자 이상, 영문+숫자)">
@@ -375,7 +426,7 @@ export default function SignupPage() {
                 />
               </Field>
 
-              {role === "guardian" && (
+              {kind === "guardian" && (
                 <Field label="어르신과의 관계">
                   <div className="flex flex-wrap gap-2">
                     {RELATIONS.map((r) => (
@@ -409,6 +460,14 @@ export default function SignupPage() {
                   ? "다음 (기관정보 입력)"
                   : "가입 완료"}
               </Button>
+              <button
+                type="button"
+                onClick={back}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                이전으로 돌아가기
+              </button>
             </div>
           </div>
         )}
@@ -478,6 +537,14 @@ export default function SignupPage() {
               >
                 {registerM.isPending ? "등록 중..." : "가입 신청 완료"}
               </Button>
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                나중에 입력하기 (홈으로)
+              </button>
             </div>
           </div>
         )}
@@ -530,6 +597,14 @@ export default function SignupPage() {
               >
                 {registerOrgM.isPending ? "등록 중..." : "가입 신청 완료"}
               </Button>
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="mt-3 mx-auto flex items-center gap-1 text-xs font-semibold text-warm-500 hover:text-warm-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                나중에 입력하기 (홈으로)
+              </button>
             </div>
           </div>
         )}
@@ -558,6 +633,11 @@ export default function SignupPage() {
                   사업자 정보 검수가 완료되면 이용하실 수 있어요.<br />
                   검수 결과는 알림으로 안내드립니다.
                 </>
+              ) : kind === "housekeeping" ? (
+                <>
+                  {name ? `${name} 님, ` : ""}환영합니다.<br />
+                  이제 서비스 받을 주소를 등록하고 가사 서비스를 신청해보세요.
+                </>
               ) : (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
@@ -566,8 +646,17 @@ export default function SignupPage() {
               )}
             </p>
             <div className="w-full mt-8">
-              <Button variant="brand" size="lg" className="w-full" onClick={() => router.push("/home")}>
-                {role === "caregiver" || role === "organization" ? "홈으로 이동" : "시작하기"}
+              <Button
+                variant="brand"
+                size="lg"
+                className="w-full"
+                onClick={() => router.push(kind === "housekeeping" ? "/request/new?domain=housekeeping" : "/home")}
+              >
+                {role === "caregiver" || role === "organization"
+                  ? "홈으로 이동"
+                  : kind === "housekeeping"
+                  ? "가사 서비스 신청하기"
+                  : "시작하기"}
               </Button>
             </div>
           </div>
