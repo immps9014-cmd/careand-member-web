@@ -1,6 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+/**
+ * 미들웨어(서버/엣지)는 localStorage를 못 읽으므로, /app 서버사이드 게이트용
+ * "인증 존재 플래그" 쿠키를 별도로 둔다. 토큰 자체가 아니라 존재 여부만 담는다
+ * (실제 보안 경계는 백엔드 API의 auth:api — 토큰 없이는 401).
+ */
+const AUTH_COOKIE = "careand_auth";
+
+export function setAuthCookie() {
+  if (typeof document !== "undefined") {
+    document.cookie = `${AUTH_COOKIE}=1; path=/app; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`;
+  }
+}
+
+export function clearAuthCookie() {
+  if (typeof document !== "undefined") {
+    document.cookie = `${AUTH_COOKIE}=; path=/app; max-age=0; SameSite=Lax; Secure`;
+  }
+}
+
 export interface User {
   id: number;
   email: string;
@@ -38,16 +57,20 @@ export const authStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: true }),
       setHasHydrated: (v) => set({ hasHydrated: v }),
 
-      setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken, isAuthenticated: true }),
+      setTokens: (accessToken, refreshToken) => {
+        setAuthCookie();
+        set({ accessToken, refreshToken, isAuthenticated: true });
+      },
 
-      logout: () =>
+      logout: () => {
+        clearAuthCookie();
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
-        }),
+        });
+      },
     }),
     {
       name: "careand-member-auth",

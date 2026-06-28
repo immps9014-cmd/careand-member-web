@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -9,16 +9,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
-import { useAuth } from "@/lib/auth/store";
+import { useAuth, setAuthCookie } from "@/lib/auth/store";
 import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser, setTokens } = useAuth();
+  const { setUser, setTokens, isAuthenticated, hasHydrated } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // 기존 세션 자가복구: localStorage엔 로그인돼 있으나 게이트 쿠키가 없어
+  // 미들웨어에 튕겨온 경우 — 쿠키를 심고 홈으로 복귀시킨다(강제 재로그인 방지).
+  useEffect(() => {
+    if (hasHydrated && isAuthenticated) {
+      setAuthCookie();
+      router.replace("/home");
+    }
+  }, [hasHydrated, isAuthenticated, router]);
 
   const loginMutation = useMutation({
     mutationFn: async () => authApi.login(email, password),
