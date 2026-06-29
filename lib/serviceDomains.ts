@@ -4,6 +4,7 @@ import {
   Stethoscope,
   Sparkles,
   Baby,
+  Backpack,
   HeartHandshake,
   type LucideIcon,
 } from "lucide-react";
@@ -45,6 +46,7 @@ const ICONS: Record<string, LucideIcon> = {
   stethoscope: Stethoscope,
   sparkles: Sparkles,
   baby: Baby,
+  backpack: Backpack,
   "heart-handshake": HeartHandshake,
 };
 

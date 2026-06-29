@@ -202,6 +202,22 @@ export interface CreatePostpartumClientPayload {
   is_first_baby?: boolean;
 }
 
+/* ===== 보호자: 아동(아이돌봄 대상) ===== */
+export interface Child {
+  id: number;
+  name: string;
+  birth_date: string | null;
+  gender: "M" | "F";
+}
+
+export interface CreateChildPayload {
+  name: string;
+  birth_date: string;
+  gender: "M" | "F";
+  home_address: string;
+  special_notes?: string;
+}
+
 /* ===== 보호자: 서비스 주소(가사 대상) ===== */
 export type DwellingType = "apartment" | "villa" | "house" | "officetel" | "other";
 
@@ -448,11 +464,12 @@ export const memberApi = {
     return data.data ?? [];
   },
   createRequest: (payload: {
-    service_domain?: "nursing" | "living_support" | "postpartum";
+    service_domain?: "nursing" | "living_support" | "postpartum" | "childcare";
     senior_id?: number;
     nursing_patient_id?: number;
     service_address_id?: number;
     postpartum_client_id?: number;
+    childcare_child_id?: number;
     category_id: number;
     mode: string;
     scheduled_start: string;
@@ -501,6 +518,13 @@ export const memberApi = {
   },
   createPostpartumClient: (payload: CreatePostpartumClientPayload) =>
     api.post("/v1/matching/postpartum-clients", payload),
+
+  // 보호자 — 아동(아이돌봄 대상). 통합 요청 폼 선택기용
+  async children(): Promise<Child[]> {
+    const { data } = await api.get("/v1/matching/children");
+    return data.data ?? [];
+  },
+  createChild: (payload: CreateChildPayload) => api.post("/v1/matching/children", payload),
   async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary | null; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
     // 측정 이력이 없는(신규) 어르신은 백엔드가 summary: null을 줄 수 있음 → 명시적 null 폴백

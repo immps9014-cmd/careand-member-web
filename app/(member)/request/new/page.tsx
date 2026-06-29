@@ -68,6 +68,9 @@ export default function NewRequestPage() {
   // 산후 플로우 상태
   const [postpartumClientId, setPostpartumClientId] = useState<number | "">("");
 
+  // 아이돌봄 플로우 상태
+  const [childId, setChildId] = useState<number | "">("");
+
   // 역경매: 희망 상한 시급(선택)
   const [budget, setBudget] = useState("");
 
@@ -86,6 +89,11 @@ export default function NewRequestPage() {
     queryKey: ["member", "postpartum-clients"],
     queryFn: () => memberApi.postpartumClients(),
     enabled: domain === "postpartum",
+  });
+  const childrenQ = useQuery({
+    queryKey: ["member", "children"],
+    queryFn: () => memberApi.children(),
+    enabled: domain === "childcare",
   });
   const categories = useQuery({
     queryKey: ["member", "categories", domain],
@@ -142,7 +150,7 @@ export default function NewRequestPage() {
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
-    if ((d === "nursing" || d === "living_support" || d === "postpartum") && availableDomains.some((x) => x.token === d)) selectDomain(d);
+    if ((d === "nursing" || d === "living_support" || d === "postpartum" || d === "childcare") && availableDomains.some((x) => x.token === d)) selectDomain(d);
     const sid = sp.get("senior_id");
     if (sid && /^\d+$/.test(sid)) setSeniorId(Number(sid));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,6 +206,19 @@ export default function NewRequestPage() {
           special_request: memo || undefined,
         });
       }
+      if (domain === "childcare") {
+        return memberApi.createRequest({
+          service_domain: "childcare",
+          childcare_child_id: Number(childId),
+          category_id: Number(categoryId),
+          mode: "normal",
+          scheduled_start: scheduled,
+          duration_min: Number(duration),
+          ...(effPreferred ? { requirements: genderReq } : {}),
+          ...budgetReq,
+          special_request: memo || undefined,
+        });
+      }
       // 시니어: 기존 페이로드 그대로 (service_domain 생략 → senior)
       return memberApi.createRequest({
         senior_id: Number(seniorId),
@@ -225,12 +246,15 @@ export default function NewRequestPage() {
         ? addressId && categoryId && start && duration >= 60 && duration <= 720
         : domain === "postpartum"
           ? postpartumClientId && categoryId && start && duration >= 60 && duration <= 720
-          : seniorId && categoryId && start && duration >= 60;
+          : domain === "childcare"
+            ? childId && categoryId && start && duration >= 60 && duration <= 720
+            : seniorId && categoryId && start && duration >= 60;
 
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
   const noPostpartum = domain === "postpartum" && postpartumClients.isSuccess && postpartumClients.data.length === 0;
+  const noChildren = domain === "childcare" && childrenQ.isSuccess && childrenQ.data.length === 0;
   const noCategories = categories.isSuccess && categories.data.length === 0;
 
   // 소요 시간 스테퍼/빠른선택 (duration 상태 그대로 사용 — 60~maxDuration, 30분 단위)
@@ -413,6 +437,35 @@ export default function NewRequestPage() {
                   {postpartumClients.data?.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} {p.delivery_date ? `(출산 ${p.delivery_date})` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {domain === "childcare" && (
+            <div>
+              <label className={SECTION_LABEL}>아이 선택</label>
+              {noChildren ? (
+                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
+                  <p className="text-xs text-warm-500 mb-2.5">등록된 아이가 없습니다. 먼저 아이를 등록해주세요.</p>
+                  <Link href="/children/new">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Plus className="w-4 h-4" /> 아이 등록하러 가기
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <select
+                  value={childId}
+                  onChange={(e) => setChildId(e.target.value ? Number(e.target.value) : "")}
+                  className={SELECT_CLASS}
+                >
+                  <option value="">아이를 선택하세요</option>
+                  {childrenQ.data?.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.birth_date ? `(${c.birth_date})` : ""}
                     </option>
                   ))}
                 </select>
