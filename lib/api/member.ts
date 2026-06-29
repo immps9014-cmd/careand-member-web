@@ -180,6 +180,28 @@ export interface CreatePatientPayload {
   special_notes?: string;
 }
 
+/* ===== 요청자: 산모(산후관리 대상) ===== */
+export type DeliveryType = "natural" | "cesarean" | "vbac";
+
+export interface PostpartumClient {
+  id: number;
+  name: string;
+  delivery_date: string | null;
+  delivery_type: DeliveryType | null;
+  status: string;
+}
+
+export interface CreatePostpartumClientPayload {
+  name: string;
+  phone: string;
+  birth_date: string;
+  address: string;
+  region_code: string;
+  delivery_date: string;
+  delivery_type: DeliveryType;
+  is_first_baby?: boolean;
+}
+
 /* ===== 보호자: 서비스 주소(가사 대상) ===== */
 export type DwellingType = "apartment" | "villa" | "house" | "officetel" | "other";
 
@@ -426,10 +448,11 @@ export const memberApi = {
     return data.data ?? [];
   },
   createRequest: (payload: {
-    service_domain?: "nursing" | "living_support";
+    service_domain?: "nursing" | "living_support" | "postpartum";
     senior_id?: number;
     nursing_patient_id?: number;
     service_address_id?: number;
+    postpartum_client_id?: number;
     category_id: number;
     mode: string;
     scheduled_start: string;
@@ -470,6 +493,14 @@ export const memberApi = {
   updateAddress: (id: number, payload: Partial<CreateAddressPayload>) =>
     api.patch(`/v1/housekeeping/addresses/${id}`, payload),
   deleteAddress: (id: number) => api.delete(`/v1/housekeeping/addresses/${id}`),
+
+  // 요청자 — 산모(산후관리 대상). 통합 요청 폼 선택기용 (본인 user_id 스코프)
+  async postpartumClients(): Promise<PostpartumClient[]> {
+    const { data } = await api.get("/v1/matching/postpartum-clients");
+    return data.data ?? [];
+  },
+  createPostpartumClient: (payload: CreatePostpartumClientPayload) =>
+    api.post("/v1/matching/postpartum-clients", payload),
   async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary | null; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
     // 측정 이력이 없는(신규) 어르신은 백엔드가 summary: null을 줄 수 있음 → 명시적 null 폴백
