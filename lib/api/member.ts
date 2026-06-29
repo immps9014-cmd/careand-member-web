@@ -388,6 +388,10 @@ export const memberApi = {
     const { data } = await api.get(`/v1/caregivers/${id}`);
     return data.data;
   },
+  async caregiversByDomain(domain?: string): Promise<RecommendedCaregiver[]> {
+    const { data } = await api.get("/v1/caregivers", { params: domain ? { domain } : {} });
+    return data.data ?? [];
+  },
   // 보호자 — 케어일지(AI) [Phase 2, BE 2.2/2.7 의존]
   async guardianSessions(): Promise<GuardianSession[]> {
     const { data } = await api.get("/v1/guardians/me/sessions");
