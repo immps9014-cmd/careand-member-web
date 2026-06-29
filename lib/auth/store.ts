@@ -23,6 +23,7 @@ export function clearAuthCookie() {
 export interface User {
   id: number;
   email: string;
+  phone?: string;
   name: string;
   role: "guardian" | "caregiver" | "organization" | "admin";
   status: string;

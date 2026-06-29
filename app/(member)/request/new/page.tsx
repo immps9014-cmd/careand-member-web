@@ -133,9 +133,13 @@ export default function NewRequestPage() {
   }
 
   // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
+  // 어르신 상세에서 ?senior_id= 로 진입 시 해당 어르신 자동 선택
   useEffect(() => {
-    const d = new URLSearchParams(window.location.search).get("domain");
+    const sp = new URLSearchParams(window.location.search);
+    const d = sp.get("domain");
     if ((d === "nursing" || d === "housekeeping") && availableDomains.some((x) => x.key === d)) selectDomain(d);
+    const sid = sp.get("senior_id");
+    if (sid && /^\d+$/.test(sid)) setSeniorId(Number(sid));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 

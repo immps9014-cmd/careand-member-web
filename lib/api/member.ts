@@ -333,6 +333,26 @@ export interface RecommendedCaregiver {
   tag: string | null;
 }
 
+/** 돌봄전문가 상세 프로필 — GET /v1/caregivers/{id} (CaregiverResource) */
+export interface CaregiverDetail {
+  id: number;
+  name: string | null;
+  gender: string | null;
+  age: number | null;
+  license_no: string | null;
+  license_verified: boolean;
+  specialties: string | null;
+  service_domains: string | null;
+  rating_avg: number;
+  rating_count: number;
+  completed_sessions: number;
+  grade_level: string | null;
+  status: string;
+  base_address: string | null;
+  default_rate: number | null;
+  organization: { id: number; name: string } | null;
+}
+
 export interface MemberSettlement {
   id: number;
   period_start: string;
@@ -363,6 +383,10 @@ export const memberApi = {
   async recommendedCaregivers(): Promise<RecommendedCaregiver[]> {
     const { data } = await api.get("/v1/caregivers/recommended");
     return data.data ?? [];
+  },
+  async caregiverDetail(id: number): Promise<CaregiverDetail> {
+    const { data } = await api.get(`/v1/caregivers/${id}`);
+    return data.data;
   },
   // 보호자 — 케어일지(AI) [Phase 2, BE 2.2/2.7 의존]
   async guardianSessions(): Promise<GuardianSession[]> {
@@ -476,9 +500,15 @@ export const memberApi = {
     const { data } = await api.post(`/v1/matching/candidates/${candidateId}/bid`, { bid_hourly: bidHourly, bid_note: bidNote ?? null });
     return { warn_out_of_band: !!data.warn_out_of_band };
   },
-  // 역경매: 표준 희망 시급 / 자동입찰 설정
-  updateCaregiver: (payload: { default_rate?: number | null; auto_bid?: boolean }) =>
-    api.patch("/v1/caregivers/me/profile", payload),
+  // 인력 프로필 수정: 가입정보(주소·가능서비스) + 역경매(표준 희망 시급/자동입찰)
+  updateCaregiver: (payload: {
+    base_address?: string;
+    base_lat?: number;
+    base_lng?: number;
+    specialties?: string[];
+    default_rate?: number | null;
+    auto_bid?: boolean;
+  }) => api.patch("/v1/caregivers/me/profile", payload),
   // 돌봄전문가 주도(pull): 열린 요청 탐색 / 직접 지원 / 기피(차단)
   async openRequests(): Promise<OpenRequest[]> {
     const { data } = await api.get("/v1/matching/open-requests");

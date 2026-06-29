@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Mail, ShieldCheck, Wallet } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,84 @@ import { roleLabel } from "@/lib/role";
 export default function MyPage() {
   const router = useRouter();
   const qc = useQueryClient();
-  const { user, logout } = useAuth();
+  const user = useAuth((s) => s.user);
+  const setUser = useAuth((s) => s.setUser);
+  const logout = useAuth((s) => s.logout);
   const isCaregiver = user?.role === "caregiver";
   const cg = useQuery({ queryKey: ["mypage", "caregiver"], queryFn: memberApi.myCaregiver, enabled: isCaregiver, retry: false });
 
+  /* ===== 계정 정보 ===== */
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    if (user) {
+      setName(user.name ?? "");
+      setPhone(user.phone ?? "");
+      setEmail(user.email ?? "");
+    }
+  }, [user]);
+
+  // 비밀번호 변경(접이식)
+  const [pwOpen, setPwOpen] = useState(false);
+  const [curPw, setCurPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confPw, setConfPw] = useState("");
+
+  const accountDirty =
+    name !== (user?.name ?? "") || phone !== (user?.phone ?? "") || email !== (user?.email ?? "");
+  const pwDirty = pwOpen && (curPw || newPw || confPw);
+
+  const saveAccount = useMutation({
+    mutationFn: () => {
+      const payload: Parameters<typeof authApi.updateMe>[0] = {};
+      if (name !== (user?.name ?? "")) payload.name = name.trim();
+      if (phone !== (user?.phone ?? "")) payload.phone = phone.trim();
+      if (email !== (user?.email ?? "")) payload.email = email.trim();
+      if (pwDirty) {
+        payload.current_password = curPw;
+        payload.password = newPw;
+        payload.password_confirmation = confPw;
+      }
+      return authApi.updateMe(payload);
+    },
+    onSuccess: ({ user: u }) => {
+      setUser(u);
+      toast.success("계정 정보를 저장했습니다.");
+      setCurPw(""); setNewPw(""); setConfPw(""); setPwOpen(false);
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
+  function submitAccount() {
+    if (!name.trim()) { toast.error("이름을 입력하세요."); return; }
+    if (pwDirty) {
+      if (!curPw) { toast.error("현재 비밀번호를 입력하세요."); return; }
+      if (newPw.length < 8) { toast.error("새 비밀번호는 8자 이상이어야 합니다."); return; }
+      if (newPw !== confPw) { toast.error("새 비밀번호 확인이 일치하지 않습니다."); return; }
+    }
+    if (!accountDirty && !pwDirty) { toast("변경된 내용이 없습니다."); return; }
+    saveAccount.mutate();
+  }
+
+  /* ===== 가입 정보(인력): 활동 지역 주소 ===== */
+  const [address, setAddress] = useState("");
+  useEffect(() => {
+    if (cg.data) setAddress(cg.data.base_address ?? "");
+  }, [cg.data]);
+  const addressDirty = address !== (cg.data?.base_address ?? "");
+
+  const saveProfile = useMutation({
+    mutationFn: () => memberApi.updateCaregiver({ base_address: address.trim() }),
+    onSuccess: () => {
+      toast.success("가입 정보를 저장했습니다.");
+      qc.invalidateQueries({ queryKey: ["mypage", "caregiver"] });
+      qc.invalidateQueries({ queryKey: ["member", "cg"] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
+  /* ===== 역경매 입찰 설정 ===== */
   const [rate, setRate] = useState("");
   const [autoBid, setAutoBid] = useState(false);
   useEffect(() => {
@@ -32,7 +106,7 @@ export default function MyPage() {
     }
   }, [cg.data]);
 
-  const save = useMutation({
+  const saveBid = useMutation({
     mutationFn: () =>
       memberApi.updateCaregiver({
         default_rate: rate && Number(rate) > 0 ? Number(rate) : null,
@@ -56,28 +130,97 @@ export default function MyPage() {
     <div className="p-5">
       <h1 className="text-xl font-extrabold text-warm-800 mb-5">내 정보</h1>
 
+      {/* 프로필 헤더 */}
       <Card className="p-5 mb-4">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-xl">
             {user?.name?.[0] ?? "회"}
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="font-bold text-warm-800 text-lg">{user?.name}</div>
             <Badge variant="success">{isCaregiver ? caregiverRoleLabel(cg.data?.service_domains) : roleLabel(user?.role)}</Badge>
           </div>
         </div>
-
-        <div className="space-y-2.5 text-sm">
-          <div className="flex items-center gap-3 text-warm-600">
-            <Mail className="w-4 h-4 text-warm-400" />
-            <span className="font-en">{user?.email ?? "-"}</span>
-          </div>
-          <div className="flex items-center gap-3 text-warm-600">
-            <ShieldCheck className="w-4 h-4 text-warm-400" />
-            <span>{user?.status === "active" ? "활성 계정" : user?.status}</span>
-          </div>
+        <div className="flex items-center gap-2 text-xs text-warm-500 mt-3">
+          <ShieldCheck className="w-3.5 h-3.5 text-warm-400" />
+          {user?.status === "active" ? "활성 계정" : user?.status}
         </div>
       </Card>
+
+      {/* 계정 정보 수정 */}
+      <Card className="p-5 mb-4">
+        <div className="flex items-center gap-2 mb-4">
+          <UserIcon className="w-4 h-4 text-brand-600" />
+          <h2 className="font-bold text-warm-800">계정 정보</h2>
+        </div>
+
+        <Field label="이름" icon={<UserIcon className="w-4 h-4 text-warm-400" />}>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="이름" maxLength={50} />
+        </Field>
+        <Field label="연락처" icon={<Phone className="w-4 h-4 text-warm-400" />}>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\-]/g, ""))} inputMode="numeric" placeholder="01012345678" className="font-en tabular-nums" />
+        </Field>
+        <Field label="이메일" icon={<Mail className="w-4 h-4 text-warm-400" />}>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="font-en" />
+        </Field>
+
+        {/* 비밀번호 변경 */}
+        <button
+          type="button"
+          onClick={() => setPwOpen((v) => !v)}
+          className="flex items-center gap-2 w-full mt-1 mb-1 text-[13px] font-semibold text-warm-600"
+        >
+          <KeyRound className="w-4 h-4 text-warm-400" />
+          비밀번호 변경
+          <ChevronDown className={`w-4 h-4 ml-auto text-warm-400 transition-transform ${pwOpen ? "rotate-180" : ""}`} />
+        </button>
+        {pwOpen && (
+          <div className="space-y-2.5 mt-2 mb-1">
+            <Input type="password" value={curPw} onChange={(e) => setCurPw(e.target.value)} placeholder="현재 비밀번호" autoComplete="current-password" />
+            <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="새 비밀번호 (8자 이상)" autoComplete="new-password" />
+            <Input type="password" value={confPw} onChange={(e) => setConfPw(e.target.value)} placeholder="새 비밀번호 확인" autoComplete="new-password" />
+          </div>
+        )}
+
+        <Button
+          variant="brand"
+          className="w-full mt-4"
+          disabled={saveAccount.isPending || (!accountDirty && !pwDirty)}
+          onClick={submitAccount}
+        >
+          {saveAccount.isPending ? "저장 중…" : "계정 정보 저장"}
+        </Button>
+      </Card>
+
+      {/* 가입 정보(인력): 활동 지역 */}
+      {isCaregiver && cg.data && (
+        <Card className="p-5 mb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-4 h-4 text-brand-600" />
+            <h2 className="font-bold text-warm-800">가입 정보</h2>
+          </div>
+          <Field label="활동 지역(주소)" icon={<MapPin className="w-4 h-4 text-warm-400" />}>
+            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예) 경기 화성시 동탄대로 100" maxLength={255} />
+          </Field>
+          <p className="text-[11px] text-warm-400 mt-1.5">주소를 바꾸면 매칭 거리 계산에 자동 반영됩니다.</p>
+          {cg.data.specialties && cg.data.specialties.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[12.5px] font-bold text-warm-600 mb-1.5">가능 서비스</div>
+              <div className="flex flex-wrap gap-1.5">
+                {cg.data.specialties.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
+              </div>
+            </div>
+          )}
+          <Button
+            variant="brand"
+            className="w-full mt-4"
+            disabled={saveProfile.isPending || !addressDirty || !address.trim()}
+            onClick={() => saveProfile.mutate()}
+          >
+            {saveProfile.isPending ? "저장 중…" : "가입 정보 저장"}
+          </Button>
+        </Card>
+      )}
 
       {/* 역경매 입찰 설정 (돌봄전문가 전용) */}
       {isCaregiver && cg.data?.status === "active" && (
@@ -116,10 +259,10 @@ export default function MyPage() {
           <Button
             variant="brand"
             className="w-full mt-4"
-            disabled={save.isPending || (autoBid && !(rate && Number(rate) > 0))}
-            onClick={() => save.mutate()}
+            disabled={saveBid.isPending || (autoBid && !(rate && Number(rate) > 0))}
+            onClick={() => saveBid.mutate()}
           >
-            {save.isPending ? "저장 중…" : "저장"}
+            {saveBid.isPending ? "저장 중…" : "입찰 설정 저장"}
           </Button>
           {autoBid && !(rate && Number(rate) > 0) && (
             <p className="text-[11px] text-danger mt-1.5">자동 입찰을 켜려면 표준 희망 시급을 입력하세요.</p>
@@ -133,6 +276,18 @@ export default function MyPage() {
       </Button>
 
       <p className="text-center text-xs text-warm-400 mt-6">Care& 회원 앱 v1.0</p>
+    </div>
+  );
+}
+
+function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="mb-3">
+      <label className="flex items-center gap-1.5 text-[12.5px] font-bold text-warm-600 mb-1.5">
+        {icon}
+        {label}
+      </label>
+      {children}
     </div>
   );
 }

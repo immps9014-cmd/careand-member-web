@@ -73,6 +73,22 @@ export const authApi = {
   },
 
   /**
+   * 계정 정보 수정 (이름·연락처·이메일·비밀번호)
+   * - 비밀번호 변경 시 current_password 필수, password_confirmation 동봉
+   */
+  async updateMe(payload: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    current_password?: string;
+    password?: string;
+    password_confirmation?: string;
+  }): Promise<{ user: User }> {
+    const { data } = await api.patch<{ success: boolean; user: User }>("/v1/auth/me", payload);
+    return { user: data.user };
+  },
+
+  /**
    * 로그아웃
    */
   async logout(): Promise<void> {

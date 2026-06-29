@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
@@ -187,13 +188,13 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
             </>
           )}
 
-          {/* 매칭 요청 진입 */}
-          <a href="/request/new" className="block mt-5">
+          {/* 매칭 요청 진입 — basePath(/app) 자동 적용 위해 next/link 사용, 이 어르신 자동 선택 */}
+          <Link href={`/request/new?domain=senior&senior_id=${id}`} className="block mt-5">
             <Card className="p-4 flex items-center justify-between active:bg-warm-50 transition-colors">
               <span className="font-semibold text-warm-700 text-sm">이 어르신 돌봄 매칭 요청</span>
               <ChevronRight className="w-5 h-5 text-warm-300" />
             </Card>
-          </a>
+          </Link>
         </>
       )}
     </div>

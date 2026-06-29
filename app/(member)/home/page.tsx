@@ -148,7 +148,7 @@ function GCgCard({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; b
   const av = display.charAt(0) || "?";
   const meta = [c.spec, c.distance_km != null ? `${c.distance_km}km` : null].filter(Boolean).join(" · ");
   return (
-    <div onClick={() => go("/request/new")} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
+    <div onClick={() => go(`/caregivers/${c.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
       <div style={{ height: 108, background: pal.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: pal.fg, boxShadow: "0 4px 12px rgba(0,0,0,.08)" }}>{av}</div>
         {c.tag && <span style={{ position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 7, padding: "3px 8px" }}>{c.tag}</span>}
