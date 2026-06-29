@@ -421,7 +421,7 @@ export const memberApi = {
     const { data } = await api.get("/v1/matching/pricing/estimate", { params });
     return data.data;
   },
-  async categories(domain?: "senior" | "nursing" | "housekeeping"): Promise<{ id: number; code?: string; name: string }[]> {
+  async categories(domain?: string): Promise<{ id: number; code?: string; name: string }[]> {
     const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },

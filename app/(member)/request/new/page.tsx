@@ -7,9 +7,6 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   ChevronLeft,
-  HeartPulse,
-  Stethoscope,
-  Sparkles,
   Plus,
   Check,
   Minus,
@@ -21,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
+import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 
 const MODES = [
   { key: "normal", label: "일반" },
@@ -28,13 +26,8 @@ const MODES = [
   { key: "recurring", label: "정기" },
 ];
 
-type Domain = "senior" | "nursing" | "housekeeping";
-
-const DOMAINS: { key: Domain; label: string; desc: string; icon: typeof HeartPulse }[] = [
-  { key: "senior", label: "요양보호", desc: "어르신 방문", icon: HeartPulse },
-  { key: "nursing", label: "병원 간병", desc: "입원 환자", icon: Stethoscope },
-  { key: "housekeeping", label: "가사 서비스", desc: "청소·정리", icon: Sparkles },
-];
+// 도메인 토큰은 레지스트리(SSOT)에서 옴 — \App\Support\ServiceDomains / lib/serviceDomains.ts
+type Domain = string;
 
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
@@ -44,9 +37,13 @@ const SELECT_CLASS =
 export default function NewRequestPage() {
   const router = useRouter();
   const [domain, setDomain] = useState<Domain>("senior");
-  // 병원 간병(nursing)은 기관(organization) 발주 전용 → 보호자에게는 도메인 자체를 숨김
   const role = useAuth((s) => s.user?.role);
-  const availableDomains = DOMAINS.filter((d) => d.key !== "nursing" || role !== "guardian");
+  // 도메인 카탈로그/가시성을 레지스트리(SSOT)에서 가져옴. API는 역할별로 서버측 필터됨.
+  // (병원 간병=기관 발주 전용 → 보호자 숨김 규칙도 백엔드 hidden_for_roles로 일원화)
+  const domainsQuery = useServiceDomains();
+  const availableDomains = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
+    (d) => !(d.token === "nursing" && role === "guardian"),
+  );
 
   // 시니어 플로우 상태 (기존 동작 유지)
   const [seniorId, setSeniorId] = useState<number | "">("");
@@ -137,7 +134,7 @@ export default function NewRequestPage() {
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
-    if ((d === "nursing" || d === "housekeeping") && availableDomains.some((x) => x.key === d)) selectDomain(d);
+    if ((d === "nursing" || d === "housekeeping") && availableDomains.some((x) => x.token === d)) selectDomain(d);
     const sid = sp.get("senior_id");
     if (sid && /^\d+$/.test(sid)) setSeniorId(Number(sid));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -247,13 +244,13 @@ export default function NewRequestPage() {
         <label className={SECTION_LABEL + " mt-5"}>어떤 서비스가 필요하세요?</label>
         <div className={`grid gap-2.5 ${availableDomains.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {availableDomains.map((d) => {
-            const Icon = d.icon;
-            const active = domain === d.key;
+            const Icon = domainIcon(d.icon);
+            const active = domain === d.token;
             return (
               <button
-                key={d.key}
+                key={d.token}
                 type="button"
-                onClick={() => selectDomain(d.key)}
+                onClick={() => selectDomain(d.token)}
                 className={
                   "relative rounded-2xl border p-3 text-center transition-colors " +
                   (active ? "border-brand-500 bg-brand-50" : "border-warm-200 bg-white")
