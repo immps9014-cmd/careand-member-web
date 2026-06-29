@@ -79,8 +79,8 @@ function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
             새 돌봄 요청하기
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </button>
-          <button onClick={() => go("/request/new?domain=housekeeping")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
-            가사 관리 요청하기
+          <button onClick={() => go("/request/new?domain=living_support")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
+            생활지원 요청하기
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </button>
         </div>
@@ -234,7 +234,7 @@ function GMyRequests({ go }: { go: GNav }) {
         {list.map((r) => {
           const st = REQ_ST[r.status];
           const name = r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자";
-          const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "housekeeping" ? "가사" : null;
+          const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "living_support" ? "생활지원" : null;
           return (
             <div key={r.id} onClick={() => go(`/request/${r.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "13px 15px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -751,7 +751,7 @@ function CaregiverHome() {
 function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | null; name: string | null }) {
   const router = useRouter();
   // 가사(housekeeping)는 국가자격증이 없으므로 라이선스 중심 문구를 등록/신원 기반으로 분기
-  const isHk = caregiverPrimaryDomain(profile?.service_domains) === "housekeeping";
+  const isHk = caregiverPrimaryDomain(profile?.service_domains) === "living_support";
   const c = isHk
     ? {
         reviewWord: "등록 검수",

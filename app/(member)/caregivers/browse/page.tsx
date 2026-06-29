@@ -16,7 +16,7 @@ const stripTag = (s: string) => s.replace(/^\[.*?\]\s*/, "");
 const DOMAIN_TITLE: Record<string, string> = {
   senior: "검증된 요양보호사",
   nursing: "검증된 간병인",
-  housekeeping: "검증된 가사도우미",
+  living_support: "검증된 생활지원 도우미",
 };
 
 function BrowseList() {

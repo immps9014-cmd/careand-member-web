@@ -426,7 +426,7 @@ export const memberApi = {
     return data.data ?? [];
   },
   createRequest: (payload: {
-    service_domain?: "nursing" | "housekeeping";
+    service_domain?: "nursing" | "living_support";
     senior_id?: number;
     nursing_patient_id?: number;
     service_address_id?: number;

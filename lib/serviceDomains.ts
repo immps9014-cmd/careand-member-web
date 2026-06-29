@@ -57,7 +57,7 @@ export const domainIcon = (name: string): LucideIcon => ICONS[name] ?? HeartPuls
 export const FALLBACK_DOMAINS: ServiceDomainMeta[] = [
   { token: "senior", label: "요양보호", desc: "어르신 방문", icon: "heart-pulse", picker: "senior", categories: [] },
   { token: "nursing", label: "병원 간병", desc: "입원 환자", icon: "stethoscope", picker: "patient", categories: [] },
-  { token: "housekeeping", label: "가사 서비스", desc: "청소·정리", icon: "sparkles", picker: "address", categories: [] },
+  { token: "living_support", label: "생활지원서비스", desc: "청소·정리·동행", icon: "sparkles", picker: "address", categories: [] },
 ];
 
 export function useServiceDomains() {

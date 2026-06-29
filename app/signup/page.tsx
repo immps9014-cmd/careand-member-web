@@ -632,7 +632,7 @@ export default function SignupPage() {
                   if (role === "caregiver" || role === "organization") return router.push("/home");
                   // 공개웹 "신청하기"로 진입한 경우 복귀 URL(신청화면)을 최우선.
                   const back = safeRedirect();
-                  router.push(back ?? (kind === "housekeeping" ? "/request/new?domain=housekeeping" : "/home"));
+                  router.push(back ?? (kind === "housekeeping" ? "/request/new?domain=living_support" : "/home"));
                 }}
               >
                 {role === "caregiver" || role === "organization"

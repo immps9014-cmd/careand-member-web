@@ -89,7 +89,7 @@ export const MOCK_SESSIONS: GuardianSession[] = [
   },
   {
     id: 9003, status: "in_progress", review_status: "pending", has_summary: false,
-    service_domain: "housekeeping", recipient_name: "우리집",
+    service_domain: "living_support", recipient_name: "우리집",
     scheduled_start: "2026-06-14T14:00:00+09:00", scheduled_end: "2026-06-14T17:00:00+09:00",
     actual_start: "2026-06-14T14:01:00+09:00", actual_end: null, duration_min: 0,
   },

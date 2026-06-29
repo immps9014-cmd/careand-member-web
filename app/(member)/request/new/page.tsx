@@ -77,7 +77,7 @@ export default function NewRequestPage() {
   const addresses = useQuery({
     queryKey: ["member", "addresses"],
     queryFn: () => memberApi.addresses(),
-    enabled: domain === "housekeeping",
+    enabled: domain === "living_support",
   });
   const categories = useQuery({
     queryKey: ["member", "categories", domain],
@@ -97,7 +97,7 @@ export default function NewRequestPage() {
         duration_min: Number(duration),
         ...(domain === "senior" && seniorId ? { senior_id: Number(seniorId) } : {}),
         ...(domain === "nursing" && patientId ? { nursing_patient_id: Number(patientId) } : {}),
-        ...(domain === "housekeeping" && addressId ? { service_address_id: Number(addressId) } : {}),
+        ...(domain === "living_support" && addressId ? { service_address_id: Number(addressId) } : {}),
       }),
     enabled: estimateEnabled,
     staleTime: 30_000,
@@ -134,7 +134,7 @@ export default function NewRequestPage() {
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
-    if ((d === "nursing" || d === "housekeeping") && availableDomains.some((x) => x.token === d)) selectDomain(d);
+    if ((d === "nursing" || d === "living_support") && availableDomains.some((x) => x.token === d)) selectDomain(d);
     const sid = sp.get("senior_id");
     if (sid && /^\d+$/.test(sid)) setSeniorId(Number(sid));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,9 +164,9 @@ export default function NewRequestPage() {
           special_request: memo || undefined,
         });
       }
-      if (domain === "housekeeping") {
+      if (domain === "living_support") {
         return memberApi.createRequest({
-          service_domain: "housekeeping",
+          service_domain: "living_support",
           service_address_id: Number(addressId),
           category_id: Number(categoryId),
           mode: "normal",
@@ -200,13 +200,13 @@ export default function NewRequestPage() {
   const valid =
     domain === "nursing"
       ? patientId && categoryId && start && duration >= 60 && duration <= 1440 && days >= 1 && days <= 30
-      : domain === "housekeeping"
+      : domain === "living_support"
         ? addressId && categoryId && start && duration >= 60 && duration <= 720
         : seniorId && categoryId && start && duration >= 60;
 
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
-  const noAddresses = domain === "housekeeping" && addresses.isSuccess && addresses.data.length === 0;
+  const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
   const noCategories = categories.isSuccess && categories.data.length === 0;
 
   // 소요 시간 스테퍼/빠른선택 (duration 상태 그대로 사용 — 60~maxDuration, 30분 단위)
@@ -338,7 +338,7 @@ export default function NewRequestPage() {
             </div>
           )}
 
-          {domain === "housekeeping" && (
+          {domain === "living_support" && (
             <div>
               <label className={SECTION_LABEL}>서비스 주소</label>
               {noAddresses ? (
@@ -494,7 +494,7 @@ export default function NewRequestPage() {
           )}
 
           {/* 완료사진 요구 (가사 전용) */}
-          {domain === "housekeeping" && (
+          {domain === "living_support" && (
             <div className="mt-4">
               <label className={SECTION_LABEL}>작업 완료사진</label>
               <div className="grid grid-cols-2 gap-2">

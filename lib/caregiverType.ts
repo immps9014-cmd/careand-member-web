@@ -8,6 +8,7 @@ export const DOMAIN_LABEL: Record<string, string> = {
   senior: "요양보호",
   nursing: "간병",
   housekeeping: "가사",
+  living_support: "생활지원",
   postpartum: "산후",
   companion: "동행",
   care: "간병",
@@ -51,8 +52,8 @@ export interface CaregiverUiVocab {
   searchPlaceholder: string; // 상단바 검색 pill
 }
 export function caregiverUi(serviceDomains: string | null | undefined): CaregiverUiVocab {
-  if (caregiverPrimaryDomain(serviceDomains) === "housekeeping") {
-    return { homeTitle: "오늘의 가사", actionNoun: "가사", searchPlaceholder: "어떤 가사 요청을 찾으세요?" };
+  if (caregiverPrimaryDomain(serviceDomains) === "living_support") {
+    return { homeTitle: "오늘의 생활지원", actionNoun: "생활지원", searchPlaceholder: "어떤 생활지원 요청을 찾으세요?" };
   }
   return { homeTitle: "오늘의 케어", actionNoun: "케어", searchPlaceholder: "어떤 케어 요청을 찾으세요?" };
 }
