@@ -10,14 +10,16 @@ import { usesCaregiverShell } from "@/lib/role";
 import { UI } from "@/lib/theme";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
-type NavItem = { href: string; label: string; Icon: LucideIcon };
+// external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동 (Link 대신 plain <a>)
+type NavItem = { href: string; label: string; Icon: LucideIcon; external?: boolean };
+const WEB_HOME = "/www"; // 공개 웹 홈 (모바일 앱 홈 /home 과 구분)
 const GUARDIAN_NAV: NavItem[] = [
-  { href: "/home", label: "홈", Icon: Home },
+  { href: WEB_HOME, label: "홈", Icon: Home, external: true },
   { href: "/logs", label: "케어일지", Icon: FileText },
   { href: "/mypage", label: "내 정보", Icon: User },
 ];
 const CAREGIVER_NAV: NavItem[] = [
-  { href: "/home", label: "홈", Icon: Home },
+  { href: WEB_HOME, label: "홈", Icon: Home, external: true },
   { href: "/schedule", label: "일정", Icon: CalendarClock },
   { href: "/settlements", label: "정산", Icon: Wallet },
   { href: "/notifications", label: "알림", Icon: Bell },
@@ -31,12 +33,13 @@ function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavI
       className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-white px-4 py-6 lg:flex"
       style={{ borderRight: `1px solid ${UI.line}` }}
     >
-      <Link href="/home" className="flex items-center gap-2 px-2">
+      {/* Care& 로고 → 웹 홈(/www) 전체 이동 */}
+      <a href={WEB_HOME} className="flex items-center gap-2 px-2">
         <span className="grid h-9 w-9 place-items-center rounded-lg text-[15px] font-extrabold italic text-white" style={{ background: UI.accent }}>
           C&amp;
         </span>
         <span className="text-lg font-extrabold" style={{ color: UI.ink }}>Care&amp;</span>
-      </Link>
+      </a>
 
       {isGuardian && (
         <Link
@@ -49,16 +52,22 @@ function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavI
       )}
 
       <nav className="mt-4 flex flex-col gap-1">
-        {items.map(({ href, label, Icon }) => {
-          const active = is(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors"
-              style={{ color: active ? UI.accent : UI.ink2, background: active ? "#ECFDF5" : "transparent" }}
-            >
+        {items.map(({ href, label, Icon, external }) => {
+          const active = !external && is(href);
+          const cls = "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors";
+          const st = { color: active ? UI.accent : UI.ink2, background: active ? "#ECFDF5" : "transparent" };
+          const inner = (
+            <>
               <Icon className="h-5 w-5" strokeWidth={2} /> {label}
+            </>
+          );
+          return external ? (
+            <a key={href} href={href} className={cls} style={st}>
+              {inner}
+            </a>
+          ) : (
+            <Link key={href} href={href} className={cls} style={st}>
+              {inner}
             </Link>
           );
         })}
