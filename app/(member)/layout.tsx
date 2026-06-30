@@ -4,10 +4,72 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Home, Wallet, Bell, User, CalendarClock } from "lucide-react";
+import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI } from "@/lib/theme";
+
+/* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
+type NavItem = { href: string; label: string; Icon: LucideIcon };
+const GUARDIAN_NAV: NavItem[] = [
+  { href: "/home", label: "홈", Icon: Home },
+  { href: "/logs", label: "케어일지", Icon: FileText },
+  { href: "/mypage", label: "내 정보", Icon: User },
+];
+const CAREGIVER_NAV: NavItem[] = [
+  { href: "/home", label: "홈", Icon: Home },
+  { href: "/schedule", label: "일정", Icon: CalendarClock },
+  { href: "/settlements", label: "정산", Icon: Wallet },
+  { href: "/notifications", label: "알림", Icon: Bell },
+  { href: "/mypage", label: "내 정보", Icon: User },
+];
+
+function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavItem[]; pathname: string; isGuardian: boolean; userName: string }) {
+  const is = (p: string) => pathname === p || pathname.startsWith(p + "/");
+  return (
+    <aside
+      className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-white px-4 py-6 lg:flex"
+      style={{ borderRight: `1px solid ${UI.line}` }}
+    >
+      <Link href="/home" className="flex items-center gap-2 px-2">
+        <span className="grid h-9 w-9 place-items-center rounded-lg text-[15px] font-extrabold italic text-white" style={{ background: UI.accent }}>
+          C&amp;
+        </span>
+        <span className="text-lg font-extrabold" style={{ color: UI.ink }}>Care&amp;</span>
+      </Link>
+
+      {isGuardian && (
+        <Link
+          href="/request/new"
+          className="mt-6 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-extrabold text-white shadow-sm"
+          style={{ background: `linear-gradient(140deg,${UI.accentSoft},${UI.accent})` }}
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.6} /> 매칭 요청하기
+        </Link>
+      )}
+
+      <nav className="mt-4 flex flex-col gap-1">
+        {items.map(({ href, label, Icon }) => {
+          const active = is(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors"
+              style={{ color: active ? UI.accent : UI.ink2, background: active ? "#ECFDF5" : "transparent" }}
+            >
+              <Icon className="h-5 w-5" strokeWidth={2} /> {label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="mt-auto truncate px-3 text-xs font-semibold" style={{ color: UI.ink3 }}>
+        {userName} 님
+      </div>
+    </aside>
+  );
+}
 
 /* ===== 보호자 하단 탭 (코랄 · 5탭 + 중앙 매칭요청 FAB) ===== */
 // 디자인 토큰 SSOT 참조 (값은 lib/theme.ts). ACCENT=brand-500, ACCENT_SOFT=brand-400.
@@ -90,12 +152,33 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     );
   }
 
-  /* ===== 세 역할 공통 디자인 셸 (상단바는 각 페이지가 보유, 하단 탭바만 역할별) ===== */
+  /* ===== 반응형 셸 =====
+     - 모바일(<lg): 480px 앱 프레임 + 하단 탭바 (앱 화면)
+     - 데스크톱(lg+): 좌측 사이드바 네비 + 넓은 본문 (웹 화면)
+     상단바는 각 페이지가 보유. */
   const isCaregiver = usesCaregiverShell(user.role);
   return (
-    <div className="min-h-screen flex justify-center" style={{ background: UI.bg }}>
-      <div className="w-full flex flex-col relative" style={{ maxWidth: 480, minHeight: "100vh", background: UI.bg, boxShadow: "0 0 60px rgba(28,32,48,.08)" }}>
-        <main className="flex-1" style={{ paddingBottom: "calc(78px + var(--safe-bot,0px))" }}>{children}</main>
+    <div className="min-h-screen" style={{ background: UI.bg }}>
+      {/* 데스크톱: 사이드바 */}
+      <DesktopSidebar
+        items={isCaregiver ? CAREGIVER_NAV : GUARDIAN_NAV}
+        pathname={pathname}
+        isGuardian={!isCaregiver}
+        userName={user.name}
+      />
+
+      {/* 본문 (데스크톱은 사이드바만큼 좌측 여백) */}
+      <div className="lg:pl-60">
+        <div
+          className="mx-auto flex w-full max-w-[480px] flex-col shadow-[0_0_60px_rgba(28,32,48,.08)] lg:max-w-3xl lg:shadow-none"
+          style={{ minHeight: "100vh", background: UI.bg }}
+        >
+          <main className="flex-1 pb-[78px] lg:pb-12">{children}</main>
+        </div>
+      </div>
+
+      {/* 모바일: 하단 탭바 */}
+      <div className="lg:hidden">
         {isCaregiver ? <CaregiverTabBar pathname={pathname} /> : <GuardianTabBar pathname={pathname} />}
       </div>
     </div>
