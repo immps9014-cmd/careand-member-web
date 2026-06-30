@@ -16,7 +16,7 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div className="p-5">
+    <div className="p-5 lg:mx-auto lg:max-w-3xl">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-extrabold text-warm-800 mb-1">알림</h1>
@@ -35,7 +35,7 @@ export default function NotificationsPage() {
         {query.data?.data.map((n) => (
           <Card
             key={n.id}
-            className={cn("p-4 cursor-pointer", !n.is_read && "border-l-4 border-l-brand-500")}
+            className={cn("p-4 cursor-pointer transition-colors lg:hover:bg-warm-50/60", !n.is_read && "border-l-4 border-l-brand-500")}
             onClick={() => !n.is_read && read.mutate(n.id)}
           >
             <div className="flex items-start gap-3">
