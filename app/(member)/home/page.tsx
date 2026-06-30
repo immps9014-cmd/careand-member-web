@@ -72,7 +72,7 @@ function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
         </div>
       )}
       <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>우리 어르신께 꼭 맞는 돌봄</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>나에게 꼭 맞는 돌봄으로</div>
         <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
         <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={() => go("/request/new")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#0E6B43", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(14,107,67,.28)" }}>
@@ -100,7 +100,7 @@ function GQuickIcon({ bg, children }: { bg: string; children: React.ReactNode })
 function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
   // 어르신 미등록 시 '우리 어르신' 타일을 빨간색으로 강조해 등록을 유도
   const items: { l: string; bg: string; to: string; ic: React.ReactNode; alert?: boolean }[] = [
-    { l: "우리 어르신", bg: noSeniors ? "#FFECEC" : "#EAF1FF", to: noSeniors ? "/seniors/new" : "/seniors", alert: noSeniors, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={noSeniors ? "#E0484E" : "#3E72D6"} strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
+    { l: "어르신 등록하기", bg: noSeniors ? "#FFECEC" : "#EAF1FF", to: noSeniors ? "/seniors/new" : "/seniors", alert: noSeniors, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={noSeniors ? "#E0484E" : "#3E72D6"} strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
     { l: "방문일정", bg: "#F2ECFF", to: "/schedule", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></svg> },
     { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
     { l: "정산내역", bg: "#E7F4F2", to: "/settlements", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
