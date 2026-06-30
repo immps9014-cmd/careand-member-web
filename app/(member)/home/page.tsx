@@ -178,6 +178,14 @@ function GFeed({ go }: { go: GNav }) {
   });
   const list = q.data ?? [];
   const [open, setOpen] = useState(true);
+  // 추천 전문가의 최다 도메인으로 '전체 보기' 필터 적용 (없으면 전체)
+  const domCount: Record<string, number> = {};
+  list.forEach((c) => {
+    const d = c.domains?.[0];
+    if (d) domCount[d] = (domCount[d] ?? 0) + 1;
+  });
+  const topDomain = Object.entries(domCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const browseHref = topDomain ? `/caregivers/browse?domain=${topDomain}` : "/caregivers/browse";
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
@@ -197,7 +205,7 @@ function GFeed({ go }: { go: GNav }) {
           {/* 전체 돌봄전문가 보기 — 도메인별 리스트(검증된 돌봄전문가) */}
           {!q.isLoading && (
             <button
-              onClick={() => go("/caregivers/browse")}
+              onClick={() => go(browseHref)}
               style={{ width: "100%", marginTop: 12, height: 46, borderRadius: 14, border: `1px solid ${LINE}`, background: "#fff", color: INK, fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
             >
               전체 돌봄전문가 보기
