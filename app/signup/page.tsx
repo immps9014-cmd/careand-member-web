@@ -298,10 +298,14 @@ export default function SignupPage() {
         {/* ===== STEP: 역할 선택 ===== */}
         {step === "role" && (
           <div className="flex-1 pt-6">
-            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
-              어떤 회원으로<br />가입하시나요?
+            <h1 className="text-[26px] font-extrabold leading-[1.25] text-warm-800 tracking-tight">
+              어떤 돌봄이 필요하신가요?
+              <br />
+              <span className="text-brand-500">Care&amp;</span>이 도와드리겠습니다.
             </h1>
-            <p className="text-sm text-warm-500 mt-2">역할에 맞는 정보로 가입을 진행해요.</p>
+            <p className="text-sm font-medium text-warm-500 mt-3">
+              필요한 서비스를 선택하면 꼭 맞는 검증된 전문가로 연결해 드려요.
+            </p>
 
             <div className="mt-7 space-y-3">
               <RoleCard
