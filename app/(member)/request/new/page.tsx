@@ -62,6 +62,7 @@ export default function NewRequestPage() {
   const [memo, setMemo] = useState("");
   // 선호 돌봄전문가 성별 ("" = 무관). 매칭에서 소프트 가산 신호로만 쓰임.
   const [preferredGender, setPreferredGender] = useState<"" | "M" | "F">("");
+  const [preferredCgId, setPreferredCgId] = useState<number | null>(null); // 직접 지정(찜한 전문가)
   // 보호자가 선호 성별을 직접 건드렸는지 — true면 자동 권장값보다 사용자 선택을 우선
   const [genderTouched, setGenderTouched] = useState(false);
 
@@ -181,6 +182,9 @@ export default function NewRequestPage() {
       const effPreferred = sameGenderForced ? "" : effectiveGender;
       const genderReq = effPreferred ? { preferred_gender: effPreferred } : {};
       const budgetReq = budget && Number(budget) > 0 ? { budget_hourly: Number(budget) } : {};
+      // 선호 성별 + 직접 지정(찜한 전문가) 를 합쳐 requirements 로 전송
+      const baseReq = { ...genderReq, ...(preferredCgId ? { preferred_caregiver_id: preferredCgId } : {}) };
+      const reqSpread = Object.keys(baseReq).length ? { requirements: baseReq } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
         return memberApi.createRequest({
@@ -191,7 +195,7 @@ export default function NewRequestPage() {
           scheduled_start: scheduled,
           duration_min: Number(duration),
           ...(recurring ? { recurrence_rule: { days: Number(days) } } : {}),
-          ...(effPreferred ? { requirements: genderReq } : {}),
+          ...reqSpread,
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -204,7 +208,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          requirements: { photo_required: photoRequired, ...genderReq },
+          requirements: { photo_required: photoRequired, ...baseReq },
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -217,7 +221,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          ...(effPreferred ? { requirements: genderReq } : {}),
+          ...reqSpread,
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -230,7 +234,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          ...(effPreferred ? { requirements: genderReq } : {}),
+          ...reqSpread,
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -243,7 +247,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          ...(effPreferred ? { requirements: genderReq } : {}),
+          ...reqSpread,
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -320,11 +324,33 @@ export default function NewRequestPage() {
           돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 돌봄전문가를 찾아 드려요.
         </p>
         {favCount > 0 && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50/60 px-3.5 py-2.5 text-[13px]">
-            <Sparkle className="h-4 w-4 shrink-0 text-brand-500" />
-            <span className="text-warm-600">
-              찜한 돌봄전문가 <b className="text-brand-700">{favCount}명</b>은 매칭 결과에서 <b className="text-brand-700">우선 표시</b>돼요.
-            </span>
+          <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50/50 p-3">
+            <div className="flex items-center gap-1.5 text-[13px] font-bold text-warm-700">
+              <Sparkle className="h-4 w-4 text-brand-500" /> 찜한 돌봄전문가에게 직접 요청 (선택)
+            </div>
+            <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+              선택하면 해당 전문가에게 직접 요청해요. AI 추천 후보도 함께 받아 비교할 수 있어요.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {favQuery.data?.map((c) => {
+                const on = preferredCgId === c.id;
+                const nm = c.name.replace(/^\[.*?\]\s*/, "");
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setPreferredCgId(on ? null : c.id)}
+                    className={
+                      "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
+                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white text-warm-600")
+                    }
+                  >
+                    {on && "✓ "}{nm}
+                    {c.region ? <span className={on ? "text-white/80" : "text-warm-400"}> · {c.region}</span> : null}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 

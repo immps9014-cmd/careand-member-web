@@ -140,6 +140,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-warm-800">{c.caregiver?.name ?? "돌봄전문가"}</span>
+                  {c.source === "direct" && <Badge variant="brand">직접 지정</Badge>}
                   {isFav(c) && <Badge variant="brand">★ 찜</Badge>}
                   {c.source === "self" && <Badge variant="brand">지원함</Badge>}
                   {c.source !== "self" && c.rank === 1 && <Badge variant="success">AI 1순위</Badge>}
