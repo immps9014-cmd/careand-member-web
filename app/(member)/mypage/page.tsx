@@ -127,9 +127,13 @@ export default function MyPage() {
   }
 
   return (
-    <div className="p-5">
+    <div className="p-5 lg:mx-auto lg:max-w-5xl">
       <h1 className="text-xl font-extrabold text-warm-800 mb-5">내 정보</h1>
 
+      {/* 데스크톱 2단: 좌(프로필 sticky) / 우(편집 카드) */}
+      <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-6 lg:items-start">
+      {/* ── 좌측: 프로필 ── */}
+      <div className="lg:sticky lg:top-6">
       {/* 프로필 헤더 */}
       <Card className="p-5 mb-4">
         <div className="flex items-center gap-4">
@@ -146,7 +150,10 @@ export default function MyPage() {
           {user?.status === "active" ? "활성 계정" : user?.status}
         </div>
       </Card>
+      </div>
 
+      {/* ── 우측: 편집 카드 + 로그아웃 ── */}
+      <div>
       {/* 계정 정보 수정 */}
       <Card className="p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
@@ -276,6 +283,8 @@ export default function MyPage() {
       </Button>
 
       <p className="text-center text-xs text-warm-400 mt-6">Care& 회원 앱 v1.0</p>
+      </div>
+      </div>
     </div>
   );
 }
