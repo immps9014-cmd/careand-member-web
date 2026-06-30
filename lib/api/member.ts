@@ -379,6 +379,9 @@ export interface Coords {
 export interface RecommendedCaregiver {
   id: number;
   name: string;
+  gender?: string | null;
+  age?: number | null;
+  region?: string | null;
   rating: string;
   rating_count: number;
   completed_sessions: number;
@@ -386,6 +389,7 @@ export interface RecommendedCaregiver {
   base_rate: number | null;
   distance_km: number | null;
   tag: string | null;
+  is_favorited?: boolean;
 }
 
 /** 돌봄전문가 상세 프로필 — GET /v1/caregivers/{id} (CaregiverResource) */
@@ -445,6 +449,16 @@ export const memberApi = {
   },
   async caregiversByDomain(domain?: string): Promise<RecommendedCaregiver[]> {
     const { data } = await api.get("/v1/caregivers", { params: domain ? { domain } : {} });
+    return data.data ?? [];
+  },
+  /** 찜 토글 → { favorited } */
+  async toggleFavorite(id: number): Promise<boolean> {
+    const { data } = await api.post(`/v1/caregivers/${id}/favorite`);
+    return !!data.data?.favorited;
+  },
+  /** 찜한 돌봄전문가 목록 (추후 신청 반영용) */
+  async favoriteCaregivers(): Promise<RecommendedCaregiver[]> {
+    const { data } = await api.get("/v1/caregivers/favorites");
     return data.data ?? [];
   },
   // 보호자 — 케어일지(AI) [Phase 2, BE 2.2/2.7 의존]
