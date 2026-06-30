@@ -379,6 +379,7 @@ export interface Coords {
 export interface RecommendedCaregiver {
   id: number;
   name: string;
+  domains?: string[];
   gender?: string | null;
   age?: number | null;
   region?: string | null;

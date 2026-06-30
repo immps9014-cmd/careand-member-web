@@ -7,12 +7,15 @@ import { ChevronLeft, Star, ShieldCheck, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
+import { domainLabel } from "@/lib/caregiverType";
 import { cn } from "@/lib/utils";
 
 const stripTag = (s: string) => s.replace(/^\[.*?\]\s*/, "");
 const genderLabel = (g?: string | null) => (g === "F" ? "여" : g === "M" ? "남" : "-");
 
-// 도메인 → "검증된 OO" 명칭 (www 서비스 페이지와 동일 어휘)
+// 그룹 표시 도메인 순서 (소비자 도메인 — 전문가가 없어도 헤더는 표시)
+const GROUP_DOMAINS = ["senior", "living_support", "nursing", "postpartum", "childcare", "mental_care"];
+
 const DOMAIN_TITLE: Record<string, string> = {
   senior: "검증된 요양보호사",
   nursing: "검증된 간병인",
@@ -43,10 +46,14 @@ function BrowseList() {
   const fav = useMutation({
     mutationFn: (id: number) => memberApi.toggleFavorite(id),
     onMutate: (id) => flip(id),
-    onError: (_e, id) => flip(id), // 실패 시 롤백
+    onError: (_e, id) => flip(id),
   });
-
+  const onFav = (id: number) => fav.mutate(id);
   const goDetail = (id: number) => router.push(`/caregivers/${id}`);
+
+  // 도메인 필터 지정 시 그 도메인만, 아니면 전체 도메인 그룹
+  const showDomains = domain ? [domain] : GROUP_DOMAINS;
+  const inDomain = (c: RecommendedCaregiver, d: string) => (c.domains ?? []).includes(d);
 
   return (
     <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-5xl">
@@ -68,109 +75,137 @@ function BrowseList() {
         </Card>
       )}
 
-      {!q.isLoading && !q.isError && list.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">조건에 맞는 돌봄전문가가 아직 없습니다</Card>
+      {!q.isLoading && !q.isError && (
+        <div className="space-y-6">
+          {showDomains.map((d) => {
+            const group = list.filter((c) => inDomain(c, d));
+            return (
+              <section key={d}>
+                <div className="mb-2 flex items-baseline gap-2">
+                  <h2 className="text-[15px] font-extrabold text-warm-800">{domainLabel(d)}</h2>
+                  <span className="text-xs font-semibold text-warm-400">{group.length}명</span>
+                </div>
+                {group.length === 0 ? (
+                  <Card className="p-5 text-center text-warm-400 text-sm">등록된 전문가가 없습니다</Card>
+                ) : (
+                  <GroupBody list={group} onFav={onFav} onDetail={goDetail} />
+                )}
+              </section>
+            );
+          })}
+        </div>
       )}
+    </div>
+  );
+}
 
-      {list.length > 0 && (
-        <>
-          {/* 데스크톱: 표 */}
-          <Card className="hidden overflow-hidden p-0 lg:block">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-warm-100 bg-warm-50 text-xs font-bold text-warm-500">
-                  <th className="px-4 py-3 text-left">이름</th>
-                  <th className="px-3 py-3 text-center">성별</th>
-                  <th className="px-3 py-3 text-center">나이</th>
-                  <th className="px-4 py-3 text-left">전문분야</th>
-                  <th className="px-4 py-3 text-left">활동지역</th>
-                  <th className="px-3 py-3 text-center">별점</th>
-                  <th className="px-3 py-3 text-center">완료 실적</th>
-                  <th className="px-3 py-3 text-center">찜</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((c) => {
-                  const name = stripTag(c.name) || "돌봄전문가";
-                  return (
-                    <tr
-                      key={c.id}
-                      className="border-b border-warm-50 last:border-0 cursor-pointer hover:bg-warm-50/60"
-                      onClick={() => goDetail(c.id)}
-                    >
-                      <td className="px-4 py-3 font-bold text-warm-800 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5">
-                          {name}
-                          {c.tag && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600">
-                              {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
-                              {c.tag}
-                            </span>
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-center text-warm-600">{genderLabel(c.gender)}</td>
-                      <td className="px-3 py-3 text-center text-warm-600 tabular-nums">{c.age ?? "-"}</td>
-                      <td className="px-4 py-3 text-warm-600">{c.spec || "-"}</td>
-                      <td className="px-4 py-3 text-warm-500">{c.region || "-"}</td>
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className="inline-flex items-center gap-0.5 font-bold text-amber-500">
-                          <Star className="w-3.5 h-3.5 fill-current" />
-                          {c.rating}
-                        </span>
-                        <span className="text-warm-400 text-xs"> ({c.rating_count})</span>
-                      </td>
-                      <td className="px-3 py-3 text-center text-warm-600 tabular-nums">{c.completed_sessions}회</td>
-                      <td className="px-3 py-3 text-center">
-                        <FavBox active={!!c.is_favorited} onToggle={() => fav.mutate(c.id)} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-
-          {/* 모바일: 리스트 */}
-          <Card className="overflow-hidden p-0 lg:hidden">
+/** 한 그룹(도메인) — 데스크톱 표 / 모바일 리스트 */
+function GroupBody({
+  list,
+  onFav,
+  onDetail,
+}: {
+  list: RecommendedCaregiver[];
+  onFav: (id: number) => void;
+  onDetail: (id: number) => void;
+}) {
+  return (
+    <>
+      {/* 데스크톱: 표 */}
+      <Card className="hidden overflow-hidden p-0 lg:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-warm-100 bg-warm-50 text-xs font-bold text-warm-500">
+              <th className="px-4 py-3 text-left">이름</th>
+              <th className="px-3 py-3 text-center">성별</th>
+              <th className="px-3 py-3 text-center">나이</th>
+              <th className="px-4 py-3 text-left">전문분야</th>
+              <th className="px-4 py-3 text-left">활동지역</th>
+              <th className="px-3 py-3 text-center">별점</th>
+              <th className="px-3 py-3 text-center">완료 실적</th>
+              <th className="px-3 py-3 text-center">찜</th>
+            </tr>
+          </thead>
+          <tbody>
             {list.map((c) => {
               const name = stripTag(c.name) || "돌봄전문가";
               return (
-                <div
+                <tr
                   key={c.id}
-                  className="flex items-center gap-3 border-b border-warm-50 px-4 py-3 last:border-0 active:bg-warm-50"
-                  onClick={() => goDetail(c.id)}
+                  className="border-b border-warm-50 last:border-0 cursor-pointer hover:bg-warm-50/60"
+                  onClick={() => onDetail(c.id)}
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-warm-800 truncate">{name}</span>
+                  <td className="px-4 py-3 font-bold text-warm-800 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1.5">
+                      {name}
                       {c.tag && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600 shrink-0">
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600">
                           {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
                           {c.tag}
                         </span>
                       )}
-                    </div>
-                    <div className="mt-0.5 text-xs text-warm-500 truncate">
-                      {genderLabel(c.gender)} · {c.age ?? "-"}세 · {c.spec || "-"}
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-warm-500">
-                      <span className="truncate">{c.region || "-"}</span>
-                      <span className="inline-flex items-center gap-0.5 font-bold text-amber-500 shrink-0">
-                        <Star className="w-3 h-3 fill-current" />
-                        {c.rating}
-                      </span>
-                      <span className="shrink-0 text-warm-400">완료 {c.completed_sessions}회</span>
-                    </div>
-                  </div>
-                  <FavBox active={!!c.is_favorited} onToggle={() => fav.mutate(c.id)} />
-                </div>
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-center text-warm-600">{genderLabel(c.gender)}</td>
+                  <td className="px-3 py-3 text-center text-warm-600 tabular-nums">{c.age ?? "-"}</td>
+                  <td className="px-4 py-3 text-warm-600">{c.spec || "-"}</td>
+                  <td className="px-4 py-3 text-warm-500">{c.region || "-"}</td>
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
+                    <span className="inline-flex items-center gap-0.5 font-bold text-amber-500">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      {c.rating}
+                    </span>
+                    <span className="text-warm-400 text-xs"> ({c.rating_count})</span>
+                  </td>
+                  <td className="px-3 py-3 text-center text-warm-600 tabular-nums">{c.completed_sessions}회</td>
+                  <td className="px-3 py-3 text-center">
+                    <FavBox active={!!c.is_favorited} onToggle={() => onFav(c.id)} />
+                  </td>
+                </tr>
               );
             })}
-          </Card>
-        </>
-      )}
-    </div>
+          </tbody>
+        </table>
+      </Card>
+
+      {/* 모바일: 리스트 */}
+      <Card className="overflow-hidden p-0 lg:hidden">
+        {list.map((c) => {
+          const name = stripTag(c.name) || "돌봄전문가";
+          return (
+            <div
+              key={c.id}
+              className="flex items-center gap-3 border-b border-warm-50 px-4 py-3 last:border-0 active:bg-warm-50"
+              onClick={() => onDetail(c.id)}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-warm-800 truncate">{name}</span>
+                  {c.tag && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600 shrink-0">
+                      {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
+                      {c.tag}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-xs text-warm-500 truncate">
+                  {genderLabel(c.gender)} · {c.age ?? "-"}세 · {c.spec || "-"}
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-warm-500">
+                  <span className="truncate">{c.region || "-"}</span>
+                  <span className="inline-flex items-center gap-0.5 font-bold text-amber-500 shrink-0">
+                    <Star className="w-3 h-3 fill-current" />
+                    {c.rating}
+                  </span>
+                  <span className="shrink-0 text-warm-400">완료 {c.completed_sessions}회</span>
+                </div>
+              </div>
+              <FavBox active={!!c.is_favorited} onToggle={() => onFav(c.id)} />
+            </div>
+          );
+        })}
+      </Card>
+    </>
   );
 }
 
