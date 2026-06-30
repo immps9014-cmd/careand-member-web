@@ -65,8 +65,8 @@ function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘우리 어르신’ 정보를 입력하세요</div>
-            <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>어르신을 등록해야 돌봄을 요청할 수 있어요</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘돌봄대상’ 정보를 입력하세요</div>
+            <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>돌봄대상을 등록해야 돌봄을 요청할 수 있어요</div>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
         </div>
