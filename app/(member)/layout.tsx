@@ -14,12 +14,12 @@ import { UI } from "@/lib/theme";
 type NavItem = { href: string; label: string; Icon: LucideIcon; external?: boolean };
 const WEB_HOME = "/www"; // 공개 웹 홈 (모바일 앱 홈 /home 과 구분)
 const GUARDIAN_NAV: NavItem[] = [
-  { href: WEB_HOME, label: "홈", Icon: Home, external: true },
+  { href: "/home", label: "홈", Icon: Home },
   { href: "/logs", label: "케어일지", Icon: FileText },
   { href: "/mypage", label: "내 정보", Icon: User },
 ];
 const CAREGIVER_NAV: NavItem[] = [
-  { href: WEB_HOME, label: "홈", Icon: Home, external: true },
+  { href: "/home", label: "홈", Icon: Home },
   { href: "/schedule", label: "일정", Icon: CalendarClock },
   { href: "/settlements", label: "정산", Icon: Wallet },
   { href: "/notifications", label: "알림", Icon: Bell },
@@ -105,7 +105,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
   return (
     <nav style={{ position: "fixed", bottom: 0, width: "100%", maxWidth: 480, background: "rgba(255,255,255,.96)", backdropFilter: "blur(10px)", borderTop: `1px solid ${LINE}`, paddingBottom: "calc(8px + var(--safe-bot,0px))", zIndex: 20 }}>
       <div style={{ display: "flex", alignItems: "flex-end", padding: "9px 8px 4px" }}>
-        <GuardianTab href={WEB_HOME} external label="홈" active={false} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>} />
+        <GuardianTab href="/home" label="홈" active={is("/home")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>} />
         <GuardianTab href="/logs" label="케어일지" active={is("/logs")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h6M9 16h4" /></svg>} />
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <Link href="/request/new" style={{ transform: "translateY(-16px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none" }}>
@@ -129,7 +129,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
 function CaregiverTabBar({ pathname }: { pathname: string }) {
   const is = (p: string) => pathname === p || pathname.startsWith(p + "/");
   const tabs: { href: string; label: string; Icon: typeof Home; external?: boolean }[] = [
-    { href: WEB_HOME, label: "홈", Icon: Home, external: true },
+    { href: "/home", label: "홈", Icon: Home },
     { href: "/schedule", label: "일정", Icon: CalendarClock },
     { href: "/settlements", label: "정산", Icon: Wallet },
     { href: "/notifications", label: "알림", Icon: Bell },
