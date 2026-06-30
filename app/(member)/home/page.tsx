@@ -194,6 +194,16 @@ function GFeed({ go }: { go: GNav }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
           </div>
+          {/* 전체 돌봄전문가 보기 — 도메인별 리스트(검증된 돌봄전문가) */}
+          {!q.isLoading && (
+            <button
+              onClick={() => go("/caregivers/browse")}
+              style={{ width: "100%", marginTop: 12, height: 46, borderRadius: 14, border: `1px solid ${LINE}`, background: "#fff", color: INK, fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+            >
+              전체 돌봄전문가 보기
+              <ChevronRight size={16} color={INK3} />
+            </button>
+          )}
         </>
       )}
     </div>
