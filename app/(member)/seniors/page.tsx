@@ -33,7 +33,7 @@ export default function SeniorsPage() {
         </Link>
       </div>
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 lg:mt-7">
         <h2 className="font-bold text-warm-700">등록 어르신</h2>
         <span className="text-xs text-warm-400">{query.data?.length ?? 0}명</span>
       </div>
