@@ -57,7 +57,8 @@ function BrowseList() {
         <Card className="p-8 text-center text-warm-400 text-sm">조건에 맞는 돌봄전문가가 아직 없습니다</Card>
       )}
 
-      <div className="space-y-3">
+      {/* 모바일: 세로 리스트 / 데스크톱: 그리드 */}
+      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 xl:grid-cols-3">
         {list.map((c) => <BrowseCard key={c.id} c={c} onClick={() => router.push(`/caregivers/${c.id}`)} />)}
       </div>
     </div>

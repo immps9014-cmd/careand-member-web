@@ -23,7 +23,7 @@ export default function LogsPage() {
   const sessions = query.data ?? [];
 
   return (
-    <div className="p-5">
+    <div className="p-5 lg:mx-auto lg:max-w-3xl">
       <h1 className="text-xl font-extrabold text-warm-800 mb-1">케어 일지</h1>
       <p className="text-sm text-warm-500 mb-5">돌봄이 끝나면 AI가 정리한 케어 일지를 받아보실 수 있어요</p>
 
@@ -49,11 +49,12 @@ export default function LogsPage() {
         </Card>
       )}
 
-      <div className="space-y-3">
+      {/* 모바일: 카드 / 데스크톱: 타임라인 (좌측 라인 + 점) */}
+      <div className="space-y-3 lg:relative lg:space-y-0 lg:before:absolute lg:before:left-[7px] lg:before:top-2 lg:before:bottom-2 lg:before:w-0.5 lg:before:bg-warm-200">
         {sessions.map((s) => {
           const st = logStatus(s);
           const inner = (
-            <Card className={`p-4 ${st.viewable ? "active:bg-warm-50 transition-colors" : ""}`}>
+            <Card className={`p-4 ${st.viewable ? "active:bg-warm-50 transition-colors lg:hover:border-brand-300" : ""}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-brand-500" />
@@ -80,12 +81,20 @@ export default function LogsPage() {
             </Card>
           );
 
+          const dot = (
+            <span className="hidden h-4 w-4 rounded-full border-2 border-brand-400 bg-white lg:absolute lg:left-0 lg:top-4 lg:block" />
+          );
+          const wrap = "block lg:relative lg:pl-9 lg:pb-3";
           return st.viewable ? (
-            <Link key={s.id} href={`/logs/${s.id}`} className="block">
+            <Link key={s.id} href={`/logs/${s.id}`} className={wrap}>
+              {dot}
               {inner}
             </Link>
           ) : (
-            <div key={s.id}>{inner}</div>
+            <div key={s.id} className={wrap}>
+              {dot}
+              {inner}
+            </div>
           );
         })}
       </div>
