@@ -170,7 +170,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
       {/* 본문 (데스크톱은 사이드바만큼 좌측 여백) */}
       <div className="lg:pl-60">
         <div
-          className="mx-auto flex w-full max-w-[480px] flex-col shadow-[0_0_60px_rgba(28,32,48,.08)] lg:max-w-3xl lg:shadow-none"
+          className="mx-auto flex w-full max-w-[480px] flex-col shadow-[0_0_60px_rgba(28,32,48,.08)] lg:max-w-5xl lg:shadow-none"
           style={{ minHeight: "100vh", background: UI.bg }}
         >
           <main className="flex-1 pb-[78px] lg:pb-12">{children}</main>

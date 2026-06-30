@@ -312,8 +312,12 @@ export default function NewRequestPage() {
           돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 돌봄전문가를 찾아 드려요.
         </p>
 
+        {/* 데스크톱 2단: 좌(입력) / 우(적정간병비·제출 sticky) */}
+        <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6 lg:items-start">
+        {/* ── 좌측: 입력 ── */}
+        <div>
         {/* 1단계: 서비스 종류(도메인) 선택 */}
-        <label className={SECTION_LABEL + " mt-5"}>어떤 서비스가 필요하세요?</label>
+        <label className={SECTION_LABEL}>어떤 서비스가 필요하세요?</label>
         <div className={`grid gap-2.5 ${availableDomains.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {availableDomains.map((d) => {
             const Icon = domainIcon(d.icon);
@@ -741,9 +745,12 @@ export default function NewRequestPage() {
             />
           </div>
         </Card>
+        </div>
 
+        {/* ── 우측: 적정 간병비 + 제출 (데스크톱 sticky) ── */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
         {/* 적정 간병비 + 희망 상한 (역경매) */}
-        <Card className="mt-3.5 p-4">
+        <Card className="mt-3.5 p-4 lg:mt-0">
           <label className={SECTION_LABEL}>적정 간병비</label>
           {!estimateEnabled ? (
             <p className="text-[12.5px] text-warm-400 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
@@ -797,6 +804,8 @@ export default function NewRequestPage() {
           <Sparkle className="h-[18px] w-[18px]" />
           {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
         </Button>
+        </div>
+        </div>
       </div>
     </div>
   );
