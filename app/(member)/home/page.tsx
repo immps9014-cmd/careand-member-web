@@ -105,6 +105,7 @@ function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
     { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
     { l: "정산내역", bg: "#E7F4F2", to: "/settlements", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
     { l: "마음돌봄", bg: "#FFF0F3", to: "/request/new?domain=mental_care", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0697E" strokeWidth="2"><path d="M12 20s-6.5-4.3-9-8.2C1.4 9 2.3 5.6 5.3 4.8 7.2 4.3 9 5.2 12 8c3-2.8 4.8-3.7 6.7-3.2 3 .8 3.9 4.2 2.3 7-2.5 3.9-9 8.2-9 8.2z" /></svg> },
+    { l: "긴급요청", bg: "#FFE9EC", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
   ];
   const sub: { l: string; to: string }[] = [
     { l: "공지사항", to: "/notifications" },
