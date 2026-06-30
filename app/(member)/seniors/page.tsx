@@ -20,15 +20,18 @@ export default function SeniorsPage() {
   });
 
   return (
-    <div className="p-5">
-      <h1 className="text-xl font-extrabold text-warm-800 mb-1">어르신 관리</h1>
-      <p className="text-sm text-warm-500 mb-5">돌봄 대상 어르신의 건강을 모니터링하세요</p>
-
-      <Link href="/seniors/new">
-        <Button variant="brand" size="lg" className="w-full mb-6">
-          <Plus className="w-4 h-4" /> 어르신 등록
-        </Button>
-      </Link>
+    <div className="p-5 lg:mx-auto lg:max-w-4xl">
+      <div className="lg:flex lg:items-start lg:justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold text-warm-800 mb-1">어르신 관리</h1>
+          <p className="text-sm text-warm-500 mb-5 lg:mb-0">돌봄 대상 어르신의 건강을 모니터링하세요</p>
+        </div>
+        <Link href="/seniors/new" className="block lg:inline-block lg:shrink-0">
+          <Button variant="brand" size="lg" className="w-full mb-6 lg:mb-0 lg:w-auto lg:px-6">
+            <Plus className="w-4 h-4" /> 어르신 등록
+          </Button>
+        </Link>
+      </div>
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-bold text-warm-700">등록 어르신</h2>
@@ -43,10 +46,10 @@ export default function SeniorsPage() {
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         {query.data?.map((s) => (
-          <Link key={s.id} href={`/seniors/${s.id}`}>
-            <Card className="p-4 flex items-center justify-between active:bg-warm-50 transition-colors">
+          <Link key={s.id} href={`/seniors/${s.id}`} className="block lg:h-full">
+            <Card className="p-4 flex items-center justify-between active:bg-warm-50 transition-colors lg:h-full lg:hover:border-warm-300">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                   <HeartPulse className="w-5 h-5 text-brand-500" />
