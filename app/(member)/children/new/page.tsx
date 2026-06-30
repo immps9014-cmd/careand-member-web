@@ -25,10 +25,11 @@ export default function NewChildPage() {
 
   const create = useMutation({
     mutationFn: (payload: CreateChildPayload) => memberApi.createChild(payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("아이를 등록했습니다.");
       qc.invalidateQueries({ queryKey: ["member", "children"] });
-      router.push("/request/new?domain=childcare");
+      const id = res?.data?.data?.id;
+      router.push(`/request/new?domain=childcare${id ? `&childcare_child_id=${id}` : ""}`);
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });

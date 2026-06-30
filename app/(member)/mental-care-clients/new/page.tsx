@@ -26,10 +26,11 @@ export default function NewMentalCareClientPage() {
 
   const create = useMutation({
     mutationFn: (payload: CreateMentalCareClientPayload) => memberApi.createMentalCareClient(payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("마음돌봄 대상을 등록했습니다.");
       qc.invalidateQueries({ queryKey: ["member", "mental-care-clients"] });
-      router.push("/request/new?domain=mental_care");
+      const id = res?.data?.data?.id;
+      router.push(`/request/new?domain=mental_care${id ? `&mental_care_client_id=${id}` : ""}`);
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });

@@ -38,10 +38,11 @@ export default function NewPostpartumClientPage() {
 
   const create = useMutation({
     mutationFn: (payload: CreatePostpartumClientPayload) => memberApi.createPostpartumClient(payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("산모 정보를 등록했습니다.");
       qc.invalidateQueries({ queryKey: ["member", "postpartum-clients"] });
-      router.push("/request/new?domain=postpartum");
+      const id = res?.data?.data?.id;
+      router.push(`/request/new?domain=postpartum${id ? `&postpartum_client_id=${id}` : ""}`);
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });

@@ -168,10 +168,25 @@ export default function NewRequestPage() {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
     if ((d === "nursing" || d === "living_support" || d === "postpartum" || d === "childcare" || d === "mental_care") && availableDomains.some((x) => x.token === d)) selectDomain(d);
-    const sid = sp.get("senior_id");
-    if (sid && /^\d+$/.test(sid)) setSeniorId(Number(sid));
+    // 대상 등록 직후 되돌아온 경우, 방금 등록한 대상을 자동 선택해 흐름이 이어지도록 함
+    const num = (k: string) => {
+      const v = sp.get(k);
+      return v && /^\d+$/.test(v) ? Number(v) : null;
+    };
+    const sid = num("senior_id");
+    if (sid) setSeniorId(sid);
+    const pid = num("nursing_patient_id");
+    if (pid) setPatientId(pid);
+    const aid = num("service_address_id");
+    if (aid) setAddressId(aid);
+    const ppid = num("postpartum_client_id");
+    if (ppid) setPostpartumClientId(ppid);
+    const cid = num("childcare_child_id");
+    if (cid) setChildId(cid);
+    const mid = num("mental_care_client_id");
+    if (mid) setMentalClientId(mid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
+  }, [role, domainsQuery.data]);
 
   const create = useMutation({
     mutationFn: () => {
