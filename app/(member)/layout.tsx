@@ -84,12 +84,19 @@ function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavI
 // 디자인 토큰 SSOT 참조 (값은 lib/theme.ts). ACCENT=brand-500, ACCENT_SOFT=brand-400.
 const ACCENT = UI.accent, ACCENT_SOFT = UI.accentSoft, INK3 = UI.ink3, LINE = UI.line;
 
-function GuardianTab({ href, label, icon, active }: { href: string; label: string; icon: React.ReactNode; active: boolean }) {
-  return (
-    <Link href={href} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: active ? ACCENT : INK3, textDecoration: "none" }}>
+function GuardianTab({ href, label, icon, active, external }: { href: string; label: string; icon: React.ReactNode; active: boolean; external?: boolean }) {
+  const style = { flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center" as const, gap: 3, color: active ? ACCENT : INK3, textDecoration: "none" };
+  const inner = (
+    <>
       <div style={{ width: 24, height: 24 }}>{icon}</div>
       <span style={{ fontSize: 10.5, fontWeight: active ? 800 : 600 }}>{label}</span>
-    </Link>
+    </>
+  );
+  // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동
+  return external ? (
+    <a href={href} style={style}>{inner}</a>
+  ) : (
+    <Link href={href} style={style}>{inner}</Link>
   );
 }
 
@@ -98,7 +105,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
   return (
     <nav style={{ position: "fixed", bottom: 0, width: "100%", maxWidth: 480, background: "rgba(255,255,255,.96)", backdropFilter: "blur(10px)", borderTop: `1px solid ${LINE}`, paddingBottom: "calc(8px + var(--safe-bot,0px))", zIndex: 20 }}>
       <div style={{ display: "flex", alignItems: "flex-end", padding: "9px 8px 4px" }}>
-        <GuardianTab href="/home" label="홈" active={is("/home")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>} />
+        <GuardianTab href={WEB_HOME} external label="홈" active={false} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>} />
         <GuardianTab href="/logs" label="케어일지" active={is("/logs")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h6M9 16h4" /></svg>} />
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <Link href="/request/new" style={{ transform: "translateY(-16px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none" }}>
@@ -121,8 +128,8 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
 /* ===== 돌봄전문가 하단 탭 (보호자/기관과 동일 디자인 · 5탭, FAB 없음) ===== */
 function CaregiverTabBar({ pathname }: { pathname: string }) {
   const is = (p: string) => pathname === p || pathname.startsWith(p + "/");
-  const tabs: { href: string; label: string; Icon: typeof Home }[] = [
-    { href: "/home", label: "홈", Icon: Home },
+  const tabs: { href: string; label: string; Icon: typeof Home; external?: boolean }[] = [
+    { href: WEB_HOME, label: "홈", Icon: Home, external: true },
     { href: "/schedule", label: "일정", Icon: CalendarClock },
     { href: "/settlements", label: "정산", Icon: Wallet },
     { href: "/notifications", label: "알림", Icon: Bell },
@@ -131,8 +138,8 @@ function CaregiverTabBar({ pathname }: { pathname: string }) {
   return (
     <nav style={{ position: "fixed", bottom: 0, width: "100%", maxWidth: 480, background: "rgba(255,255,255,.96)", backdropFilter: "blur(10px)", borderTop: `1px solid ${LINE}`, paddingBottom: "calc(8px + var(--safe-bot,0px))", zIndex: 20 }}>
       <div style={{ display: "flex", alignItems: "flex-end", padding: "9px 8px 4px" }}>
-        {tabs.map(({ href, label, Icon }) => (
-          <GuardianTab key={href} href={href} label={label} active={is(href)} icon={<Icon style={{ width: 24, height: 24 }} strokeWidth={2} />} />
+        {tabs.map(({ href, label, Icon, external }) => (
+          <GuardianTab key={href} href={href} external={external} label={label} active={!external && is(href)} icon={<Icon style={{ width: 24, height: 24 }} strokeWidth={2} />} />
         ))}
       </div>
     </nav>
