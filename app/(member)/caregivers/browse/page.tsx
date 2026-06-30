@@ -54,6 +54,8 @@ function BrowseList() {
   // 도메인 필터 지정 시 그 도메인만, 아니면 전체 도메인 그룹
   const showDomains = domain ? [domain] : GROUP_DOMAINS;
   const inDomain = (c: RecommendedCaregiver, d: string) => (c.domains ?? []).includes(d);
+  // 찜한 전문가 — 최상단 그룹 (찜 토글 시 실시간 반영)
+  const favorites = list.filter((c) => c.is_favorited);
 
   return (
     <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-5xl">
@@ -77,6 +79,19 @@ function BrowseList() {
 
       {!q.isLoading && !q.isError && (
         <div className="space-y-6">
+          {/* 찜한 돌봄전문가 — 맨 위 그룹 */}
+          {favorites.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-baseline gap-2">
+                <h2 className="inline-flex items-center gap-1 text-[15px] font-extrabold text-brand-700">
+                  <Star className="h-4 w-4 fill-current" /> 찜한 돌봄전문가
+                </h2>
+                <span className="text-xs font-semibold text-warm-400">{favorites.length}명</span>
+              </div>
+              <GroupBody list={favorites} onFav={onFav} onDetail={goDetail} />
+            </section>
+          )}
+
           {showDomains.map((d) => {
             const group = list.filter((c) => inDomain(c, d));
             return (
