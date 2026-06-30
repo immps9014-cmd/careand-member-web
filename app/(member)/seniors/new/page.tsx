@@ -44,7 +44,7 @@ export default function NewSeniorPage() {
 
   const fullAddress = [baseAddress, detailAddress.trim()].filter(Boolean).join(" ");
 
-  // 생년월일: 년/월/일 드롭다운 → "YYYY-MM-DD". 어르신 생년월일을 연도부터 바로 선택.
+  // 생년월일: 년/월/일 드롭다운 → "YYYY-MM-DD". 돌봄대상 생년월일을 연도부터 바로 선택.
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1920 + 1 }, (_, i) => 1920 + i); // 1920~올해(오름차순)
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -89,7 +89,7 @@ export default function NewSeniorPage() {
         home_address: fullAddress,
       }),
     onSuccess: () => {
-      toast.success("어르신을 등록했습니다.");
+      toast.success("돌봄대상을 등록했습니다.");
       qc.invalidateQueries({ queryKey: ["member", "seniors"] });
       router.push("/seniors");
     },
@@ -103,8 +103,8 @@ export default function NewSeniorPage() {
       <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
-      <h1 className="text-xl font-extrabold text-warm-800 mb-1">어르신 등록</h1>
-      <p className="text-sm text-warm-500 mb-5">돌봄 대상 어르신의 정보를 입력하세요</p>
+      <h1 className="text-xl font-extrabold text-warm-800 mb-1">돌봄대상 등록</h1>
+      <p className="text-sm text-warm-500 mb-5">돌봄대상의 정보를 입력하세요</p>
 
       <Card className="p-5 space-y-4">
         <div>
@@ -220,7 +220,7 @@ export default function NewSeniorPage() {
         </div>
 
         <Button variant="brand" size="lg" className="w-full" disabled={!valid || create.isPending} onClick={() => create.mutate()}>
-          {create.isPending ? "등록 중…" : "어르신 등록"}
+          {create.isPending ? "등록 중…" : "돌봄대상 등록"}
         </Button>
       </Card>
     </div>

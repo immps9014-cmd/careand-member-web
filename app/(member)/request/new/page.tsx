@@ -163,7 +163,7 @@ export default function NewRequestPage() {
   }
 
   // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
-  // 어르신 상세에서 ?senior_id= 로 진입 시 해당 어르신 자동 선택
+  // 돌봄대상 상세에서 ?senior_id= 로 진입 시 해당 돌봄대상 자동 선택
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
@@ -418,10 +418,10 @@ export default function NewRequestPage() {
               <label className={SECTION_LABEL}>돌봄 대상</label>
               {noSeniors ? (
                 <div className="rounded-xl bg-warm-50 p-3.5 text-center">
-                  <p className="text-xs text-warm-500 mb-2.5">등록된 어르신이 없습니다. 먼저 어르신을 등록해주세요.</p>
+                  <p className="text-xs text-warm-500 mb-2.5">등록된 돌봄대상이 없습니다. 먼저 돌봄대상을 등록해주세요.</p>
                   <Link href="/seniors/new">
                     <Button variant="outline" size="sm" className="w-full">
-                      <Plus className="w-4 h-4" /> 어르신 등록하러 가기
+                      <Plus className="w-4 h-4" /> 돌봄대상 등록하러 가기
                     </Button>
                   </Link>
                 </div>
@@ -752,7 +752,7 @@ export default function NewRequestPage() {
               <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
                 <p className="text-[13px] font-bold text-brand-700">동성 돌봄전문가만 배정돼요</p>
                 <p className="text-[11.5px] text-warm-500 mt-1 leading-relaxed">
-                  방문목욕은 신체 노출을 동반하므로 어르신과 같은 성별의 돌봄전문가만 매칭됩니다.
+                  방문목욕은 신체 노출을 동반하므로 돌봄대상과 같은 성별의 돌봄전문가만 매칭됩니다.
                 </p>
               </div>
             ) : (

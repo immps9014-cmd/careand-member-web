@@ -10,8 +10,8 @@ import { memberApi } from "@/lib/api/member";
 import { careGradeLabel } from "@/lib/care";
 
 /**
- * 보호자 — 어르신(돌봄 대상) 관리
- * 등록한 어르신 목록 + 건강 모니터링 진입점
+ * 보호자 — 돌봄대상 관리
+ * 등록한 돌봄대상 목록 + 건강 모니터링 진입점
  */
 export default function SeniorsPage() {
   const query = useQuery({
@@ -23,26 +23,26 @@ export default function SeniorsPage() {
     <div className="p-5 lg:mx-auto lg:max-w-4xl">
       <div className="lg:flex lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-xl font-extrabold text-warm-800 mb-1">어르신 관리</h1>
-          <p className="text-sm text-warm-500 mb-5 lg:mb-0">돌봄 대상 어르신의 건강을 모니터링하세요</p>
+          <h1 className="text-xl font-extrabold text-warm-800 mb-1">돌봄대상 관리</h1>
+          <p className="text-sm text-warm-500 mb-5 lg:mb-0">돌봄대상의 건강을 모니터링하세요</p>
         </div>
         <Link href="/seniors/new" className="block lg:inline-block lg:shrink-0">
           <Button variant="brand" size="lg" className="w-full mb-6 lg:mb-0 lg:w-auto lg:px-6">
-            <Plus className="w-4 h-4" /> 어르신 등록
+            <Plus className="w-4 h-4" /> 돌봄대상 등록
           </Button>
         </Link>
       </div>
 
       <div className="flex items-center justify-between mb-3 lg:mt-7">
-        <h2 className="font-bold text-warm-700">등록 어르신</h2>
+        <h2 className="font-bold text-warm-700">등록 돌봄대상</h2>
         <span className="text-xs text-warm-400">{query.data?.length ?? 0}명</span>
       </div>
 
       {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
       {query.data?.length === 0 && (
         <Card className="p-8 text-center text-warm-400 text-sm">
-          등록된 어르신이 없습니다.
-          <br />어르신을 등록하면 돌봄 매칭과 건강 모니터링을 이용할 수 있습니다.
+          등록된 돌봄대상이 없습니다.
+          <br />돌봄대상을 등록하면 돌봄 매칭과 건강 모니터링을 이용할 수 있습니다.
         </Card>
       )}
 

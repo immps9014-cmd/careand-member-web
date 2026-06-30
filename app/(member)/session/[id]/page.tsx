@@ -195,7 +195,7 @@ export default function SessionActivityPage({ params }: { params: { id: string }
         )}
       </div>
       <p className="text-sm text-warm-500 mb-5">
-        {session?.match?.senior?.name ? `${session.match.senior.name} 어르신 · ` : ""}
+        {session?.match?.senior?.name ? `${session.match.senior.name} 님 · ` : ""}
         기록한 활동·음성은 AI 케어일지로 정리됩니다
       </p>
 

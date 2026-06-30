@@ -78,7 +78,7 @@ export default function LocationDemoPage() {
         <main className="flex-1 p-5">
           <h1 className="text-xl font-extrabold text-warm-800 mb-1">돌봄 위치 등록</h1>
           <p className="text-sm text-warm-500 mb-5 leading-relaxed">
-            어르신 댁 주소를 검색하면 좌표로 변환해 지도에 표시하고,
+            돌봄대상 주소를 검색하면 좌표로 변환해 지도에 표시하고,
             <br />가까운 요양보호사를 거리순으로 매칭합니다.
           </p>
 

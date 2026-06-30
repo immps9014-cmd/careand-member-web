@@ -73,7 +73,7 @@ export interface Candidate {
   };
 }
 
-/* ===== 보호자: 어르신(돌봄 대상) ===== */
+/* ===== 보호자: 돌봄대상 ===== */
 export interface Senior {
   id: number;
   name: string;
@@ -536,7 +536,7 @@ export const memberApi = {
     budget_hourly?: number;
   }) => api.post("/v1/matching/requests", payload),
 
-  // 보호자 — 어르신(돌봄 대상)
+  // 보호자 — 돌봄대상
   async seniors(): Promise<Senior[]> {
     const { data } = await api.get("/v1/seniors");
     return data.data ?? [];
@@ -591,7 +591,7 @@ export const memberApi = {
     api.post("/v1/matching/mental-care-clients", payload),
   async vitals(seniorId: number, period: "7d" | "30d" | "90d" = "30d"): Promise<{ summary: VitalSummary | null; data: VitalRecord[] }> {
     const { data } = await api.get(`/v1/seniors/${seniorId}/vitals`, { params: { period } });
-    // 측정 이력이 없는(신규) 어르신은 백엔드가 summary: null을 줄 수 있음 → 명시적 null 폴백
+    // 측정 이력이 없는(신규) 돌봄대상은 백엔드가 summary: null을 줄 수 있음 → 명시적 null 폴백
     return { summary: data.summary ?? null, data: data.data ?? [] };
   },
   async healthTimeseries(seniorId: number, metric: string, days = 14): Promise<TimeseriesPoint[]> {
