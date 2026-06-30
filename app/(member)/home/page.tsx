@@ -98,7 +98,7 @@ function GQuickIcon({ bg, children }: { bg: string; children: React.ReactNode })
 
 /* 자주 쓰는 핵심 메뉴(6) + 보조 메뉴 */
 function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
-  // 어르신 미등록 시 '우리 어르신' 타일을 빨간색으로 강조해 등록을 유도
+  // 돌봄대상 미등록 시 '내 돌봄 요청하기' 타일을 빨간색으로 강조해 등록을 유도
   const items: { l: string; bg: string; to: string; ic: React.ReactNode; alert?: boolean }[] = [
     { l: "내 돌봄 요청하기", bg: noSeniors ? "#FFECEC" : "#EAF1FF", to: "/request/new", alert: noSeniors, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={noSeniors ? "#E0484E" : "#3E72D6"} strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
     { l: "방문일정", bg: "#F2ECFF", to: "/schedule", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></svg> },
