@@ -44,6 +44,14 @@ export default function NewRequestPage() {
   const availableDomains = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
     (d) => !(d.token === "nursing" && role === "guardian"),
   );
+  // 찜한 돌봄전문가 — 매칭 결과에서 우선 표시 안내용
+  const favQuery = useQuery({
+    queryKey: ["member", "caregivers", "favorites"],
+    queryFn: () => memberApi.favoriteCaregivers(),
+    staleTime: 60_000,
+    enabled: role === "guardian",
+  });
+  const favCount = favQuery.data?.length ?? 0;
 
   // 시니어 플로우 상태 (기존 동작 유지)
   const [seniorId, setSeniorId] = useState<number | "">("");
@@ -311,6 +319,14 @@ export default function NewRequestPage() {
         <p className="text-sm text-warm-500 mt-1.5 leading-relaxed">
           돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 돌봄전문가를 찾아 드려요.
         </p>
+        {favCount > 0 && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50/60 px-3.5 py-2.5 text-[13px]">
+            <Sparkle className="h-4 w-4 shrink-0 text-brand-500" />
+            <span className="text-warm-600">
+              찜한 돌봄전문가 <b className="text-brand-700">{favCount}명</b>은 매칭 결과에서 <b className="text-brand-700">우선 표시</b>돼요.
+            </span>
+          </div>
+        )}
 
         {/* 데스크톱 2단: 좌(입력) / 우(적정간병비·제출 sticky) */}
         <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6 lg:items-start">

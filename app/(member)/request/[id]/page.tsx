@@ -43,6 +43,15 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       (q.state.data?.candidates.length ?? 0) === 0 || q.state.data?.request_status !== "matched" ? 4000 : false,
   });
 
+  // 찜한 돌봄전문가 — 후보 중 찜한 인력을 표시·우선 정렬
+  const favQ = useQuery({
+    queryKey: ["member", "caregivers", "favorites"],
+    queryFn: () => memberApi.favoriteCaregivers(),
+    staleTime: 60_000,
+  });
+  const favSet = new Set((favQ.data ?? []).map((c) => c.id));
+  const isFav = (c: Candidate) => !!c.caregiver && favSet.has(c.caregiver.id);
+
   const select = useMutation({
     mutationFn: (candidateId: number) => memberApi.selectCandidate(requestId, candidateId),
     onSuccess: (res) => {
@@ -66,7 +75,10 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       return av - bv;
     }
     if (sort === "rating") return (b.caregiver?.rating_avg ?? 0) - (a.caregiver?.rating_avg ?? 0);
-    // 추천순: 가성비 반영 점수(value_score) 우선, 없으면 AI rank
+    // 추천순: 찜한 전문가 우선 → 가성비 점수(value_score) → AI rank
+    const af = isFav(a) ? 1 : 0;
+    const bf = isFav(b) ? 1 : 0;
+    if (af !== bf) return bf - af;
     if (a.value_score != null && b.value_score != null) return b.value_score - a.value_score;
     return a.rank - b.rank;
   });
@@ -128,6 +140,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-warm-800">{c.caregiver?.name ?? "돌봄전문가"}</span>
+                  {isFav(c) && <Badge variant="brand">★ 찜</Badge>}
                   {c.source === "self" && <Badge variant="brand">지원함</Badge>}
                   {c.source !== "self" && c.rank === 1 && <Badge variant="success">AI 1순위</Badge>}
                   {c.response === "accepted" && <Badge variant="success">수락됨</Badge>}
