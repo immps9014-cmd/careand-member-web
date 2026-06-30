@@ -21,7 +21,35 @@ type Kind = "guardian" | "housekeeping" | "caregiver" | "organization";
 type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["자녀", "배우자", "부모", "형제", "기타"];
-const SPECIALTIES = ["시니어돌봄", "병원간병", "가사서비스", "방문목욕", "치매전문"];
+const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병", "산후관리", "아이돌봄", "마음돌봄", "방문목욕", "치매전문"];
+
+/** 돌봄전문가 활동 도메인(공급자 직군) 선택지 — service_domains 전송용 */
+const CAREGIVER_DOMAINS: { token: string; label: string }[] = [
+  { token: "senior", label: "시니어돌봄" },
+  { token: "living_support", label: "생활지원서비스" },
+  { token: "nursing", label: "병원간병" },
+  { token: "postpartum", label: "산모·산후관리" },
+  { token: "childcare", label: "아이돌봄" },
+  { token: "mental_care", label: "마음돌봄" },
+];
+
+/**
+ * 도메인별 자격 정책 (백엔드 config/service_domains.php qualification 미러).
+ * required=자격번호 필수, types=인정 자격증 종류(있으면 종류 선택), verify=진위조회 경로.
+ */
+const DOMAIN_QUAL: Record<string, { required: boolean; label: string; types: string[]; manual?: boolean }> = {
+  senior: { required: true, label: "요양보호사 자격번호", types: ["요양보호사"] },
+  living_support: { required: false, label: "자격번호 (선택)", types: [] },
+  nursing: { required: true, label: "간병 관련 자격번호", types: ["요양보호사", "간호조무사", "간병사", "간호사"] },
+  postpartum: { required: true, label: "산후관리 관련 자격번호", types: ["산후관리사", "간호사", "간호조무사"] },
+  childcare: { required: false, label: "아이돌봄 관련 자격번호 (선택)", types: ["아이돌보미", "보육교사", "유치원정교사", "베이비시터"], manual: true },
+  mental_care: {
+    required: true,
+    label: "상담 관련 자격증 번호",
+    types: ["상담심리사", "임상심리사", "정신건강임상심리사", "청소년상담사", "전문상담교사", "정신건강사회복지사", "사회복지사"],
+    manual: true,
+  },
+};
 
 /** YYYY-MM-DD (오늘) */
 function todayStr() {
@@ -68,10 +96,18 @@ export default function SignupPage() {
   // 돌봄전문가 자격정보
   const [birthDate, setBirthDate] = useState("");
   const [gender, setGender] = useState<"M" | "F" | "">("");
+  const [cgDomain, setCgDomain] = useState("senior"); // 활동 도메인(공급자 직군)
   const [licenseNo, setLicenseNo] = useState("");
+  const [licenseType, setLicenseType] = useState(""); // 자격증 종류
   const [licenseIssuedAt, setLicenseIssuedAt] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [baseAddress, setBaseAddress] = useState("");
+
+  // 활동 도메인 변경 시 자격종류 초기화(도메인별 인정 자격이 다름)
+  const selectCgDomain = (token: string) => {
+    setCgDomain(token);
+    setLicenseType("");
+  };
 
   // 기관 정보
   const [bizNo, setBizNo] = useState("");
@@ -139,15 +175,19 @@ export default function SignupPage() {
   });
 
   const registerM = useMutation({
-    mutationFn: () =>
-      caregiverApi.register({
+    mutationFn: () => {
+      const hasLicense = licenseNo.trim().length >= 4;
+      return caregiverApi.register({
         birth_date: birthDate,
         gender: gender as "M" | "F",
-        license_no: licenseNo.trim(),
-        license_issued_at: licenseIssuedAt,
+        service_domains: [cgDomain],
+        license_no: hasLicense ? licenseNo.trim() : undefined,
+        license_type: licenseType || undefined,
+        license_issued_at: hasLicense ? licenseIssuedAt : undefined,
         specialties: specialties.length ? specialties : undefined,
         base_address: baseAddress.trim(),
-      }),
+      });
+    },
     onSuccess: () => setStep("done"),
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -180,8 +220,19 @@ export default function SignupPage() {
     if (!agreeTerms || !agreePrivacy) { toast.error("이용약관과 개인정보 처리방침에 동의해주세요."); return; }
     signupM.mutate();
   };
+  const cgQual = DOMAIN_QUAL[cgDomain] ?? DOMAIN_QUAL.senior;
+  const licenseTypeValid =
+    cgQual.types.length === 0
+      ? true
+      : licenseType
+      ? cgQual.types.includes(licenseType)
+      : !cgQual.required; // 종류 미선택은 필수 도메인에서만 불가
   const caregiverValid =
-    !!birthDate && !!gender && licenseNo.trim().length >= 4 && !!licenseIssuedAt && baseAddress.trim().length >= 5;
+    !!birthDate &&
+    !!gender &&
+    baseAddress.trim().length >= 5 &&
+    (cgQual.required ? licenseNo.trim().length >= 4 && !!licenseIssuedAt : true) &&
+    licenseTypeValid;
   const orgValid =
     bizNo.trim().length >= 8 && orgName.trim().length >= 2 && representative.trim().length >= 2 && orgPhone.trim().length >= 8;
 
@@ -453,9 +504,27 @@ export default function SignupPage() {
         {step === "caregiver" && (
           <div className="flex-1 pt-6 pb-4">
             <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">자격정보를 등록해주세요</h1>
-            <p className="text-sm text-warm-500 mt-2">자격증 정보는 보건복지부 진위확인을 거쳐 검수됩니다.</p>
+            <p className="text-sm text-warm-500 mt-2">
+              {cgDomain === "senior"
+                ? "자격증 정보는 보건복지부 진위확인을 거쳐 검수됩니다."
+                : cgDomain === "mental_care"
+                ? "상담 자격은 담당자 수동 검증을 거쳐 승인됩니다. 자격증 종류를 정확히 선택해 주세요."
+                : cgQual.manual
+                ? "제출하신 자격 정보는 담당자 검수를 거쳐 승인됩니다."
+                : "자격종류에 맞는 발급기관 진위확인을 거쳐 검수됩니다."}
+            </p>
 
             <div className="mt-6 space-y-4">
+              <Field label="활동 도메인">
+                <div className="flex flex-wrap gap-2">
+                  {CAREGIVER_DOMAINS.map((d) => (
+                    <Chip key={d.token} active={cgDomain === d.token} onClick={() => selectCgDomain(d.token)}>
+                      {d.label}
+                    </Chip>
+                  ))}
+                </div>
+              </Field>
+
               <Field label="생년월일 (만 18세 이상)">
                 <Input
                   type="date"
@@ -472,18 +541,39 @@ export default function SignupPage() {
                 </div>
               </Field>
 
-              <Field label="자격번호 (요양보호사 등)">
-                <Input value={licenseNo} onChange={(e) => setLicenseNo(e.target.value)} placeholder="자격증 번호" />
-              </Field>
+              {cgQual.types.length > 0 && (
+                <Field label={`자격증 종류${cgQual.required ? "" : " (선택)"}`}>
+                  <select
+                    value={licenseType}
+                    onChange={(e) => setLicenseType(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-warm-200 bg-white px-3 text-[15px] text-warm-800 outline-none focus:border-brand-400"
+                  >
+                    <option value="">자격증 종류 선택</option>
+                    {cgQual.types.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </Field>
+              )}
 
-              <Field label="자격 취득일">
+              <Field label={cgQual.label}>
                 <Input
-                  type="date"
-                  value={licenseIssuedAt}
-                  max={todayStr()}
-                  onChange={(e) => setLicenseIssuedAt(e.target.value)}
+                  value={licenseNo}
+                  onChange={(e) => setLicenseNo(e.target.value)}
+                  placeholder={cgQual.required ? "자격증 번호" : "자격증 번호 (보유 시)"}
                 />
               </Field>
+
+              {(cgQual.required || licenseNo.trim().length > 0) && (
+                <Field label="자격 취득일">
+                  <Input
+                    type="date"
+                    value={licenseIssuedAt}
+                    max={todayStr()}
+                    onChange={(e) => setLicenseIssuedAt(e.target.value)}
+                  />
+                </Field>
+              )}
 
               <Field label="가능 서비스 (선택)">
                 <div className="flex flex-wrap gap-2">

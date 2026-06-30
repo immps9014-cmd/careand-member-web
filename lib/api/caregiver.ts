@@ -10,8 +10,10 @@ import { api } from "./client";
 export interface CaregiverRegisterPayload {
   birth_date: string;        // YYYY-MM-DD
   gender: "M" | "F";
-  license_no: string;
-  license_issued_at: string; // YYYY-MM-DD
+  service_domains?: string[]; // 활동 도메인(공급자 직군) — 미전송 시 백엔드 senior 기본
+  license_no?: string;        // 무자격 도메인(생활지원)은 생략 가능
+  license_type?: string;      // 자격증 종류(상담 등 다종 자격 식별)
+  license_issued_at?: string; // YYYY-MM-DD
   specialties?: string[];
   base_address: string;
 }
