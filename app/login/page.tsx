@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ function safeRedirect(): string {
 
 export default function LoginPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const { setUser, setTokens, isAuthenticated, hasHydrated } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -55,6 +56,8 @@ export default function LoginPage() {
         toast.error("회원앱을 이용할 수 없는 계정입니다.");
         return;
       }
+      // 계정 전환 대비: 이전 사용자의 쿼리 캐시를 모두 비우고 새 세션 시작
+      qc.clear();
       setTokens(data.access_token, data.refresh_token);
       setUser(data.user);
       toast.success(`${data.user.name} 님 환영합니다`);

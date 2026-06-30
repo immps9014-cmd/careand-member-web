@@ -35,6 +35,19 @@ function processQueue(token: string) {
   pendingQueue = [];
 }
 
+function resetRefreshState() {
+  isRefreshing = false;
+  pendingQueue = [];
+}
+
+// 로그아웃(토큰 제거) 시 인터셉터 갱신 상태를 초기화 — 계정 전환 시
+// 이전 세션의 stale 요청이 남긴 isRefreshing/대기큐 데드락을 방지.
+authStore.subscribe((state, prev) => {
+  if (prev.accessToken && !state.accessToken) {
+    resetRefreshState();
+  }
+});
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -83,8 +96,9 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         // 갱신 실패 → 로그아웃
+        resetRefreshState();
         authStore.getState().logout();
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && !window.location.pathname.endsWith("/login")) {
           window.location.href = "/app/login";
         }
         return Promise.reject(refreshError);

@@ -123,6 +123,7 @@ export default function MyPage() {
   async function handleLogout() {
     await authApi.logout();
     logout();
+    qc.clear(); // 다음 로그인 사용자에게 이전 계정 캐시가 남지 않도록 비움
     router.replace("/login");
   }
 
