@@ -20,7 +20,7 @@ type Role = "guardian" | "caregiver" | "organization";
 type Kind = "guardian" | "housekeeping" | "caregiver" | "organization";
 type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
-const RELATIONS = ["자녀", "배우자", "부모", "형제", "기타"];
+const RELATIONS = ["본인", "자녀", "배우자", "부모", "형제", "기타"];
 const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병", "산후관리", "아이돌봄", "마음돌봄", "방문목욕", "치매전문"];
 
 /** 돌봄전문가 활동 도메인(공급자 직군) 선택지 — service_domains 전송용 */
@@ -308,8 +308,8 @@ export default function SignupPage() {
                 active={kind === "guardian"}
                 onClick={() => setKind("guardian")}
                 icon={<HeartHandshake className="w-6 h-6" />}
-                title="보호자"
-                desc="돌봄이 필요한 가족을 위해 돌봄전문가를 찾아요"
+                title="개인 돌봄 요청"
+                desc="어르신 · 아이 · 산모 · 마음 돌봄을 직접 요청해요"
               />
               <RoleCard
                 active={kind === "housekeeping"}
@@ -463,7 +463,7 @@ export default function SignupPage() {
               </Field>
 
               {kind === "guardian" && (
-                <Field label="어르신과의 관계">
+                <Field label="돌봄 대상과의 관계 (선택)">
                   <div className="flex flex-wrap gap-2">
                     {RELATIONS.map((r) => (
                       <Chip key={r} active={relation === r} onClick={() => setRelation(r)}>
@@ -709,12 +709,12 @@ export default function SignupPage() {
               ) : kind === "housekeeping" ? (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 서비스 받을 주소를 등록하고 가사 서비스를 신청해보세요.
+                  이제 서비스 받을 주소를 등록하고 생활지원서비스를 신청해보세요.
                 </>
               ) : (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 어르신을 등록하고 돌봄을 신청해보세요.
+                  이제 필요한 돌봄 서비스를 선택하고 신청해보세요.
                 </>
               )}
             </p>
@@ -728,14 +728,19 @@ export default function SignupPage() {
                   if (role === "caregiver" || role === "organization") return router.push("/home");
                   // 공개웹 "신청하기"로 진입한 경우 복귀 URL(신청화면)을 최우선.
                   const back = safeRedirect();
-                  router.push(back ?? (kind === "housekeeping" ? "/request/new?domain=living_support" : "/home"));
+                  router.push(
+                    back ??
+                      (kind === "housekeeping"
+                        ? "/request/new?domain=living_support"
+                        : "/request/new") // 개인 돌봄 요청 → 도메인 선택 유도
+                  );
                 }}
               >
                 {role === "caregiver" || role === "organization"
                   ? "홈으로 이동"
                   : kind === "housekeeping"
-                  ? "가사 서비스 신청하기"
-                  : "시작하기"}
+                  ? "생활지원서비스 신청하기"
+                  : "돌봄 서비스 신청하기"}
               </Button>
             </div>
           </div>
