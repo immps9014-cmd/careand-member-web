@@ -72,7 +72,7 @@ export default function OrgCaregiversPage() {
         <h1 className="text-lg font-extrabold text-warm-800">소속 간병인 관리</h1>
       </header>
 
-      <div className="p-4 space-y-5">
+      <div className="p-4 space-y-5 lg:mx-auto lg:max-w-3xl">
         {/* 초대/추가 */}
         <Card className="p-4">
           <div className="text-sm font-bold text-warm-700 mb-2">간병인 추가</div>

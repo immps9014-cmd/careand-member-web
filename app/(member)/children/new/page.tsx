@@ -37,7 +37,7 @@ export default function NewChildPage() {
 
   return (
     <div className="min-h-screen bg-warm-50 pb-28">
-      <div className="p-5">
+      <div className="p-5 lg:mx-auto lg:max-w-2xl">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-3">
           <ChevronLeft className="w-4 h-4" /> 뒤로
         </button>

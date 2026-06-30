@@ -67,7 +67,7 @@ export default function OpenRequestsPage() {
         <TabBtn active={tab === "blocked"} onClick={() => setTab("blocked")}>기피한 대상</TabBtn>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 lg:mx-auto lg:max-w-4xl">
         {tab === "open" ? (
           <>
             {open.isLoading && <div className="py-12 text-center text-warm-400 text-sm">불러오는 중…</div>}

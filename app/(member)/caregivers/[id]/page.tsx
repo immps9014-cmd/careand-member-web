@@ -24,7 +24,7 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
   });
 
   return (
-    <div className="px-4 pt-4 pb-6">
+    <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-3xl">
       <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>

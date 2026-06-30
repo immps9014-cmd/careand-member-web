@@ -72,7 +72,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
   });
 
   return (
-    <div className="p-5">
+    <div className="p-5 lg:mx-auto lg:max-w-5xl">
       <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
@@ -119,7 +119,8 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         </Card>
       )}
 
-      <div className="space-y-3">
+      {/* 모바일: 세로 리스트 / 데스크톱: 2열 그리드 */}
+      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0">
         {sorted.map((c) => {
           const tone = bidTone(c.bid_hourly, est?.suggested ?? null);
           return (

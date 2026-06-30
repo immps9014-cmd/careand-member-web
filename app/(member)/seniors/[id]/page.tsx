@@ -37,7 +37,7 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
   }));
 
   return (
-    <div className="p-5">
+    <div className="p-5 lg:mx-auto lg:max-w-3xl">
       <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
