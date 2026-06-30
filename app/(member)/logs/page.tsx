@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, ChevronRight } from "lucide-react";
+import { FileText, ChevronRight, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { memberApi } from "@/lib/api/member";
@@ -25,7 +25,18 @@ export default function LogsPage() {
   return (
     <div className="p-5 lg:mx-auto lg:max-w-3xl">
       <h1 className="text-xl font-extrabold text-warm-800 mb-1">케어 일지</h1>
-      <p className="text-sm text-warm-500 mb-5">돌봄이 끝나면 AI가 정리한 케어 일지를 받아보실 수 있어요</p>
+      <p className="text-sm text-warm-500 mb-4">돌봄이 끝나면 AI가 정리한 케어 일지를 받아보실 수 있어요</p>
+
+      {/* 케어 만족도 진입 (모바일에서도 접근) */}
+      <Link
+        href="/satisfaction"
+        className="mb-5 flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/50 px-4 py-3"
+      >
+        <span className="flex items-center gap-2 text-sm font-bold text-warm-700">
+          <Star className="h-4 w-4 fill-brand-400 text-brand-400" /> 케어 만족도 평가하기
+        </span>
+        <ChevronRight className="h-4 w-4 text-warm-400" />
+      </Link>
 
       {LOG_MOCK_ENABLED && (
         <Card className="p-3 mb-4 bg-info-bg/40 text-info text-xs font-bold">

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, type LucideIcon } from "lucide-react";
+import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI } from "@/lib/theme";
@@ -16,6 +16,7 @@ const WEB_HOME = "/www"; // 공개 웹 홈 (모바일 앱 홈 /home 과 구분)
 const GUARDIAN_NAV: NavItem[] = [
   { href: "/home", label: "홈", Icon: Home },
   { href: "/logs", label: "케어일지", Icon: FileText },
+  { href: "/satisfaction", label: "케어 만족도", Icon: Star },
   { href: "/mypage", label: "내 정보", Icon: User },
 ];
 const CAREGIVER_NAV: NavItem[] = [

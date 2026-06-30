@@ -393,6 +393,20 @@ export interface RecommendedCaregiver {
   is_favorited?: boolean;
 }
 
+/** 케어 만족도 평가 대상(완료 케어) + 내 기존 평가 */
+export interface ReviewableCare {
+  match_id: number;
+  caregiver_id: number;
+  caregiver_name: string;
+  recipient_name: string;
+  service_domain: string;
+  scheduled_start: string | null;
+  rating: number | null;
+  comment: string | null;
+  tags: string[];
+  reviewed: boolean;
+}
+
 /** 돌봄전문가 상세 프로필 — GET /v1/caregivers/{id} (CaregiverResource) */
 export interface CaregiverDetail {
   id: number;
@@ -451,6 +465,15 @@ export const memberApi = {
   async caregiversByDomain(domain?: string): Promise<RecommendedCaregiver[]> {
     const { data } = await api.get("/v1/caregivers", { params: domain ? { domain } : {} });
     return data.data ?? [];
+  },
+  /** 케어 만족도 — 평가 가능한 완료 케어 + 내 기존 평가 */
+  async reviewableCares(): Promise<ReviewableCare[]> {
+    const { data } = await api.get("/v1/guardians/reviewable");
+    return data.data ?? [];
+  },
+  /** 케어 만족도 등록/수정 */
+  async submitReview(payload: { match_id: number; rating: number; comment?: string; tags?: string[] }): Promise<void> {
+    await api.post("/v1/guardians/reviews", payload);
   },
   /** 찜 토글 → { favorited } */
   async toggleFavorite(id: number): Promise<boolean> {
