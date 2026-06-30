@@ -35,6 +35,8 @@ sed -i '/@import url("https:\/\//d' .design-sync/ds-tailwind.css   # ★ 원격 
 
 ## Re-sync risks (다음 실행이 주시할 것)
 - `ds-tailwind.css`는 **매 빌드 재생성 + 원격 @import 재제거** 필요(소스 변경 시 클래스 누락 방지). `_safelist.txt`는 durable(커밋됨).
+  - **★ 2026-06-30 변경**: `app/globals.css`가 06-29 커밋(1256cff)에서 원격 `@import url(https://…)` → **로컬 `@font-face`(`url("/app/fonts/…woff2")`)**로 교체됨. 따라서 (a) 더 이상 sed로 제거할 원격 @import는 없고, (b) globals.css에서 ds-tailwind.css를 **재생성하면 `/app/fonts/*` @font-face가 주입되어 디자인 환경에서 dangling**. 폰트는 `cfg.extraFonts`로 동봉하므로, 재생성 시 그 `@font-face` 2줄도 제거해야 함. **컴포넌트(components/ui/*.tsx)·safelist 미변경이면 커밋된 clean ds-tailwind.css가 정답 → 재생성 불필요**(이번 re-sync에서 styleSha 동일 확인).
 - 자기참조 심링크는 클론마다 수동 재생성.
-- 폰트는 시스템 폴백 상태 — 브랜드 정합 필요 시 Pretendard 동봉으로 격상.
+- 폰트는 **Pretendard + Plus Jakarta Sans 동봉 완료**(시스템 폴백 아님 — `cfg.extraFonts`).
 - previews는 인라인 style + 컴포넌트 className 혼용. 컴포넌트 cva variant가 바뀌면 preview의 variant 이름도 갱신.
+- **★ careand-www에 이 config의 stale 사본이 커밋되어 있음**(같은 projectId 4ff6f2d2 "Care& 회원앱 UI"를 가리킴, pkg=careand-member-web). careand-www의 `card.tsx`는 member-web과 **다름** → **design-sync는 반드시 이 리포(careand-member-web)에서만 실행**. www에서 돌리면 www의 Card를 회원앱 프로젝트에 덮어씀.
