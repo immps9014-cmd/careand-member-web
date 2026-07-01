@@ -277,6 +277,13 @@ export interface OpenRequest {
   duration_min: number;
   mode: string;
   special_request: string | null;
+  // 동행(LS_COMPANION) 동선 요약 — 아니면 null
+  companion_route: {
+    destination: string | null;
+    return_to_origin: boolean;
+    waypoint_count: number;
+    transport: "taxi" | "transit" | null;
+  } | null;
   created_at: string | null;
 }
 

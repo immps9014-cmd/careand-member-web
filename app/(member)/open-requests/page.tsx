@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronLeft, Clock, MapPin, User, Ban, Check, Search, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, Clock, MapPin, User, Ban, Check, Search, RotateCcw, X, Navigation } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -245,6 +245,25 @@ function OpenCard({
           </span>
         </div>
       </div>
+
+      {r.companion_route && (
+        <div className="rounded-lg border border-brand-200 bg-brand-50/50 px-3.5 py-2.5 mb-3">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-brand-700 mb-1.5">
+            <Navigation className="w-3.5 h-3.5" /> 동행 동선
+          </div>
+          <div className="space-y-1 text-xs text-warm-600">
+            {r.companion_route.destination && (
+              <div className="flex gap-1.5"><span className="text-warm-400 shrink-0">방문</span><span className="font-semibold">{r.companion_route.destination}</span></div>
+            )}
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-warm-500">
+              <span>이동 {r.companion_route.transport === "taxi" ? "택시" : r.companion_route.transport === "transit" ? "대중교통" : "협의"}</span>
+              <span>복귀 {r.companion_route.return_to_origin ? "만남 장소" : "별도 장소"}</span>
+              {r.companion_route.waypoint_count > 0 && <span>경유 {r.companion_route.waypoint_count}곳</span>}
+            </div>
+            <div className="text-[11px] text-warm-400">정확한 장소는 매칭 확정 후 안내돼요.</div>
+          </div>
+        </div>
+      )}
 
       {r.special_request && (
         <div className="text-xs text-warm-500 bg-warm-50 rounded-lg px-3 py-2 mb-3 whitespace-pre-wrap">
