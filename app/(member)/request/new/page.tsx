@@ -16,6 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { ServiceGuide } from "@/components/service-guide";
 import { serviceGuide } from "@/lib/serviceGuides";
@@ -40,6 +41,12 @@ const SELECT_CLASS =
 
 // 3스텝 위저드
 const STEPS = ["대상·서비스", "일정·상세", "확인·동의"];
+
+// 도메인 프로모 뱃지 (P2-4) — 신규/베타 서비스 강조. 런칭 큐레이션 설정(운영이 갱신).
+const DOMAIN_BADGE: Record<string, { variant: "new" | "hot" | "beta"; label: string }> = {
+  mental_care: { variant: "new", label: "NEW" },
+  childcare: { variant: "new", label: "NEW" },
+};
 
 // 컴플라이언스 고지 (P0-2) — 확인 스텝에서 요약 노출 + 필수 동의
 const COMPLIANCE_NOTES = [
@@ -476,6 +483,13 @@ export default function NewRequestPage() {
                 {active && (
                   <span className="absolute top-2 right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-brand-500">
                     <Check className="h-2.5 w-2.5 text-white" strokeWidth={3.5} />
+                  </span>
+                )}
+                {DOMAIN_BADGE[d.token] && !active && (
+                  <span className="absolute top-1.5 left-1.5">
+                    <Badge variant={DOMAIN_BADGE[d.token].variant} className="px-1.5 py-0 text-[9px] leading-4">
+                      {DOMAIN_BADGE[d.token].label}
+                    </Badge>
                   </span>
                 )}
                 <span

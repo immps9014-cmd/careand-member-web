@@ -15,6 +15,10 @@ const badgeVariants = cva(
         info: "bg-info-bg text-info",
         success: "bg-brand-50 text-brand-700",
         ai: "bg-gradient-to-br from-brand-500 to-brand-600 text-white",
+        // 프로모/서비스 상태 뱃지 (P2-4)
+        new: "bg-brand-500 text-white",
+        hot: "bg-danger text-white",
+        beta: "bg-info text-white",
       },
     },
     defaultVariants: {
