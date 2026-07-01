@@ -13,3 +13,6 @@ ds-bundle/
 .design-sync/node_modules
 .design-sync/ds-tailwind.css
 .design-sync/test-design/
+
+# Claude Code 에이전트 로컬 디렉토리
+.claude/
