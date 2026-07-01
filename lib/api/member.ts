@@ -376,6 +376,35 @@ export interface Coords {
   accuracy?: number;
 }
 
+// ── 결제 (P2-1) ──
+export type PaymentMethod = "card" | "account" | "voucher_only";
+
+/** POST /v1/payments/calculate 응답 — 결제 전 금액 산출 */
+export interface PaymentCalc {
+  match_id: number;
+  total_amount: number;
+  self_pay: number; // 본인부담
+  ltc_pay: number; // 장기요양공단 부담
+  copay_rate: number | null; // 본인부담률
+  voucher_remaining: number | null;
+  voucher_after_payment: number | null;
+}
+
+/** 결제 레코드 (GET /v1/payments, approve 응답) */
+export interface Payment {
+  id: number;
+  total_amount: number;
+  amount_self_pay: number;
+  amount_ltc_pay: number;
+  method: PaymentMethod;
+  status: string; // pending|paid|cancelled ...
+  pg_provider: string | null;
+  pg_tid: string | null;
+  paid_at: string | null;
+  created_at: string | null;
+  match?: { id: number; senior_name?: string | null };
+}
+
 export interface RecommendedCaregiver {
   id: number;
   name: string;
@@ -494,9 +523,10 @@ export const memberApi = {
     const { data } = await api.get(`/v1/care-sessions/${sessionId}/ai-summary`);
     return data.data ?? null;
   },
-  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null }> {
+  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
-    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null };
+    // match_id: 매칭 확정(인력 수락) 시 백엔드가 노출하면 결제 진입에 사용 (없으면 null → CTA 미노출)
+    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null, match_id: data.match_id ?? null };
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
@@ -683,6 +713,23 @@ export const memberApi = {
     return { data: data.data ?? [], unread: data.meta?.unread_count ?? 0 };
   },
   markRead: (id: number) => api.post(`/v1/notifications/${id}/read`),
+
+  // ── 결제 (P2-1) ──
+  /** 매칭 결제금액 산출(총액/본인부담/장기요양공단/바우처). POST /v1/payments/calculate */
+  async paymentCalculate(matchId: number): Promise<PaymentCalc> {
+    const { data } = await api.post("/v1/payments/calculate", { match_id: matchId });
+    return data.data as PaymentCalc;
+  },
+  /** 결제 승인. method=card 는 card_token 필요(stub PG). POST /v1/payments/approve */
+  async paymentApprove(payload: { match_id: number; method: PaymentMethod; card_token?: string }): Promise<Payment> {
+    const { data } = await api.post("/v1/payments/approve", payload);
+    return data.data as Payment;
+  },
+  /** 내 결제 내역. GET /v1/payments */
+  async payments(status?: string): Promise<Payment[]> {
+    const { data } = await api.get("/v1/payments", { params: status ? { status } : {} });
+    return data.data ?? [];
+  },
 };
 
 /**

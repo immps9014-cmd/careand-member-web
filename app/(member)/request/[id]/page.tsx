@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { ChevronLeft, Star, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -93,6 +94,19 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       <p className="text-sm text-warm-500 mb-4">
         돌봄전문가가 제시한 입찰가와 프로필을 비교해 선택하세요
       </p>
+
+      {/* 매칭 확정 시 결제 진입 (match_id는 백엔드가 노출하면 활성화 — P2-1) */}
+      {matched && data?.match_id && (
+        <Link href={`/payments/${data.match_id}`}>
+          <Card className="mb-4 flex items-center justify-between border-brand-200 bg-brand-50 p-4">
+            <div>
+              <div className="text-[13px] font-bold text-brand-700">매칭이 확정되었어요</div>
+              <div className="mt-0.5 text-[11.5px] text-warm-500">결제를 완료하면 돌봄 일정이 시작돼요.</div>
+            </div>
+            <span className="rounded-full bg-brand-500 px-3.5 py-2 text-[12.5px] font-bold text-white">결제하기</span>
+          </Card>
+        </Link>
+      )}
 
       {/* 적정 간병비 권장 가격대 */}
       {est && (
