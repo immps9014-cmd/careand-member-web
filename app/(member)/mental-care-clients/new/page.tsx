@@ -8,6 +8,7 @@ import { ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddressSearch } from "@/components/address-search";
 import { memberApi, type CreateMentalCareClientPayload } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 
@@ -95,7 +96,7 @@ export default function NewMentalCareClientPage() {
           </div>
           <div>
             <label className={SECTION_LABEL}>방문 주소</label>
-            <Input value={homeAddress} onChange={(e) => setHomeAddress(e.target.value)} placeholder="도로명 주소" className="h-12 rounded-xl text-[14.5px]" />
+            <AddressSearch onChange={setHomeAddress} />
             <p className="text-[11px] text-warm-400 mt-1.5">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
           </div>
           <div>

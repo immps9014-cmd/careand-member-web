@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { ServiceGuide } from "@/components/service-guide";
+import { serviceGuide } from "@/lib/serviceGuides";
 import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
@@ -107,6 +108,12 @@ export default function NewRequestPage() {
   // 역경매: 희망 상한 시급(선택)
   const [budget, setBudget] = useState("");
 
+  // 세부 서비스 항목 멀티셀렉트(선택) — requirements.service_items 로 전달 (P1-1)
+  const [serviceItems, setServiceItems] = useState<string[]>([]);
+  function toggleItem(it: string) {
+    setServiceItems((prev) => (prev.includes(it) ? prev.filter((x) => x !== it) : [...prev, it]));
+  }
+
   const seniors = useQuery({ queryKey: ["member", "seniors"], queryFn: () => memberApi.seniors() });
   const patients = useQuery({
     queryKey: ["member", "patients"],
@@ -182,6 +189,7 @@ export default function NewRequestPage() {
     setDomain(d);
     setCategoryId(""); // 도메인별 카테고리가 다르므로 초기화
     setScreeningOk(false); // 도메인별 이용 불가 대상이 다르므로 스크리닝 재확인
+    setServiceItems([]); // 도메인별 세부 항목이 다르므로 초기화
   }
 
   // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
@@ -219,8 +227,9 @@ export default function NewRequestPage() {
       const effPreferred = sameGenderForced ? "" : effectiveGender;
       const genderReq = effPreferred ? { preferred_gender: effPreferred } : {};
       const budgetReq = budget && Number(budget) > 0 ? { budget_hourly: Number(budget) } : {};
-      // 선호 성별 + 직접 지정(찜한 전문가) 를 합쳐 requirements 로 전송
-      const baseReq = { ...genderReq, ...(preferredCgId ? { preferred_caregiver_id: preferredCgId } : {}) };
+      // 선호 성별 + 직접 지정(찜한 전문가) + 세부 서비스 항목 을 합쳐 requirements 로 전송
+      const itemsReq = serviceItems.length ? { service_items: serviceItems } : {};
+      const baseReq = { ...genderReq, ...(preferredCgId ? { preferred_caregiver_id: preferredCgId } : {}), ...itemsReq };
       const reqSpread = Object.keys(baseReq).length ? { requirements: baseReq } : {};
       if (domain === "nursing") {
         const recurring = days >= 2;
@@ -296,7 +305,7 @@ export default function NewRequestPage() {
         mode,
         scheduled_start: scheduled,
         duration_min: Number(duration),
-        ...(effPreferred ? { requirements: genderReq } : {}),
+        ...(Object.keys(baseReq).length ? { requirements: baseReq } : {}),
         ...budgetReq,
         special_request: memo || undefined,
       });
@@ -789,6 +798,36 @@ export default function NewRequestPage() {
             </p>
           </div>
 
+          {/* 세부 서비스 항목 멀티셀렉트 (선택) — 매칭 정확도 향상 (P1-1) */}
+          {serviceGuide(domain).items.length > 0 && (
+            <div className="mt-4">
+              <label className={SECTION_LABEL}>
+                필요한 세부 항목 <span className="font-semibold text-warm-400">(선택 · 중복 가능)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {serviceGuide(domain).items.map((it) => {
+                  const on = serviceItems.includes(it);
+                  return (
+                    <button
+                      key={it}
+                      type="button"
+                      onClick={() => toggleItem(it)}
+                      className={
+                        "rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {on && "✓ "}{it}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-warm-400 mt-1.5">
+                필요한 항목을 선택하면 돌봄전문가에게 전달돼 매칭이 더 정확해져요.
+              </p>
+            </div>
+          )}
+
           {/* 연속 일수 (간병 전용) */}
           {domain === "nursing" && (
             <div className="mt-4">
@@ -908,6 +947,7 @@ export default function NewRequestPage() {
               ["서비스", domainLabel],
               ["돌봄 대상", recipientName ?? "-"],
               ["서비스 종류", selectedCategory?.name ?? "-"],
+              ...(serviceItems.length ? [["세부 항목", serviceItems.join(", ")] as [string, string]] : []),
               ["시작 일시", start ? start.replace("T", " ") : "-"],
               ["소요 시간", `${duration}분 · ${durHours}시간${domain === "nursing" && days >= 2 ? ` · ${days}일 반복` : ""}`],
               ...(domain === "senior" ? [["유형", MODES.find((m) => m.key === mode)?.label ?? mode] as [string, string]] : []),

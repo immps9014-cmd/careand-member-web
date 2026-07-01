@@ -8,6 +8,7 @@ import { ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddressSearch } from "@/components/address-search";
 import { memberApi, type CreatePostpartumClientPayload, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 
@@ -73,7 +74,7 @@ export default function NewPostpartumClientPage() {
           </div>
           <div>
             <label className={SECTION_LABEL}>주소</label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="도로명 주소" className="h-12 rounded-xl text-[14.5px]" />
+            <AddressSearch onChange={setAddress} />
           </div>
           <div>
             <label className={SECTION_LABEL}>지역(시·도)</label>

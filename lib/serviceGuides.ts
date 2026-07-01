@@ -11,6 +11,8 @@ export interface ServiceGuide {
   notProvided: string[];
   /** 이용 불가/제한 대상 — 스크리닝 게이트에 노출 */
   ineligible: string[];
+  /** 선택 가능한 세부 서비스 항목(멀티셀렉트 칩) — requirements.service_items 로 전달 */
+  items: string[];
 }
 
 const GENERIC: ServiceGuide = {
@@ -21,6 +23,7 @@ const GENERIC: ServiceGuide = {
     "응급·중증 상태로 즉시 의료기관 이용이 필요한 경우",
     "타인·본인에 대한 위해(폭력) 위험이 있는 경우",
   ],
+  items: [],
 };
 
 export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
@@ -41,6 +44,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "응급·중증 상태로 상시 의료 처치가 필요한 경우",
       "폭력성을 동반한 중증 정신질환이 있는 경우",
     ],
+    items: ["식사보조", "이동보조", "세면·위생", "배변보조", "투약확인", "말벗·정서지원", "산책동행", "가벼운 가사"],
   },
   nursing: {
     provided: [
@@ -58,6 +62,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "격리가 필요한 감염병이 있는 경우",
       "폭력성을 동반한 중증 정신질환이 있는 경우",
     ],
+    items: ["식사보조", "대소변 수발", "체위변경", "이동보조", "검사·이동 동행", "상태 관찰", "말벗"],
   },
   living_support: {
     provided: [
@@ -74,6 +79,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "고소 작업·중량물 이동 등 위험 작업이 포함된 경우",
       "요청 공간이 돌봄대상 이용 공간을 벗어나는 경우",
     ],
+    items: ["바닥청소", "설거지", "빨래·건조", "쓰레기 배출", "정리정돈", "식사 준비", "화장실 청소"],
   },
   postpartum: {
     provided: [
@@ -90,6 +96,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "정신질환 치료 중으로 전문 케어가 필요한 경우",
       "감염성 질환이 있는 경우",
     ],
+    items: ["수유보조", "신생아 목욕", "기저귀·트림", "산모 식사 준비", "유축기 관리", "좌욕 준비", "젖병 소독"],
   },
   childcare: {
     provided: [
@@ -106,6 +113,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "중증 질환·전문 간호가 필요한 아동(별도 상담이 필요합니다)",
       "격리가 필요한 감염병이 있는 경우",
     ],
+    items: ["등·하원 동행", "놀이·활동", "식사·간식", "낮잠 지원", "숙제·학습 보조", "목욕", "아이 관련 정리"],
   },
   mental_care: {
     provided: [
@@ -121,6 +129,7 @@ export const SERVICE_GUIDES: Record<string, ServiceGuide> = {
       "자·타해 위험 등 응급 상태(전문기관 연계가 필요합니다)",
       "중증 정신질환 급성기 상태인 경우",
     ],
+    items: ["말벗·정서지지", "산책·외출 동행", "일상 루틴 지원", "병원 동행", "안부 확인"],
   },
 };
 
