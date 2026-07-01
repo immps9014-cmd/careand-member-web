@@ -352,7 +352,18 @@ export interface SessionDetail {
   id: number;
   status: string;
   duration_min: number;
-  match?: { senior?: { id: number | null; name: string | null } | null } | null;
+  match?: {
+    senior?: { id: number | null; name: string | null } | null;
+    // 동행 전체 경로(정확 주소 포함) — 동행 확정 매칭에만 존재
+    companion_route?: {
+      meeting: string | null;
+      destination: string | null;
+      return_to_origin: boolean;
+      return_address: string | null;
+      waypoints: string[];
+      transport: "taxi" | "transit" | null;
+    } | null;
+  } | null;
   activities?: CareActivityItem[];
   voice_logs?: VoiceLogItem[];
 }

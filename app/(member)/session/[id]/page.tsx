@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronLeft, Utensils, Pill, Activity, Bath, Smile, Brain,
   MoreHorizontal, HeartPulse, RefreshCw, Package, Wrench, Sparkles, Plus,
-  Mic, Square, Loader2, CheckCircle2, AlertCircle,
+  Mic, Square, Loader2, CheckCircle2, AlertCircle, Navigation, MapPin,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -198,6 +198,41 @@ export default function SessionActivityPage({ params }: { params: { id: string }
         {session?.match?.senior?.name ? `${session.match.senior.name} 님 · ` : ""}
         기록한 활동·음성은 AI 케어일지로 정리됩니다
       </p>
+
+      {/* ───────── 동행 전체 경로(정확 주소) ───────── */}
+      {session?.match?.companion_route && (
+        <Card className="p-4 mb-4 border-brand-200">
+          <div className="flex items-center gap-1.5 mb-3">
+            <Navigation className="w-4 h-4 text-brand-600" />
+            <span className="text-sm font-bold text-warm-800">동행 경로</span>
+            <Badge variant="outline" className="ml-auto">
+              {session.match.companion_route.transport === "taxi" ? "택시" : session.match.companion_route.transport === "transit" ? "대중교통" : "이동수단 협의"}
+            </Badge>
+          </div>
+          <ol className="relative space-y-3">
+            {[
+              { tag: "만남", addr: session.match.companion_route.meeting },
+              ...session.match.companion_route.waypoints.map((w, i) => ({ tag: `경유 ${i + 1}`, addr: w })),
+              { tag: "방문", addr: session.match.companion_route.destination },
+              {
+                tag: "복귀",
+                addr: session.match.companion_route.return_to_origin
+                  ? `${session.match.companion_route.meeting ?? "만남 장소"} (만남 장소)`
+                  : session.match.companion_route.return_address,
+              },
+            ].map((stop, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-brand-500 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-brand-600">{stop.tag}</div>
+                  <div className="text-[13.5px] font-semibold text-warm-800 break-keep">{stop.addr ?? "-"}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-[11px] text-warm-400">자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.</p>
+        </Card>
+      )}
 
       {!detail.isLoading && session && !inProgress && (
         <Card className="p-3 mb-4 bg-warm-50 text-warm-500 text-xs text-center">
