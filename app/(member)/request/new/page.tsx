@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { ServiceGuide } from "@/components/service-guide";
+import { AddressSearch } from "@/components/address-search";
 import { serviceGuide } from "@/lib/serviceGuides";
 import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -121,6 +122,13 @@ export default function NewRequestPage() {
     setServiceItems((prev) => (prev.includes(it) ? prev.filter((x) => x !== it) : [...prev, it]));
   }
 
+  // 동행(LS_COMPANION) 경로 (P2-2) — 만남=서비스 주소, 방문/복귀/경유지 + 이동수단
+  const [destination, setDestination] = useState("");
+  const [returnToOrigin, setReturnToOrigin] = useState(true);
+  const [returnAddress, setReturnAddress] = useState("");
+  const [waypoints, setWaypoints] = useState<string[]>([]);
+  const [transport, setTransport] = useState<"taxi" | "transit" | "">("");
+
   // 정기(recurring) 반복 요일 + 반복 주수 (P1-2) — 시니어 정기 요청에 사용. ISO 1=월..7=일.
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [weeks, setWeeks] = useState(4);
@@ -185,6 +193,9 @@ export default function NewRequestPage() {
   // 방문목욕(BATH)은 동성 매칭이 하드 조건 → 선호 성별 수동선택 대신 안내만 표시
   const selectedCategory = categories.data?.find((c) => c.id === categoryId);
   const sameGenderForced = selectedCategory?.code === "BATH";
+  // 동행(LS_COMPANION): 방문 장소·이동수단 필수, 복귀 미동일 시 복귀 장소 필수 (P2-2)
+  const isCompanion = selectedCategory?.code === "LS_COMPANION";
+  const companionValid = !isCompanion || (!!destination && !!transport && (returnToOrigin || !!returnAddress));
 
   // 신체 케어 비중이 큰 카테고리는 동성 매칭을 기본 권장(소프트) — 대상자 성별로 프리셋하되 변경 가능
   const GENDER_RECOMMENDED_CODES = ["NURSING_HOSPITAL", "VISIT_CARE", "NIGHT_CARE", "SHORT_STAY"];
@@ -265,6 +276,18 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "living_support") {
+        // 동행이면 완료사진 대신 경로(companion_route)를 전달
+        const companionReq = isCompanion
+          ? {
+              companion_route: {
+                destination,
+                return_to_origin: returnToOrigin,
+                ...(returnToOrigin ? {} : { return_address: returnAddress }),
+                ...(waypoints.filter(Boolean).length ? { waypoints: waypoints.filter(Boolean) } : {}),
+                transport,
+              },
+            }
+          : { photo_required: photoRequired };
         return memberApi.createRequest({
           service_domain: "living_support",
           service_address_id: Number(addressId),
@@ -272,7 +295,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          requirements: { photo_required: photoRequired, ...baseReq },
+          requirements: { ...companionReq, ...baseReq },
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -369,7 +392,8 @@ export default function NewRequestPage() {
     duration >= 60 &&
     duration <= maxDuration &&
     (domain !== "nursing" || (days >= 1 && days <= 30)) &&
-    (!recurringNeedsWeekdays || weekdays.length >= 1);
+    (!recurringNeedsWeekdays || weekdays.length >= 1) &&
+    companionValid;
 
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
@@ -930,8 +954,91 @@ export default function NewRequestPage() {
             </div>
           )}
 
-          {/* 완료사진 요구 (가사 전용) */}
-          {domain === "living_support" && (
+          {/* 동행 경로 (LS_COMPANION 전용) — P2-2 */}
+          {isCompanion && (
+            <div className="mt-4 rounded-2xl border border-warm-200 bg-warm-50/60 p-4">
+              <label className={SECTION_LABEL}>동행 경로</label>
+              <p className="-mt-1 mb-2 text-[11px] text-warm-400">
+                만남 장소는 앞서 선택한 서비스 주소예요. 방문 장소와 이동 수단을 알려주세요.
+              </p>
+              <div className="text-[12px] font-bold text-warm-600 mb-1">방문 장소</div>
+              <AddressSearch onChange={setDestination} />
+
+              <div className="mt-3.5 text-[12px] font-bold text-warm-600 mb-1.5">복귀 장소</div>
+              <div className="grid grid-cols-2 gap-2">
+                {([[true, "만남 장소와 동일"], [false, "다른 장소"]] as const).map(([v, l]) => {
+                  const on = returnToOrigin === v;
+                  return (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setReturnToOrigin(v)}
+                      className={
+                        "h-11 rounded-xl border text-[12.5px] font-bold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+              {!returnToOrigin && <div className="mt-2"><AddressSearch onChange={setReturnAddress} /></div>}
+
+              <div className="mt-3.5 flex items-center justify-between">
+                <span className="text-[12px] font-bold text-warm-600">경유지 (선택)</span>
+                {waypoints.length < 5 && (
+                  <button type="button" onClick={() => setWaypoints((w) => [...w, ""])} className="text-[12px] font-bold text-brand-600">
+                    + 추가
+                  </button>
+                )}
+              </div>
+              {waypoints.map((wp, i) => (
+                <div key={i} className="mt-1.5 flex items-center gap-2">
+                  <Input
+                    value={wp}
+                    onChange={(e) => setWaypoints((w) => w.map((x, j) => (j === i ? e.target.value : x)))}
+                    placeholder={`경유지 ${i + 1} 주소`}
+                    className="h-11 flex-1 rounded-xl text-[13.5px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setWaypoints((w) => w.filter((_, j) => j !== i))}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-warm-200 text-warm-400"
+                    aria-label="경유지 삭제"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+
+              <div className="mt-3.5 text-[12px] font-bold text-warm-600 mb-1.5">이동 수단</div>
+              <div className="grid grid-cols-2 gap-2">
+                {([["taxi", "택시"], ["transit", "대중교통"]] as const).map(([v, l]) => {
+                  const on = transport === v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setTransport(v)}
+                      className={
+                        "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-warm-400">
+                자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.
+              </p>
+            </div>
+          )}
+
+          {/* 완료사진 요구 (가사 전용 — 동행 제외) */}
+          {domain === "living_support" && !isCompanion && (
             <div className="mt-4">
               <label className={SECTION_LABEL}>작업 완료사진</label>
               <div className="grid grid-cols-2 gap-2">
@@ -1031,6 +1138,16 @@ export default function NewRequestPage() {
               ["돌봄 대상", recipientName ?? "-"],
               ["서비스 종류", selectedCategory?.name ?? "-"],
               ...(serviceItems.length ? [["세부 항목", serviceItems.join(", ")] as [string, string]] : []),
+              ...(isCompanion
+                ? [
+                    ["방문 장소", destination || "-"] as [string, string],
+                    ["복귀", returnToOrigin ? "만남 장소와 동일" : returnAddress || "-"] as [string, string],
+                    ...(waypoints.filter(Boolean).length
+                      ? [["경유지", waypoints.filter(Boolean).join(", ")] as [string, string]]
+                      : []),
+                    ["이동 수단", transport === "taxi" ? "택시" : transport === "transit" ? "대중교통" : "-"] as [string, string],
+                  ]
+                : []),
               ["시작 일시", start ? start.replace("T", " ") : "-"],
               ["소요 시간", `${duration}분 · ${durHours}시간${domain === "nursing" && days >= 2 ? ` · ${days}일 반복` : ""}`],
               ...(domain === "senior" ? [["유형", MODES.find((m) => m.key === mode)?.label ?? mode] as [string, string]] : []),
