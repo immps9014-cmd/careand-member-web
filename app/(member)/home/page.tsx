@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
+import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile, type MyMatch } from "@/lib/api/member";
 import { organizationApi } from "@/lib/api/organization";
 import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
@@ -278,6 +279,81 @@ function GMyRequests({ go }: { go: GNav }) {
   );
 }
 
+/* 6개 돌봄 도메인 서비스 허브 — 이미지 대신 도메인별 그라디언트 타일(추후 실사진 교체 가능).
+   각 타일 탭 → 해당 서비스 신청 플로우(request/new?domain=). 케어네이션 메인 벤토 그리드 참고. */
+const DOMAIN_TONE: Record<string, { grad: string; badge?: { label: string; color: string } }> = {
+  senior: { grad: "linear-gradient(135deg,#DDF3E0,#BEE7DF)" },
+  nursing: { grad: "linear-gradient(135deg,#E8EEF9,#D3E1F4)", badge: { label: "기관", color: "#3E72D6" } },
+  living_support: { grad: "linear-gradient(135deg,#F2ECFF,#E1D5FA)" },
+  postpartum: { grad: "linear-gradient(135deg,#FFF0F3,#FBDDE5)", badge: { label: "NEW", color: "#E0697E" } },
+  childcare: { grad: "linear-gradient(135deg,#FFF6E6,#FCE7C3)", badge: { label: "NEW", color: "#D98E2E" } },
+  mental_care: { grad: "linear-gradient(135deg,#FDECEF,#F7D6DE)" },
+};
+const DEFAULT_TONE = { grad: "linear-gradient(135deg,#EEF1F5,#DFE4EC)" } as const;
+
+function GServices({ go }: { go: GNav }) {
+  const role = useAuth((s) => s.user?.role);
+  const domainsQuery = useServiceDomains();
+  // 레지스트리(SSOT). 보호자는 병원간병(기관 전용) 숨김 — 신청 위저드와 동일 규칙.
+  const domains = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
+    (d) => !(d.token === "nursing" && role === "guardian"),
+  );
+  if (domains.length === 0) return null;
+  const [featured, ...rest] = domains;
+  const CornerBadge = ({ b }: { b?: { label: string; color: string } }) =>
+    b ? (
+      <span style={{ position: "absolute", top: 10, right: 10, background: b.color, color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 8, letterSpacing: ".02em" }}>
+        {b.label}
+      </span>
+    ) : null;
+
+  return (
+    <div style={{ padding: "18px 16px 6px", background: "#fff", marginTop: 14 }}>
+      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 2px 12px", letterSpacing: "-.01em" }}>돌봄 서비스</div>
+
+      {/* Featured 타일 */}
+      {(() => {
+        const tone = DOMAIN_TONE[featured.token] ?? DEFAULT_TONE;
+        const Icon = domainIcon(featured.icon);
+        return (
+          <button
+            onClick={() => go(`/request/new?domain=${featured.token}`)}
+            style={{ position: "relative", width: "100%", borderRadius: 20, overflow: "hidden", background: tone.grad, padding: "22px 20px", minHeight: 132, textAlign: "left", cursor: "pointer", border: "none", display: "block" }}
+          >
+            <CornerBadge b={tone.badge} />
+            <div style={{ fontSize: 19, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3 }}>{featured.label}</div>
+            <div style={{ fontSize: 12.5, color: "#2E6B4A", marginTop: 5 }}>{featured.desc}</div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: "#0E6B43", color: "#fff", fontSize: 13, fontWeight: 800 }}>
+              매칭 시작하기 <ChevronRight size={15} />
+            </span>
+            <Icon size={72} color="#0E6B43" strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.16 }} />
+          </button>
+        );
+      })()}
+
+      {/* 나머지 도메인 타일 그리드 */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginTop: 10 }}>
+        {rest.map((d) => {
+          const tone = DOMAIN_TONE[d.token] ?? DEFAULT_TONE;
+          const Icon = domainIcon(d.icon);
+          return (
+            <button
+              key={d.token}
+              onClick={() => go(`/request/new?domain=${d.token}`)}
+              style={{ position: "relative", borderRadius: 16, overflow: "hidden", background: tone.grad, minHeight: 104, padding: "13px 14px", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", cursor: "pointer", border: "none" }}
+            >
+              <CornerBadge b={tone.badge} />
+              <Icon size={46} color={INK} strokeWidth={1.4} style={{ position: "absolute", right: 10, top: 10, opacity: 0.14 }} />
+              <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, letterSpacing: "-.01em" }}>{d.label}</div>
+              <div style={{ fontSize: 11, color: INK2, marginTop: 2 }}>{d.desc}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function GuardianHome() {
   const router = useRouter();
   const go: GNav = (path) => { if (path) router.push(path); };
@@ -295,6 +371,7 @@ function GuardianHome() {
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
       <div style={{ background: "#fff", paddingBottom: 2 }}><GCta go={go} noSeniors={noSeniors} /></div>
+      <GServices go={go} />
       <GQuick go={go} noSeniors={noSeniors} />
       <GMyRequests go={go} />
       <GFeed go={go} />
