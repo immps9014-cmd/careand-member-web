@@ -155,7 +155,7 @@ export default function NewRequestPage() {
   // 적정 간병비 미리보기 — 입력이 충분하면 실시간 산출
   const estimateEnabled = !!(categoryId && start && duration >= 60);
   const priceEstimate = useQuery({
-    queryKey: ["member", "price-estimate", domain, categoryId, mode, start, duration, seniorId, patientId, addressId],
+    queryKey: ["member", "price-estimate", domain, categoryId, mode, start, duration, seniorId, patientId, addressId, serviceItems.join(",")],
     queryFn: () =>
       memberApi.pricingEstimate({
         service_domain: domain,
@@ -166,6 +166,8 @@ export default function NewRequestPage() {
         ...(domain === "senior" && seniorId ? { senior_id: Number(seniorId) } : {}),
         ...(domain === "nursing" && patientId ? { nursing_patient_id: Number(patientId) } : {}),
         ...(domain === "living_support" && addressId ? { service_address_id: Number(addressId) } : {}),
+        // 세부 서비스 항목을 견적에 반영(P1-1 가중) — 백엔드 PricingService.serviceItemsAddon
+        ...(serviceItems.length ? { requirements: { service_items: serviceItems } } : {}),
       }),
     enabled: estimateEnabled,
     staleTime: 30_000,

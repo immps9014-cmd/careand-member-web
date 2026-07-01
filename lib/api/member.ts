@@ -540,6 +540,7 @@ export const memberApi = {
     senior_id?: number;
     nursing_patient_id?: number;
     service_address_id?: number;
+    requirements?: { service_items?: string[] };
   }): Promise<PriceEstimate> {
     const { data } = await api.get("/v1/matching/pricing/estimate", { params });
     return data.data;
