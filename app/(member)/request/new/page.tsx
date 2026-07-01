@@ -121,6 +121,15 @@ export default function NewRequestPage() {
     setServiceItems((prev) => (prev.includes(it) ? prev.filter((x) => x !== it) : [...prev, it]));
   }
 
+  // 정기(recurring) 반복 요일 + 반복 주수 (P1-2) — 시니어 정기 요청에 사용. ISO 1=월..7=일.
+  const [weekdays, setWeekdays] = useState<number[]>([]);
+  const [weeks, setWeeks] = useState(4);
+  function toggleWeekday(d: number) {
+    setWeekdays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort((a, b) => a - b)));
+  }
+  // 시니어 정기 요청은 반복 요일 최소 1개 필요
+  const recurringNeedsWeekdays = domain === "senior" && mode === "recurring";
+
   const seniors = useQuery({ queryKey: ["member", "seniors"], queryFn: () => memberApi.seniors() });
   const patients = useQuery({
     queryKey: ["member", "patients"],
@@ -307,13 +316,14 @@ export default function NewRequestPage() {
           special_request: memo || undefined,
         });
       }
-      // 시니어: 기존 페이로드 그대로 (service_domain 생략 → senior)
+      // 시니어: 기존 페이로드 + 정기 요청 시 반복 요일(recurrence_rule) 추가
       return memberApi.createRequest({
         senior_id: Number(seniorId),
         category_id: Number(categoryId),
         mode,
         scheduled_start: scheduled,
         duration_min: Number(duration),
+        ...(mode === "recurring" && weekdays.length ? { recurrence_rule: { weekdays, weeks } } : {}),
         ...(Object.keys(baseReq).length ? { requirements: baseReq } : {}),
         ...budgetReq,
         special_request: memo || undefined,
@@ -338,7 +348,7 @@ export default function NewRequestPage() {
             ? childId && categoryId && start && duration >= 60 && duration <= 720
             : domain === "mental_care"
               ? mentalClientId && categoryId && start && duration >= 60 && duration <= 720
-              : seniorId && categoryId && start && duration >= 60;
+              : seniorId && categoryId && start && duration >= 60 && (mode !== "recurring" || weekdays.length >= 1);
 
   // 스텝별 진행 가능 여부
   const recipientId =
@@ -354,7 +364,12 @@ export default function NewRequestPage() {
               ? mentalClientId
               : seniorId;
   const step1Valid = !!recipientId && !!categoryId && screeningOk;
-  const step2Valid = !!start && duration >= 60 && duration <= maxDuration && (domain !== "nursing" || (days >= 1 && days <= 30));
+  const step2Valid =
+    !!start &&
+    duration >= 60 &&
+    duration <= maxDuration &&
+    (domain !== "nursing" || (days >= 1 && days <= 30)) &&
+    (!recurringNeedsWeekdays || weekdays.length >= 1);
 
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
@@ -749,6 +764,58 @@ export default function NewRequestPage() {
             </div>
           )}
 
+          {/* 반복 요일 + 주수 (시니어 정기 전용) — P1-2 */}
+          {recurringNeedsWeekdays && (
+            <div className="mt-4">
+              <label className={SECTION_LABEL}>
+                반복 요일 <span className="font-semibold text-warm-400">(정기 · 중복 가능)</span>
+              </label>
+              <div className="grid grid-cols-7 gap-1.5">
+                {([[1, "월"], [2, "화"], [3, "수"], [4, "목"], [5, "금"], [6, "토"], [7, "일"]] as const).map(([d, l]) => {
+                  const on = weekdays.includes(d);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => toggleWeekday(d)}
+                      className={
+                        "h-10 rounded-xl border text-[13px] font-bold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-[12.5px] font-semibold text-warm-600">반복 주수</span>
+                <button
+                  type="button"
+                  onClick={() => setWeeks((w) => Math.max(1, w - 1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-warm-200 bg-white text-warm-600 active:scale-95"
+                  aria-label="주수 줄이기"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-10 text-center text-[16px] font-extrabold text-warm-800">{weeks}주</span>
+                <button
+                  type="button"
+                  onClick={() => setWeeks((w) => Math.min(12, w + 1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-warm-200 bg-white text-warm-600 active:scale-95"
+                  aria-label="주수 늘리기"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-warm-400">
+                {weekdays.length
+                  ? `선택한 요일마다 ${weeks}주간 반복 방문해요. (매칭 확정 후 회차별 일정이 생성돼요)`
+                  : "반복할 요일을 선택해 주세요."}
+              </p>
+            </div>
+          )}
+
           {/* 일정 */}
           <div className={domain === "senior" ? "mt-4" : ""}>
             <label className={SECTION_LABEL}>시작 일시</label>
@@ -967,6 +1034,9 @@ export default function NewRequestPage() {
               ["시작 일시", start ? start.replace("T", " ") : "-"],
               ["소요 시간", `${duration}분 · ${durHours}시간${domain === "nursing" && days >= 2 ? ` · ${days}일 반복` : ""}`],
               ...(domain === "senior" ? [["유형", MODES.find((m) => m.key === mode)?.label ?? mode] as [string, string]] : []),
+              ...(recurringNeedsWeekdays && weekdays.length
+                ? [["반복", `${weekdays.map((d) => ["", "월", "화", "수", "목", "금", "토", "일"][d]).join("·")} · ${weeks}주`] as [string, string]]
+                : []),
               ["선호 성별", genderLabel],
               ...(budget && Number(budget) > 0 ? [["희망 상한 시급", won(Number(budget))] as [string, string]] : []),
               ...(estimatedTotal ? [["예상 총액", won(estimatedTotal)] as [string, string]] : []),

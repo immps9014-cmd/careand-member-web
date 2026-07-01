@@ -561,7 +561,7 @@ export const memberApi = {
     mode: string;
     scheduled_start: string;
     duration_min: number;
-    recurrence_rule?: { days: number };
+    recurrence_rule?: { days?: number; weekdays?: number[]; weeks?: number };
     special_request?: string;
     requirements?: Record<string, unknown>;
     budget_hourly?: number;
