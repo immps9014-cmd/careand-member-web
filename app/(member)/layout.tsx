@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
-import { UI } from "@/lib/theme";
+import { UI, brand } from "@/lib/theme";
 import { SeniorModeEffect } from "@/components/senior-mode-effect";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
@@ -57,7 +57,7 @@ function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavI
         {items.map(({ href, label, Icon, external }) => {
           const active = !external && is(href);
           const cls = "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors";
-          const st = { color: active ? UI.accent : UI.ink2, background: active ? "#ECFDF5" : "transparent" };
+          const st = { color: active ? UI.accent : UI.ink2, background: active ? brand[50] : "transparent" };
           const inner = (
             <>
               <Icon className="h-5 w-5" strokeWidth={2} /> {label}
