@@ -11,10 +11,13 @@ import {
   Check,
   Minus,
   Sparkle,
+  ShieldCheck,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StepIndicator } from "@/components/ui/step-indicator";
+import { ServiceGuide } from "@/components/service-guide";
 import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
@@ -34,6 +37,17 @@ const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const SELECT_CLASS =
   "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
+// 3스텝 위저드
+const STEPS = ["대상·서비스", "일정·상세", "확인·동의"];
+
+// 컴플라이언스 고지 (P0-2) — 확인 스텝에서 요약 노출 + 필수 동의
+const COMPLIANCE_NOTES = [
+  "돌봄전문가와의 직접(개인) 거래·외부 연락처 교환은 금지되며, 위반 시 이용이 제한될 수 있어요.",
+  "매칭 확정 후 무단 취소·노쇼(No-show) 시 위약금이 발생할 수 있어요.",
+  "돌봄대상의 건강·상태 정보를 사실대로 고지할 의무가 있어요. 사실과 다르면 매칭이 취소될 수 있어요.",
+  "결제·정산은 케어앤드 플랫폼을 통해서만 안전하게 진행돼요.",
+];
+
 export default function NewRequestPage() {
   const router = useRouter();
   const [domain, setDomain] = useState<Domain>("senior");
@@ -52,6 +66,13 @@ export default function NewRequestPage() {
     enabled: role === "guardian",
   });
   const favCount = favQuery.data?.length ?? 0;
+
+  // 위저드 스텝 (1=대상·서비스, 2=일정·상세, 3=확인·동의)
+  const [step, setStep] = useState(1);
+  // 확인 스텝 필수 동의
+  const [agree, setAgree] = useState(false);
+  // 이용 불가 대상 스크리닝 확인(P0-4) — 도메인 변경 시 초기화
+  const [screeningOk, setScreeningOk] = useState(false);
 
   // 시니어 플로우 상태 (기존 동작 유지)
   const [seniorId, setSeniorId] = useState<number | "">("");
@@ -160,6 +181,7 @@ export default function NewRequestPage() {
     if (d === domain) return;
     setDomain(d);
     setCategoryId(""); // 도메인별 카테고리가 다르므로 초기화
+    setScreeningOk(false); // 도메인별 이용 불가 대상이 다르므로 스크리닝 재확인
   }
 
   // 홈 퀵메뉴(간병/가사관리)에서 ?domain= 으로 진입 시 해당 도메인 자동 선택
@@ -300,6 +322,22 @@ export default function NewRequestPage() {
               ? mentalClientId && categoryId && start && duration >= 60 && duration <= 720
               : seniorId && categoryId && start && duration >= 60;
 
+  // 스텝별 진행 가능 여부
+  const recipientId =
+    domain === "nursing"
+      ? patientId
+      : domain === "living_support"
+        ? addressId
+        : domain === "postpartum"
+          ? postpartumClientId
+          : domain === "childcare"
+            ? childId
+            : domain === "mental_care"
+              ? mentalClientId
+              : seniorId;
+  const step1Valid = !!recipientId && !!categoryId && screeningOk;
+  const step2Valid = !!start && duration >= 60 && duration <= maxDuration && (domain !== "nursing" || (days >= 1 && days <= 30));
+
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
@@ -328,6 +366,31 @@ export default function NewRequestPage() {
           { m: 720, t: "종일" },
         ];
 
+  // 확인 스텝 요약용 라벨
+  const domainLabel = availableDomains.find((d) => d.token === domain)?.label ?? domain;
+  const recipientName =
+    domain === "nursing"
+      ? patients.data?.find((p) => p.id === patientId)?.name
+      : domain === "living_support"
+        ? addresses.data?.find((a) => a.id === addressId)?.label
+        : domain === "postpartum"
+          ? postpartumClients.data?.find((p) => p.id === postpartumClientId)?.name
+          : domain === "childcare"
+            ? childrenQ.data?.find((c) => c.id === childId)?.name
+            : domain === "mental_care"
+              ? mentalClients.data?.find((m) => m.id === mentalClientId)?.name
+              : seniors.data?.find((s) => s.id === seniorId)?.name;
+  const genderLabel = sameGenderForced
+    ? "동성 배정"
+    : effectiveGender === "F"
+      ? "여성"
+      : effectiveGender === "M"
+        ? "남성"
+        : "무관";
+  const estimatedTotal = priceEstimate.data
+    ? priceEstimate.data.suggested * (duration / 60) * (domain === "nursing" ? days : 1)
+    : null;
+
   return (
     <div className="min-h-screen bg-warm-50 pb-28">
       <div className="p-5">
@@ -338,8 +401,17 @@ export default function NewRequestPage() {
         <p className="text-sm text-warm-500 mt-1.5 leading-relaxed">
           돌봄 대상과 일정만 알려주시면, AI가 가장 잘 맞는 돌봄전문가를 찾아 드려요.
         </p>
-        {favCount > 0 && (
-          <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50/50 p-3">
+
+        {/* 스텝 인디케이터 — 완료 스텝은 클릭해 되돌아갈 수 있음 */}
+        <StepIndicator
+          steps={STEPS}
+          current={step}
+          className="mt-4"
+          onStepClick={(n) => n < step && setStep(n)}
+        />
+
+        {favCount > 0 && step === 1 && (
+          <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/50 p-3">
             <div className="flex items-center gap-1.5 text-[13px] font-bold text-warm-700">
               <Sparkle className="h-4 w-4 text-brand-500" /> 찜한 돌봄전문가에게 직접 요청 (선택)
             </div>
@@ -371,9 +443,12 @@ export default function NewRequestPage() {
 
         {/* 데스크톱 2단: 좌(입력) / 우(적정간병비·제출 sticky) */}
         <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6 lg:items-start">
-        {/* ── 좌측: 입력 ── */}
+        {/* ── 좌측: 스텝별 입력 ── */}
         <div>
-        {/* 1단계: 서비스 종류(도메인) 선택 */}
+
+        {/* ═══ STEP 1: 대상·서비스 ═══ */}
+        {step === 1 && (
+        <>
         <label className={SECTION_LABEL}>어떤 서비스가 필요하세요?</label>
         <div className={`grid gap-2.5 ${availableDomains.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {availableDomains.map((d) => {
@@ -410,6 +485,14 @@ export default function NewRequestPage() {
             );
           })}
         </div>
+
+        {/* 서비스 안내(제공/미제공) + 이용 불가 대상 스크리닝 게이트 */}
+        <ServiceGuide
+          domain={domain}
+          confirmed={screeningOk}
+          onConfirm={setScreeningOk}
+          className="mt-4"
+        />
 
         <Card className="mt-4 rounded-2xl p-5 pt-4">
           {/* 대상 선택 */}
@@ -607,10 +690,16 @@ export default function NewRequestPage() {
               </select>
             )}
           </div>
+        </Card>
+        </>
+        )}
 
+        {/* ═══ STEP 2: 일정·상세 ═══ */}
+        {step === 2 && (
+        <Card className="rounded-2xl p-5 pt-4">
           {/* 모드 (시니어 전용 — 간병은 연속 일수로 자동 결정, 가사는 1회 방문) */}
           {domain === "senior" && (
-            <div className="mt-4">
+            <div>
               <label className={SECTION_LABEL}>유형</label>
               <div className="grid grid-cols-3 gap-2">
                 {MODES.map((m) => {
@@ -636,7 +725,7 @@ export default function NewRequestPage() {
           )}
 
           {/* 일정 */}
-          <div className="mt-4">
+          <div className={domain === "senior" ? "mt-4" : ""}>
             <label className={SECTION_LABEL}>시작 일시</label>
             <Input
               type="datetime-local"
@@ -689,6 +778,12 @@ export default function NewRequestPage() {
                 );
               })}
             </div>
+            {/* 시작+소요 → 종료시각 실시간 안내 */}
+            {start && (
+              <p className="mt-2 rounded-lg bg-brand-50 px-3 py-2 text-[12px] font-semibold text-brand-700">
+                {start.slice(11, 16)}부터 {durHours}시간 진행 예정이에요.
+              </p>
+            )}
             <p className="text-[11px] text-warm-400 mt-2">
               60분~{maxDuration}분{domain === "nursing" ? " · 최대 24시간" : ""} · 30분 단위로 조절돼요
             </p>
@@ -802,11 +897,75 @@ export default function NewRequestPage() {
             />
           </div>
         </Card>
+        )}
+
+        {/* ═══ STEP 3: 확인·동의 ═══ */}
+        {step === 3 && (
+        <Card className="rounded-2xl p-5 pt-4">
+          <label className={SECTION_LABEL}>요청 내용 확인</label>
+          <dl className="divide-y divide-warm-100 rounded-xl border border-warm-200/70 bg-white">
+            {[
+              ["서비스", domainLabel],
+              ["돌봄 대상", recipientName ?? "-"],
+              ["서비스 종류", selectedCategory?.name ?? "-"],
+              ["시작 일시", start ? start.replace("T", " ") : "-"],
+              ["소요 시간", `${duration}분 · ${durHours}시간${domain === "nursing" && days >= 2 ? ` · ${days}일 반복` : ""}`],
+              ...(domain === "senior" ? [["유형", MODES.find((m) => m.key === mode)?.label ?? mode] as [string, string]] : []),
+              ["선호 성별", genderLabel],
+              ...(budget && Number(budget) > 0 ? [["희망 상한 시급", won(Number(budget))] as [string, string]] : []),
+              ...(estimatedTotal ? [["예상 총액", won(estimatedTotal)] as [string, string]] : []),
+              ...(memo ? [["요청사항", memo] as [string, string]] : []),
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-start justify-between gap-3 px-3.5 py-2.5">
+                <dt className="shrink-0 text-[12.5px] font-semibold text-warm-500">{k}</dt>
+                <dd className="text-right text-[13px] font-bold text-warm-800 break-keep">{v}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {/* 컴플라이언스 고지 (P0-2) */}
+          <div className="mt-4 rounded-xl border border-warm-200 bg-warm-50 p-4">
+            <div className="flex items-center gap-1.5 text-[13px] font-bold text-warm-700">
+              <ShieldCheck className="h-4 w-4 text-brand-500" /> 신청 전 확인해 주세요
+            </div>
+            <ul className="mt-2.5 space-y-2">
+              {COMPLIANCE_NOTES.map((note) => (
+                <li key={note} className="flex gap-1.5 text-[11.5px] leading-relaxed text-warm-500">
+                  <span className="mt-0.5 text-brand-500">•</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 필수 동의 */}
+          <label className="mt-3 flex cursor-pointer items-start gap-2.5 rounded-xl border border-warm-200 bg-white p-3.5">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+              className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand-500"
+            />
+            <span className="text-[12.5px] leading-relaxed text-warm-700">
+              <b className="text-warm-800">(필수)</b> 위 안내 사항과, 매칭된 돌봄전문가에게 돌봄대상 정보가 제공되는 것(개인정보 제3자 제공)에 동의합니다.
+            </span>
+          </label>
+        </Card>
+        )}
+
+        {/* 스텝 1·2 하단 반복 고지(간략) */}
+        {step !== 3 && (
+          <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-warm-400">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-warm-400" />
+            <span>안전을 위해 돌봄전문가와의 직거래·외부 연락처 교환은 금지돼요.</span>
+          </div>
+        )}
         </div>
 
-        {/* ── 우측: 적정 간병비 + 제출 (데스크톱 sticky) ── */}
+        {/* ── 우측: 적정 간병비 + 네비게이션 (데스크톱 sticky) ── */}
         <div className="lg:sticky lg:top-6 lg:self-start">
-        {/* 적정 간병비 + 희망 상한 (역경매) */}
+        {/* 적정 간병비 + 희망 상한 (역경매) — 일정·확인 스텝에서 노출 */}
+        {step >= 2 && (
         <Card className="mt-3.5 p-4 lg:mt-0">
           <label className={SECTION_LABEL}>적정 간병비</label>
           {!estimateEnabled ? (
@@ -841,26 +1000,65 @@ export default function NewRequestPage() {
           />
           <p className="text-[11px] text-warm-400 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
         </Card>
+        )}
 
-        {/* 요청 전 안내 (정적 라벨) */}
+        {/* 요청 전 안내 (확인 스텝) */}
+        {step === 3 && (
         <div className="mt-3.5 flex items-center gap-2 text-[11.5px] text-warm-400">
           <Sparkle className="h-3.5 w-3.5 text-brand-500 shrink-0" />
           <span>
             요청을 보내면 AI가 잘 맞는 후보 <b className="text-warm-600">3~5명</b>을 빠르게 추천해 드려요.
           </span>
         </div>
+        )}
 
-        {/* 제출 CTA — 본문 끝 인라인(하단 GuardianTabBar z-20과 겹치지 않도록 고정배치 대신) */}
-        <Button
-          variant="brand"
-          size="lg"
-          className="mt-5 w-full rounded-2xl shadow-md"
-          disabled={!valid || create.isPending}
-          onClick={() => create.mutate()}
-        >
-          <Sparkle className="h-[18px] w-[18px]" />
-          {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
-        </Button>
+        {/* 네비게이션 — 스텝별 이전/다음/제출 */}
+        <div className="mt-5 flex gap-2.5">
+          {step > 1 && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-1 rounded-2xl"
+              onClick={() => setStep((s) => s - 1)}
+            >
+              이전
+            </Button>
+          )}
+          {step === 1 && (
+            <Button
+              variant="brand"
+              size="lg"
+              className="flex-1 rounded-2xl shadow-md"
+              disabled={!step1Valid}
+              onClick={() => setStep(2)}
+            >
+              다음
+            </Button>
+          )}
+          {step === 2 && (
+            <Button
+              variant="brand"
+              size="lg"
+              className="flex-1 rounded-2xl shadow-md"
+              disabled={!step2Valid}
+              onClick={() => setStep(3)}
+            >
+              다음
+            </Button>
+          )}
+          {step === 3 && (
+            <Button
+              variant="brand"
+              size="lg"
+              className="flex-[2] rounded-2xl shadow-md"
+              disabled={!valid || !agree || create.isPending}
+              onClick={() => create.mutate()}
+            >
+              <Sparkle className="h-[18px] w-[18px]" />
+              {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
+            </Button>
+          )}
+        </div>
         </div>
         </div>
       </div>
