@@ -8,6 +8,7 @@ import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type Luc
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI } from "@/lib/theme";
+import { SeniorModeEffect } from "@/components/senior-mode-effect";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
 // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동 (Link 대신 plain <a>)
@@ -176,6 +177,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   const isCaregiver = usesCaregiverShell(user.role);
   return (
     <div className="min-h-screen" style={{ background: UI.bg }}>
+      <SeniorModeEffect />
       {/* 데스크톱: 사이드바 */}
       <DesktopSidebar
         items={isCaregiver ? CAREGIVER_NAV : GUARDIAN_NAV}

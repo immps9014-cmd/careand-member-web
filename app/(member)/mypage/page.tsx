@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,14 @@ import { memberApi } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { caregiverRoleLabel } from "@/lib/caregiverType";
 import { roleLabel } from "@/lib/role";
+import { useSeniorMode } from "@/lib/senior-mode";
 
 export default function MyPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const user = useAuth((s) => s.user);
+  const seniorOn = useSeniorMode((s) => s.on);
+  const toggleSenior = useSeniorMode((s) => s.toggle);
   const setUser = useAuth((s) => s.setUser);
   const logout = useAuth((s) => s.logout);
   const isCaregiver = user?.role === "caregiver";
@@ -155,6 +158,38 @@ export default function MyPage() {
 
       {/* ── 우측: 편집 카드 + 로그아웃 ── */}
       <div>
+      {/* 화면 설정 — 시니어 모드 (P2-5) */}
+      <Card className="p-5 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Type className="w-4 h-4 text-brand-600" />
+          <h2 className="font-bold text-warm-800">화면 설정</h2>
+        </div>
+        <button
+          type="button"
+          onClick={toggleSenior}
+          aria-pressed={seniorOn}
+          className="flex w-full items-center justify-between gap-3 text-left"
+        >
+          <div className="min-w-0">
+            <div className="text-[14px] font-bold text-warm-800">시니어 모드</div>
+            <div className="text-[12px] text-warm-500 mt-0.5">글씨를 크게, 색을 더 진하게 보여줘요</div>
+          </div>
+          <span
+            className={
+              "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors " +
+              (seniorOn ? "bg-brand-500" : "bg-warm-200")
+            }
+          >
+            <span
+              className={
+                "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform " +
+                (seniorOn ? "translate-x-6" : "translate-x-1")
+              }
+            />
+          </span>
+        </button>
+      </Card>
+
       {/* 계정 정보 수정 */}
       <Card className="p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">

@@ -33,6 +33,15 @@
     font-family: "Plus Jakarta Sans", "Pretendard", sans-serif;
   }
 
+  /* 시니어 모드 고대비 — 저대비 보조 텍스트/보더를 진하게 (zoom은 JS로 적용) */
+  /* zoom 확대 시 일부 인라인 고정폭 장식 요소의 미세 가로 오버플로우 클리핑(sticky 유지 위해 clip 사용) */
+  html[data-tone="senior"] body,
+  [data-tone="senior"] main { overflow-x: clip; }
+  [data-tone="senior"] .text-warm-400 { color: #434A5A !important; }
+  [data-tone="senior"] .text-warm-500 { color: #2E3342 !important; }
+  [data-tone="senior"] .text-warm-300 { color: #5B6172 !important; }
+  [data-tone="senior"] .border-warm-200 { border-color: #C7CBD4 !important; }
+
   /* 스크롤바 */
   ::-webkit-scrollbar {
     width: 10px;
