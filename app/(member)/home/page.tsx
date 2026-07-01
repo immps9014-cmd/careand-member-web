@@ -294,10 +294,16 @@ const DEFAULT_TONE = { grad: "linear-gradient(135deg,#EEF1F5,#DFE4EC)" } as cons
 function GServices({ go }: { go: GNav }) {
   const role = useAuth((s) => s.user?.role);
   const domainsQuery = useServiceDomains();
-  // 레지스트리(SSOT). 보호자는 병원간병(기관 전용) 숨김 — 신청 위저드와 동일 규칙.
-  const domains = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
+  // 레지스트리(SSOT). 보호자 신청 위저드는 병원간병을 숨기지만, 홈 허브에는 6번째 타일로
+  // '기관 전용' 안내용 노출(탭 시 신청 대신 안내). 기관은 정상 신청 가능.
+  const base = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
     (d) => !(d.token === "nursing" && role === "guardian"),
   );
+  const nursingMeta = FALLBACK_DOMAINS.find((d) => d.token === "nursing");
+  const domains =
+    role === "guardian" && nursingMeta && !base.some((d) => d.token === "nursing")
+      ? [...base, nursingMeta]
+      : base;
   if (domains.length === 0) return null;
   const [featured, ...rest] = domains;
   const CornerBadge = ({ b }: { b?: { label: string; color: string } }) =>
@@ -336,16 +342,22 @@ function GServices({ go }: { go: GNav }) {
         {rest.map((d) => {
           const tone = DOMAIN_TONE[d.token] ?? DEFAULT_TONE;
           const Icon = domainIcon(d.icon);
+          // 보호자에게 병원간병은 기관 전용 — 탭 시 신청 대신 안내
+          const orgOnly = d.token === "nursing" && role === "guardian";
           return (
             <button
               key={d.token}
-              onClick={() => go(`/request/new?domain=${d.token}`)}
-              style={{ position: "relative", borderRadius: 16, overflow: "hidden", background: tone.grad, minHeight: 104, padding: "13px 14px", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", cursor: "pointer", border: "none" }}
+              onClick={() =>
+                orgOnly
+                  ? toast("병원 간병은 기관 회원 전용 서비스예요.")
+                  : go(`/request/new?domain=${d.token}`)
+              }
+              style={{ position: "relative", borderRadius: 16, overflow: "hidden", background: tone.grad, minHeight: 104, padding: "13px 14px", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", cursor: "pointer", border: "none", opacity: orgOnly ? 0.72 : 1 }}
             >
               <CornerBadge b={tone.badge} />
               <Icon size={46} color={INK} strokeWidth={1.4} style={{ position: "absolute", right: 10, top: 10, opacity: 0.14 }} />
               <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, letterSpacing: "-.01em" }}>{d.label}</div>
-              <div style={{ fontSize: 11, color: INK2, marginTop: 2 }}>{d.desc}</div>
+              <div style={{ fontSize: 11, color: INK2, marginTop: 2 }}>{orgOnly ? "기관 회원 전용" : d.desc}</div>
             </button>
           );
         })}
