@@ -10,6 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { memberApi, type PaymentMethod } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { tokenizeCard, isRealPgConfigured } from "@/lib/pg";
+import { useAuth } from "@/lib/auth/store";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
@@ -27,6 +29,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [agree, setAgree] = useState(false);
   const [done, setDone] = useState(false);
+  const buyerName = useAuth((s) => s.user?.name ?? undefined);
 
   const calc = useQuery({
     queryKey: ["member", "payment-calc", matchId],
@@ -38,13 +41,23 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
   const voucherUsable = (calc.data?.voucher_remaining ?? 0) > 0;
 
   const approve = useMutation({
-    mutationFn: () =>
-      memberApi.paymentApprove({
+    mutationFn: async () => {
+      // 카드 결제는 PG SDK로 토큰화 후 승인 (미설정 시 스텁 토큰)
+      let cardToken: string | undefined;
+      if (method === "card" && calc.data) {
+        const r = await tokenizeCard({
+          amount: calc.data.self_pay,
+          orderId: `care-${matchId}-${Date.now()}`,
+          buyerName,
+        });
+        cardToken = r.card_token;
+      }
+      return memberApi.paymentApprove({
         match_id: matchId,
         method,
-        // 실제 카드 정보 입력(PG SDK)은 후속 — stub PG 는 토큰 유무만 확인
-        ...(method === "card" ? { card_token: "tok_stub_card" } : {}),
-      }),
+        ...(method === "card" && cardToken ? { card_token: cardToken } : {}),
+      });
+    },
     onSuccess: () => {
       setDone(true);
       qc.invalidateQueries({ queryKey: ["member", "payments"] });
@@ -152,7 +165,9 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
               </div>
               {method === "card" && (
                 <p className="mt-2.5 text-[11px] leading-relaxed text-warm-400">
-                  카드 결제창(PG) 연동은 준비 중이에요. 현재는 안전결제 승인 절차만 진행됩니다.
+                  {isRealPgConfigured()
+                    ? "‘결제하기’를 누르면 카드 결제창이 열립니다."
+                    : "현재는 테스트 모드예요. 실제 카드 청구 없이 결제 절차만 진행됩니다."}
                 </p>
               )}
             </Card>
