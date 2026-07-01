@@ -72,21 +72,21 @@ function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
         </div>
       )}
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>나에게 꼭 맞는 돌봄으로</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#E6EFE8,#DCE8DF 60%,#D4E3DC)", padding: "24px 20px", minHeight: 150 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#4E7A64" }}>나에게 꼭 맞는 돌봄으로</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#33503E", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
         <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => go("/request/new")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#0E6B43", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(14,107,67,.28)" }}>
+          <button onClick={() => go("/request/new")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#3E6B54", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(62,107,84,.26)" }}>
             새 돌봄 요청하기
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </button>
-          <button onClick={() => go("/request/new?domain=living_support")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#6A45D8", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(106,69,216,.28)" }}>
+          <button onClick={() => go("/request/new?domain=living_support")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#574F78", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(87,79,120,.24)" }}>
             생활지원 요청하기
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </button>
         </div>
-        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
+        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#3E6B54" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
         </div>
       </div>
     </div>
@@ -281,15 +281,18 @@ function GMyRequests({ go }: { go: GNav }) {
 
 /* 6개 돌봄 도메인 서비스 허브 — 이미지 대신 도메인별 그라디언트 타일(추후 실사진 교체 가능).
    각 타일 탭 → 해당 서비스 신청 플로우(request/new?domain=). 케어네이션 메인 벤토 그리드 참고. */
-const DOMAIN_TONE: Record<string, { grad: string; badge?: { label: string; color: string } }> = {
-  senior: { grad: "linear-gradient(135deg,#DDF3E0,#BEE7DF)" },
-  nursing: { grad: "linear-gradient(135deg,#E8EEF9,#D3E1F4)", badge: { label: "기관", color: "#3E72D6" } },
-  living_support: { grad: "linear-gradient(135deg,#F2ECFF,#E1D5FA)" },
-  postpartum: { grad: "linear-gradient(135deg,#FFF0F3,#FBDDE5)", badge: { label: "NEW", color: "#E0697E" } },
-  childcare: { grad: "linear-gradient(135deg,#FFF6E6,#FCE7C3)", badge: { label: "NEW", color: "#D98E2E" } },
-  mental_care: { grad: "linear-gradient(135deg,#FDECEF,#F7D6DE)" },
+// 케어네이션풍 저채도 팔레트 — 붕 뜨지 않는 차분한 세이지/틸 계열. 배경은 미세 그라디언트,
+// ink는 그라디언트 동계열 딥톤(제목/설명/CTA). 도메인 순서가 바뀌어도 대비 유지.
+type Tone = { grad: string; ink: { title: string; sub: string; cta: string }; badge?: { label: string; color: string } };
+const DOMAIN_TONE: Record<string, Tone> = {
+  senior: { grad: "linear-gradient(135deg,#EAF1EC,#D9E7DE)", ink: { title: "#35513F", sub: "#58756A", cta: "#3E6B54" } },
+  nursing: { grad: "linear-gradient(135deg,#E9EEF3,#D7E2EC)", ink: { title: "#35485C", sub: "#5A6C80", cta: "#46617C" }, badge: { label: "기관", color: "#566E8C" } },
+  living_support: { grad: "linear-gradient(135deg,#EDEBF3,#DFDCEC)", ink: { title: "#453F5C", sub: "#6A6383", cta: "#574F78" } },
+  postpartum: { grad: "linear-gradient(135deg,#F3ECEE,#EAD9DF)", ink: { title: "#5C3A46", sub: "#855C68", cta: "#7A4C5A" }, badge: { label: "NEW", color: "#A65A70" } },
+  childcare: { grad: "linear-gradient(135deg,#F3EFE8,#EBE1CF)", ink: { title: "#5C4A32", sub: "#85704E", cta: "#7A6238" }, badge: { label: "NEW", color: "#8F7238" } },
+  mental_care: { grad: "linear-gradient(135deg,#F2ECEE,#E8D9DE)", ink: { title: "#563A44", sub: "#7E5B66", cta: "#6E4A56" } },
 };
-const DEFAULT_TONE = { grad: "linear-gradient(135deg,#EEF1F5,#DFE4EC)" } as const;
+const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F4F5F6,#E7E9EC)", ink: { title: "#2B3038", sub: "#5A6270", cta: "#46505E" } };
 
 function GServices({ go }: { go: GNav }) {
   const role = useAuth((s) => s.user?.role);
@@ -327,12 +330,12 @@ function GServices({ go }: { go: GNav }) {
             style={{ position: "relative", width: "100%", borderRadius: 20, overflow: "hidden", background: tone.grad, padding: "22px 20px", minHeight: 132, textAlign: "left", cursor: "pointer", border: "none", display: "block" }}
           >
             <CornerBadge b={tone.badge} />
-            <div style={{ fontSize: 19, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3 }}>{featured.label}</div>
-            <div style={{ fontSize: 12.5, color: "#2E6B4A", marginTop: 5 }}>{featured.desc}</div>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: "#0E6B43", color: "#fff", fontSize: 13, fontWeight: 800 }}>
+            <div style={{ fontSize: 19, fontWeight: 900, color: tone.ink.title, letterSpacing: "-.02em", lineHeight: 1.3 }}>{featured.label}</div>
+            <div style={{ fontSize: 12.5, color: tone.ink.sub, marginTop: 5 }}>{featured.desc}</div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: tone.ink.cta, color: "#fff", fontSize: 13, fontWeight: 800 }}>
               매칭 시작하기 <ChevronRight size={15} />
             </span>
-            <Icon size={72} color="#0E6B43" strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.16 }} />
+            <Icon size={72} color={tone.ink.cta} strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.16 }} />
           </button>
         );
       })()}
@@ -355,9 +358,9 @@ function GServices({ go }: { go: GNav }) {
               style={{ position: "relative", borderRadius: 16, overflow: "hidden", background: tone.grad, minHeight: 104, padding: "13px 14px", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", cursor: "pointer", border: "none", opacity: orgOnly ? 0.72 : 1 }}
             >
               <CornerBadge b={tone.badge} />
-              <Icon size={46} color={INK} strokeWidth={1.4} style={{ position: "absolute", right: 10, top: 10, opacity: 0.14 }} />
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, letterSpacing: "-.01em" }}>{d.label}</div>
-              <div style={{ fontSize: 11, color: INK2, marginTop: 2 }}>{orgOnly ? "기관 회원 전용" : d.desc}</div>
+              <Icon size={46} color={tone.ink.title} strokeWidth={1.4} style={{ position: "absolute", right: 10, top: 10, opacity: 0.16 }} />
+              <div style={{ fontSize: 14.5, fontWeight: 800, color: tone.ink.title, letterSpacing: "-.01em" }}>{d.label}</div>
+              <div style={{ fontSize: 11, color: tone.ink.sub, marginTop: 2 }}>{orgOnly ? "기관 회원 전용" : d.desc}</div>
             </button>
           );
         })}
