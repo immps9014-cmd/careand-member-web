@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown, ShieldCheck, XCircle, Phone, ClipboardList, Users, Search, ChevronRight, HeartPulse, Stethoscope } from "lucide-react";
+import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown, ShieldCheck, XCircle, Phone, ClipboardList, Users, Search, ChevronRight, HeartPulse, Stethoscope, HelpCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -630,6 +630,24 @@ function CaregiverHome() {
         </div>
         <ChevronRight className="w-5 h-5 text-warm-300" />
       </Card>
+
+      {/* 자주 쓰는 메뉴 (하단 탭바와 중복 최소화한 바로가기) */}
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">자주 쓰는 메뉴</h2>
+      <div className="grid grid-cols-4 gap-2 mb-6">
+        {[
+          { l: "일감찾기", to: "/open-requests", bg: "#EAF1FF", fg: "#3E72D6", Ic: Search },
+          { l: "케어일지", to: "/logs", bg: "#E7F7EF", fg: "#1F9D63", Ic: ClipboardList },
+          { l: "정산내역", to: "/settlements", bg: "#E7F4F2", fg: "#0E9C8A", Ic: Wallet },
+          { l: "이용가이드", to: "/guide", bg: "#F2ECFF", fg: "#7A5CE0", Ic: HelpCircle },
+        ].map(({ l, to, bg, fg, Ic }) => (
+          <button key={l} onClick={() => router.push(to)} className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm" style={{ background: bg }}>
+              <Ic className="w-5 h-5" style={{ color: fg }} />
+            </div>
+            <span className="text-xs font-semibold text-warm-700 whitespace-nowrap">{l}</span>
+          </button>
+        ))}
+      </div>
 
       {/* 매칭 알림 (수락 대기) */}
       <div className="flex items-center justify-between mb-3">
