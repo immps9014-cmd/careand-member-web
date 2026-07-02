@@ -55,27 +55,6 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
   );
 }
 
-/* 돌봄대상 미등록 안내 — 히어로 CTA 카드는 제거하고, 등록 유도 알림만 상단에 유지.
-   (돌봄 요청 진입은 아래 '돌봄 서비스' 허브 타일로 일원화) */
-function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
-  if (!noSeniors) return null;
-  return (
-    <div style={{ padding: "16px 16px 4px" }}>
-      <div
-        onClick={() => go("/seniors/new")}
-        style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 14px", borderRadius: 14, background: "#FFECEC", border: "1px solid rgba(224,72,78,.3)", cursor: "pointer" }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘돌봄대상’ 정보를 입력하세요</div>
-          <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>돌봄대상을 등록해야 돌봄을 요청할 수 있어요</div>
-        </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
-      </div>
-    </div>
-  );
-}
-
 function GQuickIcon({ bg, children }: { bg: string; children: React.ReactNode }) {
   return <div style={{ width: 50, height: 50, borderRadius: 16, background: bg, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(28,32,48,.07)" }}>{children}</div>;
 }
@@ -371,7 +350,6 @@ function GuardianHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
-      <GCta go={go} noSeniors={noSeniors} />
       <GServices go={go} />
       <GQuick go={go} noSeniors={noSeniors} />
       <GMyRequests go={go} />
