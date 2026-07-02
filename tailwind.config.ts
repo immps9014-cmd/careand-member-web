@@ -42,8 +42,8 @@ const config: Config = {
       boxShadow: {
         sm: "0 1px 3px rgba(28,32,48,0.04), 0 1px 2px rgba(28,32,48,0.04)",
         card: "0 1px 3px rgba(28,32,48,0.04), 0 4px 16px rgba(28,32,48,0.06)",
-        md: "0 4px 16px rgba(78,128,105,0.10)",
-        lg: "0 12px 40px rgba(78,128,105,0.15)",
+        md: "0 4px 16px rgba(213,96,62,0.10)",
+        lg: "0 12px 40px rgba(213,96,62,0.15)",
       },
       keyframes: {
         "fade-in": {

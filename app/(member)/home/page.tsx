@@ -244,14 +244,14 @@ function GMyRequests({ go }: { go: GNav }) {
 // ink는 그라디언트 동계열 딥톤(제목/설명/CTA). 도메인 순서가 바뀌어도 대비 유지.
 type Tone = { grad: string; ink: { title: string; sub: string; cta: string }; badge?: { label: string; color: string } };
 const DOMAIN_TONE: Record<string, Tone> = {
-  senior: { grad: "linear-gradient(135deg,#EAF1EC,#D9E7DE)", ink: { title: "#35513F", sub: "#58756A", cta: "#3E6B54" } },
-  nursing: { grad: "linear-gradient(135deg,#E9EEF3,#D7E2EC)", ink: { title: "#35485C", sub: "#5A6C80", cta: "#46617C" }, badge: { label: "기관", color: "#566E8C" } },
-  living_support: { grad: "linear-gradient(135deg,#EDEBF3,#DFDCEC)", ink: { title: "#453F5C", sub: "#6A6383", cta: "#574F78" } },
-  postpartum: { grad: "linear-gradient(135deg,#F3ECEE,#EAD9DF)", ink: { title: "#5C3A46", sub: "#855C68", cta: "#7A4C5A" }, badge: { label: "NEW", color: "#A65A70" } },
-  childcare: { grad: "linear-gradient(135deg,#F3EFE8,#EBE1CF)", ink: { title: "#5C4A32", sub: "#85704E", cta: "#7A6238" }, badge: { label: "NEW", color: "#8F7238" } },
-  mental_care: { grad: "linear-gradient(135deg,#F2ECEE,#E8D9DE)", ink: { title: "#563A44", sub: "#7E5B66", cta: "#6E4A56" } },
+  senior: { grad: "linear-gradient(135deg,#FDF1EC,#F8DDD0)", ink: { title: "#7A3A28", sub: "#A56A57", cta: "#B94C2E" } },
+  nursing: { grad: "linear-gradient(135deg,#F1EEEA,#E4DDD3)", ink: { title: "#4A4238", sub: "#7A7060", cta: "#6B5F4E" }, badge: { label: "기관", color: "#7A6E58" } },
+  living_support: { grad: "linear-gradient(135deg,#F6F0EA,#EBDFD2)", ink: { title: "#6B4A32", sub: "#927056", cta: "#8A6238" } },
+  postpartum: { grad: "linear-gradient(135deg,#FBEDEF,#F3D9DE)", ink: { title: "#7A3E48", sub: "#A5707A", cta: "#A65A66" }, badge: { label: "NEW", color: "#B85C6E" } },
+  childcare: { grad: "linear-gradient(135deg,#FBF2E6,#F2E2C6)", ink: { title: "#6E5228", sub: "#977442", cta: "#8F6E30" }, badge: { label: "NEW", color: "#9A7A38" } },
+  mental_care: { grad: "linear-gradient(135deg,#F7EEEC,#EFDCD6)", ink: { title: "#6E453C", sub: "#9A6D62", cta: "#8A574C" } },
 };
-const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F4F5F6,#E7E9EC)", ink: { title: "#2B3038", sub: "#5A6270", cta: "#46505E" } };
+const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F7F4F1,#EAE4DD)", ink: { title: "#3A342E", sub: "#6B655C", cta: "#8A6238" } };
 
 function GServices({ go }: { go: GNav }) {
   const user = useAuth((s) => s.user);

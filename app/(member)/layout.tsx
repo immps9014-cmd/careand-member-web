@@ -110,7 +110,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
         <GuardianTab href="/logs" label="케어일지" active={is("/logs")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h6M9 16h4" /></svg>} />
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <Link href="/request/new" style={{ transform: "translateY(-16px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none" }}>
-            <div style={{ width: 58, height: 58, borderRadius: "50%", background: `linear-gradient(140deg,${ACCENT_SOFT},${ACCENT})`, boxShadow: "0 8px 20px rgba(16,185,129,.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 58, height: 58, borderRadius: "50%", background: `linear-gradient(140deg,${ACCENT_SOFT},${ACCENT})`, boxShadow: "0 8px 20px rgba(213,96,62,.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M12 5v14M5 12h14" /></svg>
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 800, color: ACCENT }}>매칭요청</span>
