@@ -53,9 +53,16 @@ export interface CaregiverUiVocab {
   actionNoun: string;  // 케어/가사 — "○○ 요청", "내 ○○ 일정", "완료 ○○", "○○ 진행 중"
   searchPlaceholder: string; // 상단바 검색 pill
 }
+// 직군별 전용 어휘(actionNoun). 여기 없는 도메인(요양보호·간병·산후)은 공통 "케어".
+const CAREGIVER_ACTION_NOUN: Record<string, string> = {
+  living_support: "생활지원",
+  childcare: "아이돌봄",
+  mental_care: "마음돌봄",
+};
 export function caregiverUi(serviceDomains: string | null | undefined): CaregiverUiVocab {
-  if (caregiverPrimaryDomain(serviceDomains) === "living_support") {
-    return { homeTitle: "오늘의 생활지원", actionNoun: "생활지원", searchPlaceholder: "어떤 생활지원 요청을 찾으세요?" };
+  const noun = CAREGIVER_ACTION_NOUN[caregiverPrimaryDomain(serviceDomains)];
+  if (noun) {
+    return { homeTitle: `오늘의 ${noun}`, actionNoun: noun, searchPlaceholder: `어떤 ${noun} 요청을 찾으세요?` };
   }
   return { homeTitle: "오늘의 케어", actionNoun: "케어", searchPlaceholder: "어떤 케어 요청을 찾으세요?" };
 }
