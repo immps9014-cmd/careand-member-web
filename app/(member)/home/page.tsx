@@ -413,6 +413,7 @@ function OrgHome() {
       <div style={{ background: "#fff", marginTop: 14, paddingBottom: 2 }}><OrgCta go={go} enabled={status === "active"} /></div>
       <OrgRecipientsCard go={go} />
       <OrgManageCard go={go} enabled={status === "active"} />
+      <OrgQuick go={go} />
       <GMyRequests go={go} />
       <div style={{ height: 26 }} />
     </div>
@@ -466,6 +467,29 @@ function OrgManageCard({ go, enabled }: { go: GNav; enabled: boolean }) {
           <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>소속 간병인 추가·초대·해제</div>
         </div>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+      </div>
+    </div>
+  );
+}
+
+/* 기관 — 자주 쓰는 메뉴(하단 탭바와 중복 최소화한 바로가기). 보호자 GQuick과 동형. */
+function OrgQuick({ go }: { go: GNav }) {
+  const items: { l: string; bg: string; to: string; ic: React.ReactNode }[] = [
+    { l: "간병인 요청", bg: "#EAF1FF", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3E72D6" strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
+    { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
+    { l: "정산내역", bg: "#E7F4F2", to: "/settlements", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
+    { l: "이용가이드", bg: "#F2ECFF", to: "/guide", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M9.6 9a2.4 2.4 0 014.7.7c0 1.6-2.3 2-2.3 3.4M12 17h.01" /></svg> },
+  ];
+  return (
+    <div style={{ padding: "18px 12px 16px", background: "#fff", margin: "14px 0 0" }}>
+      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "20px 4px" }}>
+        {items.map((it) => (
+          <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
