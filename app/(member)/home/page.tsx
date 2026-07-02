@@ -660,7 +660,7 @@ function CaregiverHome() {
       <div className="grid grid-cols-4 gap-2 mb-6">
         {[
           { l: "일감찾기", to: "/open-requests", bg: "#EAF1FF", fg: "#3E72D6", Ic: Search },
-          { l: "케어일지", to: "/logs", bg: "#E7F7EF", fg: "#1F9D63", Ic: ClipboardList },
+          { l: `${ui.actionNoun}일지`, to: "/logs", bg: "#E7F7EF", fg: "#1F9D63", Ic: ClipboardList },
           { l: "정산내역", to: "/settlements", bg: "#E7F4F2", fg: "#0E9C8A", Ic: Wallet },
           { l: "이용가이드", to: "/guide", bg: "#F2ECFF", fg: "#7A5CE0", Ic: HelpCircle },
         ].map(({ l, to, bg, fg, Ic }) => (
