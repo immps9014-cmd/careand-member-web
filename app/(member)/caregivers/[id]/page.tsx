@@ -1,12 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Star, ShieldCheck, MapPin, Briefcase } from "lucide-react";
+import { toast } from "sonner";
+import { ChevronLeft, Star, ShieldCheck, MapPin, Briefcase, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { memberApi } from "@/lib/api/member";
+import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { caregiverDomainLabels } from "@/lib/caregiverType";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
@@ -14,6 +16,7 @@ const stripTag = (s: string | null | undefined) => (s ?? "").replace(/^\[.*?\]\s
 
 export default function CaregiverDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const qc = useQueryClient();
   const id = Number(params.id);
 
   const q = useQuery({
@@ -21,6 +24,27 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
     queryFn: () => memberApi.caregiverDetail(id),
     enabled: Number.isFinite(id),
     retry: false,
+  });
+
+  // 찜(관심) 상태 — 관심 목록 기준으로 판정, 토글은 낙관적 반영
+  const favQ = useQuery({
+    queryKey: ["member", "caregivers", "favorites"],
+    queryFn: () => memberApi.favoriteCaregivers(),
+    staleTime: 60_000,
+  });
+  const isFav = !!favQ.data?.some((f) => f.id === id);
+  const toggleFav = useMutation({
+    mutationFn: () => memberApi.toggleFavorite(id),
+    onSuccess: (favorited) => {
+      toast.success(favorited ? "관심 돌봄전문가에 담았어요." : "찜을 해제했어요.");
+      qc.setQueryData<RecommendedCaregiver[]>(["member", "caregivers", "favorites"], (old) => {
+        const list = old ?? [];
+        if (favorited) return list.some((c) => c.id === id) ? list : [...list, { id } as RecommendedCaregiver];
+        return list.filter((c) => c.id !== id);
+      });
+      qc.invalidateQueries({ queryKey: ["member", "caregivers", "favorites"] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
   return (
@@ -88,9 +112,20 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
               {c.organization && <Row label="소속" value={c.organization.name} />}
             </Card>
 
-            <Button variant="brand" size="lg" className="w-full" onClick={() => router.push("/request/new")}>
-              매칭 요청하기
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="lg"
+                className={"flex-1 " + (isFav ? "border-danger/40 text-danger" : "")}
+                disabled={toggleFav.isPending}
+                onClick={() => toggleFav.mutate()}
+              >
+                <Heart className={"w-4 h-4 " + (isFav ? "fill-current" : "")} /> {isFav ? "찜함" : "찜하기"}
+              </Button>
+              <Button variant="brand" size="lg" className="flex-[2]" onClick={() => router.push(`/request/new?preferred=${id}`)}>
+                매칭 요청하기
+              </Button>
+            </div>
           </>
         );
       })()}

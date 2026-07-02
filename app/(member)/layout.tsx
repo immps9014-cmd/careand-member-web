@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
@@ -117,10 +116,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
             <span style={{ fontSize: 10.5, fontWeight: 800, color: ACCENT }}>매칭요청</span>
           </Link>
         </div>
-        <button onClick={() => toast("관심 돌봄전문가 기능은 준비 중입니다.")} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: INK3, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-          <div style={{ width: 24, height: 24 }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg></div>
-          <span style={{ fontSize: 10.5, fontWeight: 600 }}>관심 돌봄전문가</span>
-        </button>
+        <GuardianTab href="/caregivers/favorites" label="관심 돌봄전문가" active={is("/caregivers/favorites")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg>} />
         <GuardianTab href="/mypage" label="내 정보" active={is("/mypage")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c.7-3.6 3.4-5.6 7-5.6s6.3 2 7 5.6" /></svg>} />
       </div>
     </nav>

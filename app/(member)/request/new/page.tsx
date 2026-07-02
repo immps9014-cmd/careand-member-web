@@ -244,6 +244,9 @@ export default function NewRequestPage() {
     if (cid) setChildId(cid);
     const mid = num("mental_care_client_id");
     if (mid) setMentalClientId(mid);
+    // 관심 돌봄전문가 목록에서 '매칭 요청'으로 진입 시 해당 전문가를 직접 지정으로 선택
+    const pref = num("preferred");
+    if (pref) setPreferredCgId(pref);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, domainsQuery.data]);
 
