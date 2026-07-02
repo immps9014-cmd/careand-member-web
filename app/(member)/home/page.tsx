@@ -55,39 +55,22 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
   );
 }
 
-/* 핵심 CTA — 새 돌봄 요청(실제 동작) */
+/* 돌봄대상 미등록 안내 — 히어로 CTA 카드는 제거하고, 등록 유도 알림만 상단에 유지.
+   (돌봄 요청 진입은 아래 '돌봄 서비스' 허브 타일로 일원화) */
 function GCta({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
+  if (!noSeniors) return null;
   return (
     <div style={{ padding: "16px 16px 4px" }}>
-      {noSeniors && (
-        <div
-          onClick={() => go("/seniors/new")}
-          style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12, padding: "12px 14px", borderRadius: 14, background: "#FFECEC", border: "1px solid rgba(224,72,78,.3)", cursor: "pointer" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘돌봄대상’ 정보를 입력하세요</div>
-            <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>돌봄대상을 등록해야 돌봄을 요청할 수 있어요</div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
+      <div
+        onClick={() => go("/seniors/new")}
+        style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 14px", borderRadius: 14, background: "#FFECEC", border: "1px solid rgba(224,72,78,.3)", cursor: "pointer" }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#C2353B" }}>먼저 ‘돌봄대상’ 정보를 입력하세요</div>
+          <div style={{ fontSize: 11.5, color: "#D05A5E", marginTop: 2 }}>돌봄대상을 등록해야 돌봄을 요청할 수 있어요</div>
         </div>
-      )}
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#E6EFE8,#DCE8DF 60%,#D4E3DC)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#4E7A64" }}>나에게 꼭 맞는 돌봄으로</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#33503E", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 돌봄을<br />지금 바로 요청하세요</div>
-        <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => go("/request/new")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#3E6B54", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(62,107,84,.26)" }}>
-            새 돌봄 요청하기
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </button>
-          <button onClick={() => go("/request/new?domain=living_support")} style={{ height: 44, padding: "0 20px", borderRadius: 22, border: "none", background: "#574F78", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(87,79,120,.24)" }}>
-            생활지원 요청하기
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </button>
-        </div>
-        <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#3E6B54" strokeWidth="1.7"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /><path d="M12 8.5v3.5M10.2 10.2h3.6" strokeWidth="2" /></svg>
-        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2.4" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
       </div>
     </div>
   );
@@ -318,7 +301,10 @@ function GServices({ go }: { go: GNav }) {
 
   return (
     <div style={{ padding: "18px 16px 6px", background: "#fff", marginTop: 14 }}>
-      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 2px 12px", letterSpacing: "-.01em" }}>돌봄 서비스</div>
+      <div style={{ padding: "0 2px 12px" }}>
+        <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, letterSpacing: "-.01em" }}>돌봄 서비스</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: INK2, marginTop: 4 }}>나에게 꼭 맞는 돌봄으로, 필요한 돌봄을 지금 바로 요청하세요</div>
+      </div>
 
       {/* Featured 타일 */}
       {(() => {
@@ -385,7 +371,7 @@ function GuardianHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
-      <div style={{ background: "#fff", paddingBottom: 2 }}><GCta go={go} noSeniors={noSeniors} /></div>
+      <GCta go={go} noSeniors={noSeniors} />
       <GServices go={go} />
       <GQuick go={go} noSeniors={noSeniors} />
       <GMyRequests go={go} />
