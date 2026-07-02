@@ -13,14 +13,9 @@ import { useAuth, setAuthCookie } from "@/lib/auth/store";
 import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
 
-/** 로그인 후 돌아갈 내부 경로. 외부/프로토콜 리다이렉트 차단(오픈 리다이렉트 방지). */
-function safeRedirect(): string {
-  if (typeof window === "undefined") return "/home";
-  const r = new URLSearchParams(window.location.search).get("redirect");
-  // 반드시 단일 슬래시로 시작하는 앱 내부 경로만 허용("//", "/\" 등은 차단)
-  if (r && /^\/(?![/\\])/.test(r)) return r;
-  return "/home";
-}
+// 로그인 후에는 역할과 무관하게 항상 앱 홈(/home)으로 진입시킨다.
+// (홈이 역할별 화면을 렌더 — 보호자/돌봄전문가/기관 모두 /home 진입)
+const HOME_PATH = "/home";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,7 +36,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (hasHydrated && isAuthenticated) {
       setAuthCookie();
-      router.replace(safeRedirect());
+      router.replace(HOME_PATH);
     }
   }, [hasHydrated, isAuthenticated, router]);
 
@@ -61,7 +56,7 @@ export default function LoginPage() {
       setTokens(data.access_token, data.refresh_token);
       setUser(data.user);
       toast.success(`${data.user.name} 님 환영합니다`);
-      router.push(safeRedirect());
+      router.push(HOME_PATH);
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
