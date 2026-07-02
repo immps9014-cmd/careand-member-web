@@ -60,15 +60,12 @@ function GQuickIcon({ bg, children }: { bg: string; children: React.ReactNode })
 }
 
 /* 자주 쓰는 핵심 메뉴(6) + 보조 메뉴 */
-function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
-  // 돌봄대상 미등록 시 '내 돌봄 요청하기' 타일을 빨간색으로 강조해 등록을 유도
-  const items: { l: string; bg: string; to: string; ic: React.ReactNode; alert?: boolean }[] = [
-    { l: "내 돌봄 요청하기", bg: noSeniors ? "#FFECEC" : "#EAF1FF", to: "/request/new", alert: noSeniors, ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={noSeniors ? "#E0484E" : "#3E72D6"} strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6" /></svg> },
+function GQuick({ go }: { go: GNav }) {
+  const items: { l: string; bg: string; to: string; ic: React.ReactNode }[] = [
     { l: "방문일정", bg: "#F2ECFF", to: "/schedule", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></svg> },
     { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
     { l: "결제내역", bg: "#E7F4F2", to: "/payments", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
     { l: "긴급요청", bg: "#FFE9EC", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
-    { l: "마음돌봄", bg: "#FFF0F3", to: "/request/new?domain=mental_care", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0697E" strokeWidth="2"><path d="M12 20s-6.5-4.3-9-8.2C1.4 9 2.3 5.6 5.3 4.8 7.2 4.3 9 5.2 12 8c3-2.8 4.8-3.7 6.7-3.2 3 .8 3.9 4.2 2.3 7-2.5 3.9-9 8.2-9 8.2z" /></svg> },
   ];
   const sub: { l: string; to: string }[] = [
     { l: "이용가이드", to: "/guide" },
@@ -78,11 +75,11 @@ function GQuick({ go, noSeniors }: { go: GNav; noSeniors?: boolean }) {
   return (
     <div style={{ padding: "18px 12px 16px", background: "#fff", margin: "14px 0 0" }}>
       <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "20px 4px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "20px 4px" }}>
         {items.map((it) => (
           <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
             <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
-            <span style={{ fontSize: 12.5, fontWeight: it.alert ? 800 : 600, color: it.alert ? "#C2353B" : INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
           </div>
         ))}
       </div>
@@ -154,7 +151,7 @@ function GFeed({ go }: { go: GNav }) {
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 추천 돌봄전문가</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 AI추천 돌봄전문가</div>
         <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
         <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
@@ -281,7 +278,7 @@ function GServices({ go }: { go: GNav }) {
   return (
     <div style={{ padding: "18px 16px 6px", background: "#fff", marginTop: 14 }}>
       <div style={{ padding: "0 2px 12px" }}>
-        <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, letterSpacing: "-.01em" }}>돌봄 서비스</div>
+        <div style={{ fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>돌봄 서비스</div>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: INK2, marginTop: 4 }}>나에게 꼭 맞는 돌봄으로, 필요한 돌봄을 지금 바로 요청하세요</div>
       </div>
 
@@ -344,14 +341,12 @@ function GuardianHome() {
     staleTime: 30_000,
   });
   const unread = notif.data?.unread ?? 0;
-  const seniors = useQuery({ queryKey: ["member", "seniors"], queryFn: () => memberApi.seniors() });
-  const noSeniors = seniors.isSuccess && (seniors.data?.length ?? 0) === 0;
 
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
       <GServices go={go} />
-      <GQuick go={go} noSeniors={noSeniors} />
+      <GQuick go={go} />
       <GMyRequests go={go} />
       <GFeed go={go} />
       <div style={{ height: 26 }} />
