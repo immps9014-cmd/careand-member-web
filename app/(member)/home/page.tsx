@@ -254,8 +254,17 @@ const DOMAIN_TONE: Record<string, Tone> = {
 const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F4F5F6,#E7E9EC)", ink: { title: "#2B3038", sub: "#5A6270", cta: "#46505E" } };
 
 function GServices({ go }: { go: GNav }) {
-  const role = useAuth((s) => s.user?.role);
+  const user = useAuth((s) => s.user);
+  const role = user?.role;
   const domainsQuery = useServiceDomains();
+  // 개인화 신호: 보호자의 최근 매칭요청 도메인(있으면) → 가입 intent(생활지원) → 기본(요양보호)
+  const reqQ = useQuery({
+    queryKey: ["member", "guardian", "requests"],
+    queryFn: () => memberApi.guardianRequests(),
+    retry: false,
+    staleTime: 30_000,
+    enabled: role === "guardian",
+  });
   // 레지스트리(SSOT). 보호자 신청 위저드는 병원간병을 숨기지만, 홈 허브에는 6번째 타일로
   // '기관 전용' 안내용 노출(탭 시 신청 대신 안내). 기관은 정상 신청 가능.
   const base = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
@@ -267,7 +276,22 @@ function GServices({ go }: { go: GNav }) {
       ? [...base, nursingMeta]
       : base;
   if (domains.length === 0) return null;
-  const [featured, ...rest] = domains;
+
+  // featured(맨 위 큰 카드) 개인화 — 로그인한 보호자에 맞는 서비스를 최상단으로 끌어올림.
+  // 우선순위: 최근 요청 도메인(scheduled_start 최신) → intent(housekeeping=생활지원) → 기본(첫 도메인=요양보호)
+  const inDomains = (token?: string) => !!token && domains.some((d) => d.token === token);
+  const recentToken = [...(reqQ.data ?? [])]
+    .sort((a, b) => (b.scheduled_start ?? "").localeCompare(a.scheduled_start ?? ""))
+    .map((r) => r.service_domain)
+    .find(inDomains);
+  const intentToken = user?.guardian?.intent === "housekeeping" ? "living_support" : null;
+  const preferredToken = role === "guardian" ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : null)) : null;
+  let ordered = domains;
+  if (preferredToken) {
+    const idx = domains.findIndex((d) => d.token === preferredToken);
+    if (idx > 0) ordered = [domains[idx], ...domains.slice(0, idx), ...domains.slice(idx + 1)];
+  }
+  const [featured, ...rest] = ordered;
   const CornerBadge = ({ b }: { b?: { label: string; color: string } }) =>
     b ? (
       <span style={{ position: "absolute", top: 10, right: 10, background: b.color, color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 8, letterSpacing: ".02em" }}>

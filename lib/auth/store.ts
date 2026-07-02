@@ -27,6 +27,12 @@ export interface User {
   name: string;
   role: "guardian" | "caregiver" | "organization" | "admin";
   status: string;
+  // 보호자 부가정보(로그인 응답 user.guardian). intent로 홈 서비스 허브 featured 개인화.
+  guardian?: {
+    id: number;
+    intent?: "care" | "housekeeping";
+    relation?: string | null;
+  } | null;
   admin?: {
     permission_level: "super" | "operator" | "cs" | "analyst";
     department: string | null;
