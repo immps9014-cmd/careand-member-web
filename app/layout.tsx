@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 import { PwaRegister } from "@/components/pwa-register";
+import { ChunkReloader } from "@/components/chunk-reloader";
 
 export const metadata: Metadata = {
   title: {
@@ -52,6 +53,7 @@ export default function RootLayout({
           <Toaster position="top-right" richColors />
         </Providers>
         <PwaRegister />
+        <ChunkReloader />
       </body>
     </html>
   );
