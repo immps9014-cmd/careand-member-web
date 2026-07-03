@@ -639,7 +639,7 @@ function CaregiverHome() {
         <p className="text-sm text-warm-500 mt-1 mb-5">수락 대기 {pending.length}건 · {ui.actionNoun} 플로우</p>
 
       {/* 이번 달 요약 */}
-      <Card className="p-5 mb-6 border-brand-200" style={{ background: "rgba(63,125,82,.06)" }}>
+      <Card className="p-5 mb-6 border-brand-200" style={{ background: "#FBF7EC" }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">이번 달 요약</h2>
           <span className="text-[11px] font-semibold text-warm-400">{now.getMonth() + 1}월</span>
