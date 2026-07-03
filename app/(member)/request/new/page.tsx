@@ -21,7 +21,7 @@ import { StepIndicator } from "@/components/ui/step-indicator";
 import { ServiceGuide } from "@/components/service-guide";
 import { AddressSearch } from "@/components/address-search";
 import { serviceGuide } from "@/lib/serviceGuides";
-import { memberApi } from "@/lib/api/member";
+import { memberApi, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
@@ -42,6 +42,14 @@ const SELECT_CLASS =
 
 // 3스텝 위저드
 const STEPS = ["대상·서비스", "일정·상세", "확인·동의"];
+
+// 산후 '본인이 산모' self 등록 인라인용 — postpartum-clients/new 와 동일 옵션 소스
+const PP_REGIONS = ["서울", "경기", "인천", "부산", "대구", "대전", "광주", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"];
+const PP_DELIVERY: { v: DeliveryType; l: string }[] = [
+  { v: "natural", l: "자연분만" },
+  { v: "cesarean", l: "제왕절개" },
+  { v: "vbac", l: "브이백(VBAC)" },
+];
 
 // 도메인 프로모 뱃지 (P2-4) — 신규/베타 서비스 강조. 런칭 큐레이션 설정(운영이 갱신).
 const DOMAIN_BADGE: Record<string, { variant: "new" | "hot" | "beta"; label: string }> = {
@@ -64,6 +72,7 @@ export default function NewRequestPage() {
   // '변경'을 누르면 다시 펼쳐 전체 서비스 중 다시 고를 수 있다.
   const [domainPickerOpen, setDomainPickerOpen] = useState(true);
   const role = useAuth((s) => s.user?.role);
+  const user = useAuth((s) => s.user);
   // 도메인 카탈로그/가시성을 레지스트리(SSOT)에서 가져옴. API는 역할별로 서버측 필터됨.
   // (병원 간병=기관 발주 전용 → 보호자 숨김 규칙도 백엔드 hidden_for_roles로 일원화)
   const domainsQuery = useServiceDomains();
@@ -112,6 +121,16 @@ export default function NewRequestPage() {
 
   // 산후 플로우 상태
   const [postpartumClientId, setPostpartumClientId] = useState<number | "">("");
+  // 산후 '본인이 산모' self 등록 — 별도 산모 등록 없이 회원 프로필(이름·연락처) 프리필 + 나머지 필수값 인라인 입력.
+  // 회원가입 시 relation='본인'이면 기본 ON(대리 신청이면 '다른 산모'로 전환).
+  const [ppSelf, setPpSelf] = useState(true);
+  // 프로필에 없는 산모 필수정보(생년월일/주소/지역) + 서비스 필수값(출산일/유형/첫출산)
+  const [ppBirth, setPpBirth] = useState("");
+  const [ppAddress, setPpAddress] = useState("");
+  const [ppRegion, setPpRegion] = useState("");
+  const [ppDeliveryDate, setPpDeliveryDate] = useState("");
+  const [ppDeliveryType, setPpDeliveryType] = useState<DeliveryType>("natural");
+  const [ppFirstBaby, setPpFirstBaby] = useState(true);
 
   // 아이돌봄 플로우 상태
   const [childId, setChildId] = useState<number | "">("");
@@ -249,7 +268,10 @@ export default function NewRequestPage() {
     const aid = num("service_address_id");
     if (aid) setAddressId(aid);
     const ppid = num("postpartum_client_id");
-    if (ppid) setPostpartumClientId(ppid);
+    if (ppid) {
+      setPostpartumClientId(ppid);
+      setPpSelf(false); // 특정 산모를 지정해 돌아온 경우(대리/기존 선택) self 해제
+    }
     const cid = num("childcare_child_id");
     if (cid) setChildId(cid);
     const mid = num("mental_care_client_id");
@@ -261,7 +283,7 @@ export default function NewRequestPage() {
   }, [role, domainsQuery.data]);
 
   const create = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       // datetime-local(2026-06-12T14:00) → Y-m-d\TH:i:sP (+09:00)
       const scheduled = `${start}:00+09:00`;
       // 선호 성별 지정 시에만 requirements에 실어 보냄 (무관이면 키 자체 생략).
@@ -314,9 +336,26 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "postpartum") {
+        // '본인이 산모' self: 별도 산모 등록 없이 여기서 회원 프로필 + 인라인 입력으로 산모 레코드를 자동 생성.
+        // 백엔드가 소유 user_id를 등록자 본인으로 채움(PostpartumClientController.store).
+        let ppId = ppSelf ? 0 : Number(postpartumClientId);
+        if (ppSelf) {
+          const res = await memberApi.createPostpartumClient({
+            name: user?.name ?? "",
+            phone: user?.phone ?? "",
+            birth_date: ppBirth,
+            address: ppAddress,
+            region_code: ppRegion,
+            delivery_date: ppDeliveryDate,
+            delivery_type: ppDeliveryType,
+            is_first_baby: ppFirstBaby,
+          });
+          ppId = res?.data?.data?.id;
+          if (!ppId) throw new Error("산모 정보 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
         return memberApi.createRequest({
           service_domain: "postpartum",
-          postpartum_client_id: Number(postpartumClientId),
+          postpartum_client_id: Number(ppId),
           category_id: Number(categoryId),
           mode: "normal",
           scheduled_start: scheduled,
@@ -372,6 +411,13 @@ export default function NewRequestPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  // 산후 self: 프로필(이름·연락처) + 인라인 필수값이 모두 채워졌는지
+  const ppSelfComplete = !!(
+    user?.name && user?.phone && ppBirth && ppAddress && ppRegion && ppDeliveryDate && ppDeliveryType
+  );
+  // 산후 대상 준비 여부(self=인라인 완성 / 대리=기존 산모 선택)
+  const ppRecipientReady = domain === "postpartum" && (ppSelf ? ppSelfComplete : !!postpartumClientId);
+
   const maxDuration = domain === "nursing" ? 1440 : 720;
   const valid =
     domain === "nursing"
@@ -379,7 +425,7 @@ export default function NewRequestPage() {
       : domain === "living_support"
         ? addressId && categoryId && start && duration >= 60 && duration <= 720
         : domain === "postpartum"
-          ? postpartumClientId && categoryId && start && duration >= 60 && duration <= 720
+          ? ppRecipientReady && categoryId && start && duration >= 60 && duration <= 720
           : domain === "childcare"
             ? childId && categoryId && start && duration >= 60 && duration <= 720
             : domain === "mental_care"
@@ -399,7 +445,8 @@ export default function NewRequestPage() {
             : domain === "mental_care"
               ? mentalClientId
               : seniorId;
-  const step1Valid = !!recipientId && !!categoryId && screeningOk;
+  const step1Valid =
+    (domain === "postpartum" ? ppRecipientReady : !!recipientId) && !!categoryId && screeningOk;
   const step2Valid =
     !!start &&
     duration >= 60 &&
@@ -460,7 +507,9 @@ export default function NewRequestPage() {
       : domain === "living_support"
         ? addresses.data?.find((a) => a.id === addressId)?.label
         : domain === "postpartum"
-          ? postpartumClients.data?.find((p) => p.id === postpartumClientId)?.name
+          ? ppSelf
+            ? `${user?.name ?? "본인"} (본인)`
+            : postpartumClients.data?.find((p) => p.id === postpartumClientId)?.name
           : domain === "childcare"
             ? childrenQ.data?.find((c) => c.id === childId)?.name
             : domain === "mental_care"
@@ -704,9 +753,109 @@ export default function NewRequestPage() {
 
           {domain === "postpartum" && (
             <div>
-              <label className={SECTION_LABEL}>산모 선택</label>
-              {noPostpartum ? (
-                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
+              <label className={SECTION_LABEL}>돌봄 대상</label>
+              {/* 본인이 산모 / 다른 산모(대리) 전환 — 본인이면 별도 산모 등록 없이 진행 */}
+              <div className="grid grid-cols-2 gap-2">
+                {([[true, "본인이 산모예요"], [false, "다른 산모"]] as const).map(([v, l]) => {
+                  const on = ppSelf === v;
+                  return (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setPpSelf(v)}
+                      className={
+                        "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {ppSelf ? (
+                /* 본인 산모: 회원 프로필(이름·연락처) 자동 사용 + 프로필에 없는 필수정보만 인라인 입력 */
+                <div className="mt-3 space-y-3.5">
+                  <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
+                    <p className="text-[13px] font-bold text-brand-700">
+                      {user?.name ?? "회원"}님 (본인) 으로 신청해요
+                    </p>
+                    <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+                      가입 정보({user?.name ?? "-"} · {user?.phone ?? "연락처 미등록"})를 그대로 사용하며, 별도 산모 등록은 필요 없어요.
+                    </p>
+                  </div>
+                  {!user?.phone && (
+                    <p className="rounded-lg bg-danger/10 px-3 py-2 text-[11.5px] font-semibold text-danger">
+                      가입 연락처가 없어 본인 신청이 어려워요. 마이페이지에서 연락처를 먼저 등록해주세요.
+                    </p>
+                  )}
+                  <div>
+                    <label className={SECTION_LABEL}>생년월일</label>
+                    <Input type="date" value={ppBirth} onChange={(e) => setPpBirth(e.target.value)} className="h-12 rounded-xl text-[14.5px]" />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>주소</label>
+                    <AddressSearch onChange={setPpAddress} />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>지역(시·도)</label>
+                    <select value={ppRegion} onChange={(e) => setPpRegion(e.target.value)} className={SELECT_CLASS}>
+                      <option value="">지역을 선택하세요</option>
+                      {PP_REGIONS.map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>출산(예정)일</label>
+                    <Input type="date" value={ppDeliveryDate} onChange={(e) => setPpDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[14.5px]" />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>출산 유형</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PP_DELIVERY.map((d) => {
+                        const on = ppDeliveryType === d.v;
+                        return (
+                          <button
+                            key={d.v}
+                            type="button"
+                            onClick={() => setPpDeliveryType(d.v)}
+                            className={
+                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                            }
+                          >
+                            {d.l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>첫 출산인가요?</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([[true, "첫 출산"], [false, "경산모"]] as const).map(([v, l]) => {
+                        const on = ppFirstBaby === v;
+                        return (
+                          <button
+                            key={l}
+                            type="button"
+                            onClick={() => setPpFirstBaby(v)}
+                            className={
+                              "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                            }
+                          >
+                            {l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : noPostpartum ? (
+                <div className="mt-3 rounded-xl bg-warm-50 p-3.5 text-center">
                   <p className="text-xs text-warm-500 mb-2.5">등록된 산모가 없습니다. 먼저 산모를 등록해주세요.</p>
                   <Link href="/postpartum-clients/new">
                     <Button variant="outline" size="sm" className="w-full">
@@ -718,7 +867,7 @@ export default function NewRequestPage() {
                 <select
                   value={postpartumClientId}
                   onChange={(e) => setPostpartumClientId(e.target.value ? Number(e.target.value) : "")}
-                  className={SELECT_CLASS}
+                  className={SELECT_CLASS + " mt-3"}
                 >
                   <option value="">산모를 선택하세요</option>
                   {postpartumClients.data?.map((p) => (
