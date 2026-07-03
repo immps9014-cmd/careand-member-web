@@ -30,12 +30,36 @@ export default function NewPostpartumClientPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  // 생년월일: 년/월/일 드롭다운(앱 공통 UX) → "YYYY-MM-DD". 캘린더로 수십 년 넘길 필요 없음.
+  const [birthY, setBirthY] = useState<number | "">("");
+  const [birthM, setBirthM] = useState<number | "">("");
+  const [birthD, setBirthD] = useState<number | "">("");
   const [address, setAddress] = useState("");
   const [regionCode, setRegionCode] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("natural");
   const [isFirstBaby, setIsFirstBaby] = useState(true);
+
+  // 산모 대상 → 올해부터 1940년까지(내림차순)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1940 + 1 }, (_, i) => currentYear - i);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const daysInMonth = birthY !== "" && birthM !== "" ? new Date(birthY, birthM, 0).getDate() : 31;
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const birthDate =
+    birthY !== "" && birthM !== "" && birthD !== ""
+      ? `${birthY}-${String(birthM).padStart(2, "0")}-${String(birthD).padStart(2, "0")}`
+      : "";
+  function handleBirthYear(v: string) {
+    const y = v ? Number(v) : "";
+    setBirthY(y);
+    if (y !== "" && birthM !== "" && birthD !== "" && birthD > new Date(y, birthM, 0).getDate()) setBirthD("");
+  }
+  function handleBirthMonth(v: string) {
+    const m = v ? Number(v) : "";
+    setBirthM(m);
+    if (birthY !== "" && m !== "" && birthD !== "" && birthD > new Date(birthY, m, 0).getDate()) setBirthD("");
+  }
 
   const create = useMutation({
     mutationFn: (payload: CreatePostpartumClientPayload) => memberApi.createPostpartumClient(payload),
@@ -70,7 +94,26 @@ export default function NewPostpartumClientPage() {
           </div>
           <div>
             <label className={SECTION_LABEL}>생년월일</label>
-            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="h-12 rounded-xl text-[14.5px]" />
+            <div className="grid grid-cols-3 gap-2">
+              <select value={birthY} onChange={(e) => handleBirthYear(e.target.value)} className={SELECT_CLASS}>
+                <option value="">년도</option>
+                {years.map((y) => (
+                  <option key={y} value={y}>{y}년</option>
+                ))}
+              </select>
+              <select value={birthM} onChange={(e) => handleBirthMonth(e.target.value)} className={SELECT_CLASS}>
+                <option value="">월</option>
+                {months.map((m) => (
+                  <option key={m} value={m}>{m}월</option>
+                ))}
+              </select>
+              <select value={birthD} onChange={(e) => setBirthD(e.target.value ? Number(e.target.value) : "")} className={SELECT_CLASS}>
+                <option value="">일</option>
+                {days.map((d) => (
+                  <option key={d} value={d}>{d}일</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
             <label className={SECTION_LABEL}>주소</label>
