@@ -120,6 +120,10 @@ export default function SignupPage() {
 
   const totalSteps = role === "caregiver" || role === "organization" ? 3 : 2;
   const stepIndex: Record<Step, number> = { role: 0, account: 1, caregiver: 2, organization: 2, done: 3 };
+  // 현재 단계(1-based). 각 입력 화면 상단 배지에 "N / M 단계"로 표시.
+  const stepNo = stepIndex[step] + 1;
+  // 마지막 단계 여부 — 계정 단계 문구를 역할에 따라 정확히 표기하기 위함(2단계 역할만 마지막).
+  const isLastStep = stepNo === totalSteps;
 
   // ===== mutations =====
   const sendOtpM = useMutation({
@@ -298,6 +302,7 @@ export default function SignupPage() {
         {/* ===== STEP: 역할 선택 ===== */}
         {step === "role" && (
           <div className="flex-1 pt-6">
+            <StepBadge current={1} name="서비스 선택" />
             <h1 className="text-[26px] font-extrabold leading-[1.25] text-warm-800 tracking-tight">
               어떤 돌봄이 필요하신가요?
               <br />
@@ -369,7 +374,10 @@ export default function SignupPage() {
         {/* ===== STEP: 계정 정보 (휴대폰 인증 통합) ===== */}
         {step === "account" && (
           <div className="flex-1 pt-6 pb-4">
-            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">거의 다 왔어요!</h1>
+            <StepBadge current={stepNo} total={totalSteps} name="계정 정보" />
+            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
+              {isLastStep ? "거의 다 왔어요!" : "계정 정보를 입력해주세요"}
+            </h1>
             <p className="text-sm text-warm-500 mt-2">
               {role === "caregiver"
                 ? "활동에 사용할 계정 정보를 입력해주세요."
@@ -515,6 +523,7 @@ export default function SignupPage() {
         {/* ===== STEP: 돌봄전문가 자격정보 ===== */}
         {step === "caregiver" && (
           <div className="flex-1 pt-6 pb-4">
+            <StepBadge current={stepNo} total={totalSteps} name="자격 정보" />
             <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">자격정보를 등록해주세요</h1>
             <p className="text-sm text-warm-500 mt-2">
               {cgDomains.includes("mental_care")
@@ -629,6 +638,7 @@ export default function SignupPage() {
         {/* ===== STEP: 기관 정보 ===== */}
         {step === "organization" && (
           <div className="flex-1 pt-6 pb-4">
+            <StepBadge current={stepNo} total={totalSteps} name="기관 정보" />
             <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">기관 정보를 등록해주세요</h1>
             <p className="text-sm text-warm-500 mt-2">사업자 정보는 관리자 검수를 거쳐 승인됩니다.</p>
 
@@ -797,6 +807,18 @@ function RoleCard({
         {active && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
       </div>
     </button>
+  );
+}
+
+/** 입력 단계 상단의 현재 단계 배지. total 생략 시 "N단계"만 표시(역할 미확정 화면용). */
+function StepBadge({ current, total, name }: { current: number; total?: number; name: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-xs font-bold text-brand-700 bg-brand-100 rounded-full px-2.5 py-1 tabular-nums">
+        {total ? `${current} / ${total} 단계` : `${current}단계`}
+      </span>
+      <span className="text-xs font-semibold text-warm-500">{name}</span>
+    </div>
   );
 }
 
