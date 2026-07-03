@@ -17,8 +17,8 @@ export interface SignupPayload {
   password: string;
   password_confirmation: string;
   role: "guardian" | "caregiver" | "organization";
-  /** 보호자 가입 의도: care=보호자, housekeeping=가사요청자, postpartum=산모요청자 (백엔드에서 guardian으로 가입) */
-  intent?: "care" | "housekeeping" | "postpartum";
+  /** 보호자 가입 의도: care=보호자, housekeeping=가사, postpartum=산모, childcare=아이돌봄, mental_care=마음돌봄 (백엔드에서 guardian으로 가입) */
+  intent?: "care" | "housekeeping" | "postpartum" | "childcare" | "mental_care";
   /** 보호자 전용: 돌봄대상과의 관계 (백엔드 required_if: care 보호자) */
   relation?: string;
   agree_terms: boolean;

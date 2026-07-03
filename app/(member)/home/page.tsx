@@ -317,11 +317,14 @@ function GServices({ go }: { go: GNav }) {
     .sort((a, b) => (b.scheduled_start ?? "").localeCompare(a.scheduled_start ?? ""))
     .map((r) => r.service_domain)
     .find(inDomains);
+  // intent → featured 도메인 토큰 (housekeeping만 living_support로, 나머지는 동명 도메인)
   const intentToken =
     user?.guardian?.intent === "housekeeping"
       ? "living_support"
-      : user?.guardian?.intent === "postpartum"
-        ? "postpartum"
+      : (["postpartum", "childcare", "mental_care"] as const).includes(
+            user?.guardian?.intent as "postpartum" | "childcare" | "mental_care",
+          )
+        ? (user?.guardian?.intent as string)
         : null;
   // 대상 정보 보유 폴백 — 산모정보→산모, 서비스주소→생활지원, 아이→아이돌봄, 마음돌봄대상→마음돌봄
   const ownsFallbackToken =
