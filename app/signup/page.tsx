@@ -122,8 +122,6 @@ export default function SignupPage() {
   const stepIndex: Record<Step, number> = { role: 0, account: 1, caregiver: 2, organization: 2, done: 3 };
   // 현재 단계(1-based). 각 입력 화면 상단 배지에 "N / M 단계"로 표시.
   const stepNo = stepIndex[step] + 1;
-  // 마지막 단계 여부 — 계정 단계 문구를 역할에 따라 정확히 표기하기 위함(2단계 역할만 마지막).
-  const isLastStep = stepNo === totalSteps;
 
   // ===== mutations =====
   const sendOtpM = useMutation({
@@ -375,9 +373,7 @@ export default function SignupPage() {
         {step === "account" && (
           <div className="flex-1 pt-6 pb-4">
             <StepBadge current={stepNo} total={totalSteps} name="계정 정보" />
-            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
-              {isLastStep ? "거의 다 왔어요!" : "계정 정보를 입력해주세요"}
-            </h1>
+            <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">계정 정보를 입력해주세요</h1>
             <p className="text-sm text-warm-500 mt-2">
               {role === "caregiver"
                 ? "활동에 사용할 계정 정보를 입력해주세요."
