@@ -266,8 +266,8 @@ function GServices({ go }: { go: GNav }) {
     enabled: role === "guardian",
   });
   // 폴백 신호(intent가 care/미지정인 계정만): 대상 정보를 이미 등록했으면 해당 도메인을 상단에 노출.
-  //  - 산모 정보(postpartum_client) 보유 → 산모  /  서비스 주소 보유 → 생활지원
-  // (수정 배포 이전 가입 등으로 intent=care인데 실제론 산모·생활지원 이용자인 계정 자동 인식)
+  //  산모정보→산모 / 서비스주소→생활지원 / 아이→아이돌봄 / 마음돌봄대상→마음돌봄
+  // (수정 배포 이전 가입 등으로 intent=care인데 실제론 특정 도메인 이용자인 계정 자동 인식)
   const needsFallback = role === "guardian" && (user?.guardian?.intent ?? "care") === "care";
   const ppOwnQ = useQuery({
     queryKey: ["member", "postpartum-clients"],
@@ -279,6 +279,20 @@ function GServices({ go }: { go: GNav }) {
   const addrOwnQ = useQuery({
     queryKey: ["member", "addresses"],
     queryFn: () => memberApi.addresses(),
+    retry: false,
+    staleTime: 60_000,
+    enabled: needsFallback,
+  });
+  const childOwnQ = useQuery({
+    queryKey: ["member", "children"],
+    queryFn: () => memberApi.children(),
+    retry: false,
+    staleTime: 60_000,
+    enabled: needsFallback,
+  });
+  const mentalOwnQ = useQuery({
+    queryKey: ["member", "mental-care-clients"],
+    queryFn: () => memberApi.mentalCareClients(),
     retry: false,
     staleTime: 60_000,
     enabled: needsFallback,
@@ -309,13 +323,17 @@ function GServices({ go }: { go: GNav }) {
       : user?.guardian?.intent === "postpartum"
         ? "postpartum"
         : null;
-  // 대상 정보 보유 폴백 — 산모 정보→산모, 서비스 주소→생활지원
+  // 대상 정보 보유 폴백 — 산모정보→산모, 서비스주소→생활지원, 아이→아이돌봄, 마음돌봄대상→마음돌봄
   const ownsFallbackToken =
     (ppOwnQ.data?.length ?? 0) > 0 && inDomains("postpartum")
       ? "postpartum"
       : (addrOwnQ.data?.length ?? 0) > 0 && inDomains("living_support")
         ? "living_support"
-        : null;
+        : (childOwnQ.data?.length ?? 0) > 0 && inDomains("childcare")
+          ? "childcare"
+          : (mentalOwnQ.data?.length ?? 0) > 0 && inDomains("mental_care")
+            ? "mental_care"
+            : null;
   const preferredToken = role === "guardian"
     ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : ownsFallbackToken))
     : null;
