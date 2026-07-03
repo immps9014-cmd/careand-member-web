@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,6 +16,15 @@ import { openPostcode } from "@/lib/postcode";
 export default function NewSeniorPage() {
   const router = useRouter();
   const qc = useQueryClient();
+
+  // 매칭요청 흐름(/request/new)에서 진입한 경우: 등록 후 그 화면으로 방금 등록한 대상과 함께 복귀.
+  // returnTo가 있으면 "재가입"이 아니라 매칭용 대상 등록임을 문구로 명확히 한다.
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+  useEffect(() => {
+    const rt = new URLSearchParams(window.location.search).get("returnTo");
+    if (rt && /^\/(?![/\\])/.test(rt)) setReturnTo(rt);
+  }, []);
+  const fromMatching = !!returnTo;
 
   const [name, setName] = useState("");
   const [birthY, setBirthY] = useState<number | "">("");
@@ -88,9 +97,16 @@ export default function NewSeniorPage() {
         // 좌표는 서버가 주소로 자동 지오코딩
         home_address: fullAddress,
       }),
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       toast.success("돌봄대상을 등록했습니다.");
       qc.invalidateQueries({ queryKey: ["member", "seniors"] });
+      // 매칭요청에서 왔으면 방금 등록한 대상(senior_id)을 붙여 그 화면으로 복귀 → 이어서 매칭 진행.
+      if (returnTo) {
+        const newId = res?.data?.data?.id ?? res?.data?.id;
+        const sep = returnTo.includes("?") ? "&" : "?";
+        router.push(newId ? `${returnTo}${sep}senior_id=${newId}` : returnTo);
+        return;
+      }
       router.push("/seniors");
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -103,8 +119,14 @@ export default function NewSeniorPage() {
       <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
-      <h1 className="text-xl font-extrabold text-warm-800 mb-1">돌봄대상 등록</h1>
-      <p className="text-sm text-warm-500 mb-5">돌봄대상의 정보를 입력하세요</p>
+      <h1 className="text-xl font-extrabold text-warm-800 mb-1">
+        {fromMatching ? "돌봄받으실 어르신 등록" : "돌봄대상 등록"}
+      </h1>
+      <p className="text-sm text-warm-500 mb-5">
+        {fromMatching
+          ? "매칭을 위해 돌봄받으실 어르신 정보를 입력해주세요. 등록하면 바로 매칭요청으로 돌아갑니다."
+          : "돌봄대상의 정보를 입력하세요"}
+      </p>
 
       <Card className="p-5 space-y-4">
         <div>
@@ -220,7 +242,7 @@ export default function NewSeniorPage() {
         </div>
 
         <Button variant="brand" size="lg" className="w-full" disabled={!valid || create.isPending} onClick={() => create.mutate()}>
-          {create.isPending ? "등록 중…" : "돌봄대상 등록"}
+          {create.isPending ? "등록 중…" : fromMatching ? "등록하고 매칭 계속하기" : "돌봄대상 등록"}
         </Button>
       </Card>
     </div>

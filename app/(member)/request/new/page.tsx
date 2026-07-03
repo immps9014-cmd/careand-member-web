@@ -60,6 +60,9 @@ const COMPLIANCE_NOTES = [
 export default function NewRequestPage() {
   const router = useRouter();
   const [domain, setDomain] = useState<Domain>("senior");
+  // 홈 서비스카드에서 ?domain= 으로 진입한 경우, 서비스 재선택 그리드를 접어 곧바로 대상·일정 입력으로 진행.
+  // '변경'을 누르면 다시 펼쳐 전체 서비스 중 다시 고를 수 있다.
+  const [domainPickerOpen, setDomainPickerOpen] = useState(true);
   const role = useAuth((s) => s.user?.role);
   // 도메인 카탈로그/가시성을 레지스트리(SSOT)에서 가져옴. API는 역할별로 서버측 필터됨.
   // (병원 간병=기관 발주 전용 → 보호자 숨김 규칙도 백엔드 hidden_for_roles로 일원화)
@@ -227,6 +230,10 @@ export default function NewRequestPage() {
     const sp = new URLSearchParams(window.location.search);
     const d = sp.get("domain");
     if ((d === "nursing" || d === "living_support" || d === "postpartum" || d === "childcare" || d === "mental_care") && availableDomains.some((x) => x.token === d)) selectDomain(d);
+    // 홈 카드 등에서 유효한 domain으로 진입 시 서비스 재선택 그리드를 접는다(요양보호=senior 포함).
+    if ((d === "senior" || d === "nursing" || d === "living_support" || d === "postpartum" || d === "childcare" || d === "mental_care") && availableDomains.some((x) => x.token === d)) {
+      setDomainPickerOpen(false);
+    }
     // 대상 등록 직후 되돌아온 경우, 방금 등록한 대상을 자동 선택해 흐름이 이어지도록 함
     const num = (k: string) => {
       const v = sp.get(k);
@@ -510,6 +517,31 @@ export default function NewRequestPage() {
         {step === 1 && (
         <>
         <label className={SECTION_LABEL}>어떤 서비스가 필요하세요?</label>
+        {!domainPickerOpen ? (
+          /* 홈 카드에서 서비스를 이미 고른 경우: 요약 한 줄 + 변경 */
+          (() => {
+            const cur = availableDomains.find((d) => d.token === domain);
+            const CurIcon = domainIcon(cur?.icon ?? "");
+            return (
+              <div className="flex items-center gap-3 rounded-2xl border border-brand-500 bg-brand-50 p-3.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shrink-0">
+                  <CurIcon className="h-[18px] w-[18px]" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-bold text-brand-700">{cur?.label ?? domainLabel}</div>
+                  <div className="text-[11px] text-warm-500 truncate">{cur?.desc}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDomainPickerOpen(true)}
+                  className="shrink-0 text-xs font-bold text-brand-600 underline underline-offset-2"
+                >
+                  변경
+                </button>
+              </div>
+            );
+          })()
+        ) : (
         <div className={`grid gap-2.5 ${availableDomains.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {availableDomains.map((d) => {
             const Icon = domainIcon(d.icon);
@@ -552,6 +584,7 @@ export default function NewRequestPage() {
             );
           })}
         </div>
+        )}
 
         {/* 서비스 안내(제공/미제공) + 이용 불가 대상 스크리닝 게이트 */}
         <ServiceGuide
@@ -568,10 +601,10 @@ export default function NewRequestPage() {
               <label className={SECTION_LABEL}>돌봄 대상</label>
               {noSeniors ? (
                 <div className="rounded-xl bg-warm-50 p-3.5 text-center">
-                  <p className="text-xs text-warm-500 mb-2.5">등록된 돌봄대상이 없습니다. 먼저 돌봄대상을 등록해주세요.</p>
-                  <Link href="/seniors/new">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Plus className="w-4 h-4" /> 돌봄대상 등록하러 가기
+                  <p className="text-xs text-warm-500 mb-2.5">매칭을 위해 돌봄받으실 어르신을 먼저 등록해주세요. (회원가입이 아닌, 매칭 대상 등록이에요.)</p>
+                  <Link href={`/seniors/new?returnTo=${encodeURIComponent("/request/new?domain=senior")}`}>
+                    <Button variant="brand" size="sm" className="w-full">
+                      <Plus className="w-4 h-4" /> 어르신(돌봄대상) 등록하기
                     </Button>
                   </Link>
                 </div>
