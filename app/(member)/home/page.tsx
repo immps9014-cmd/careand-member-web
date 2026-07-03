@@ -265,14 +265,23 @@ function GServices({ go }: { go: GNav }) {
     staleTime: 30_000,
     enabled: role === "guardian",
   });
-  // 폴백 신호: intent가 postpartum이 아닌데도 산모 정보(postpartum_client)를 보유하면 산모로 간주.
-  // (수정 배포 이전 가입 등으로 intent=care인 산모 계정이 산모 카드를 받도록) — 이미 postpartum이면 불필요해 미조회.
+  // 폴백 신호(intent가 care/미지정인 계정만): 대상 정보를 이미 등록했으면 해당 도메인을 상단에 노출.
+  //  - 산모 정보(postpartum_client) 보유 → 산모  /  서비스 주소 보유 → 생활지원
+  // (수정 배포 이전 가입 등으로 intent=care인데 실제론 산모·생활지원 이용자인 계정 자동 인식)
+  const needsFallback = role === "guardian" && (user?.guardian?.intent ?? "care") === "care";
   const ppOwnQ = useQuery({
     queryKey: ["member", "postpartum-clients"],
     queryFn: () => memberApi.postpartumClients(),
     retry: false,
     staleTime: 60_000,
-    enabled: role === "guardian" && user?.guardian?.intent !== "postpartum",
+    enabled: needsFallback,
+  });
+  const addrOwnQ = useQuery({
+    queryKey: ["member", "addresses"],
+    queryFn: () => memberApi.addresses(),
+    retry: false,
+    staleTime: 60_000,
+    enabled: needsFallback,
   });
   // 레지스트리(SSOT). 보호자 신청 위저드는 병원간병을 숨기지만, 홈 허브에는 6번째 타일로
   // '기관 전용' 안내용 노출(탭 시 신청 대신 안내). 기관은 정상 신청 가능.
@@ -300,10 +309,15 @@ function GServices({ go }: { go: GNav }) {
       : user?.guardian?.intent === "postpartum"
         ? "postpartum"
         : null;
-  // 산모 정보(postpartum_client) 보유 시 산모 도메인 폴백
-  const ownsPostpartumToken = (ppOwnQ.data?.length ?? 0) > 0 && inDomains("postpartum") ? "postpartum" : null;
+  // 대상 정보 보유 폴백 — 산모 정보→산모, 서비스 주소→생활지원
+  const ownsFallbackToken =
+    (ppOwnQ.data?.length ?? 0) > 0 && inDomains("postpartum")
+      ? "postpartum"
+      : (addrOwnQ.data?.length ?? 0) > 0 && inDomains("living_support")
+        ? "living_support"
+        : null;
   const preferredToken = role === "guardian"
-    ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : ownsPostpartumToken))
+    ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : ownsFallbackToken))
     : null;
   let ordered = domains;
   if (preferredToken) {
