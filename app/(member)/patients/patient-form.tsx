@@ -6,6 +6,7 @@ import { Search, MapPin, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BirthDateSelect } from "@/components/ui/birth-date-select";
 import type { CreatePatientPayload, NursingPatient, PatientMobility } from "@/lib/api/member";
 import { CARE_REQUIREMENT_PRESETS, MOBILITY_OPTIONS } from "@/lib/care";
 import { openPostcode } from "@/lib/postcode";
@@ -26,11 +27,8 @@ export function PatientForm({
   onSubmit: (payload: CreatePatientPayload) => void;
 }) {
   const [name, setName] = useState(initial?.name ?? "");
-  // 생년월일: 편집 시 기존 birth_date("YYYY-MM-DD")를 년/월/일로 파싱해 초기화
-  const initBirthParts = (initial?.birth_date?.slice(0, 10) ?? "").split("-");
-  const [birthY, setBirthY] = useState<number | "">(initBirthParts[0] ? Number(initBirthParts[0]) : "");
-  const [birthM, setBirthM] = useState<number | "">(initBirthParts[1] ? Number(initBirthParts[1]) : "");
-  const [birthD, setBirthD] = useState<number | "">(initBirthParts[2] ? Number(initBirthParts[2]) : "");
+  // 생년월일: 편집 시 기존 birth_date("YYYY-MM-DD")로 초기화 (BirthDateSelect)
+  const [birth, setBirth] = useState(initial?.birth_date?.slice(0, 10) ?? "");
   const [gender, setGender] = useState<"M" | "F">(initial?.gender === "M" ? "M" : "F");
   const [hospitalName, setHospitalName] = useState(initial?.hospital_name ?? "");
   const [baseAddress, setBaseAddress] = useState(initial?.hospital_address ?? "");
@@ -70,33 +68,6 @@ export function PatientForm({
   const fullAddress = [baseAddress, detailAddress.trim()].filter(Boolean).join(" ");
   const customReqs = careReqs.filter((t) => !CARE_REQUIREMENT_PRESETS.includes(t));
 
-  // 생년월일: 년/월/일 드롭다운 → "YYYY-MM-DD" (seniors/new와 동일 UX)
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1920 + 1 }, (_, i) => 1920 + i);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const daysInBirthMonth =
-    birthY !== "" && birthM !== "" ? new Date(birthY, birthM, 0).getDate() : 31;
-  const days = Array.from({ length: daysInBirthMonth }, (_, i) => i + 1);
-  const birth =
-    birthY !== "" && birthM !== "" && birthD !== ""
-      ? `${birthY}-${String(birthM).padStart(2, "0")}-${String(birthD).padStart(2, "0")}`
-      : "";
-
-  function handleBirthYear(v: string) {
-    const y = v ? Number(v) : "";
-    setBirthY(y);
-    if (y !== "" && birthM !== "" && birthD !== "" && birthD > new Date(y, birthM, 0).getDate()) {
-      setBirthD("");
-    }
-  }
-  function handleBirthMonth(v: string) {
-    const m = v ? Number(v) : "";
-    setBirthM(m);
-    if (birthY !== "" && m !== "" && birthD !== "" && birthD > new Date(birthY, m, 0).getDate()) {
-      setBirthD("");
-    }
-  }
-
   const valid = name.trim() && birth && hospitalName.trim() && baseAddress;
 
   function handleSubmit() {
@@ -127,38 +98,12 @@ export function PatientForm({
 
       <div>
         <label className="block text-xs font-semibold text-warm-600 mb-1.5">생년월일</label>
-        <div className="grid grid-cols-3 gap-2">
-          <select
-            value={birthY}
-            onChange={(e) => handleBirthYear(e.target.value)}
-            className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
-          >
-            <option value="">년도</option>
-            {years.map((y) => (
-              <option key={y} value={y}>{y}년</option>
-            ))}
-          </select>
-          <select
-            value={birthM}
-            onChange={(e) => handleBirthMonth(e.target.value)}
-            className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
-          >
-            <option value="">월</option>
-            {months.map((m) => (
-              <option key={m} value={m}>{m}월</option>
-            ))}
-          </select>
-          <select
-            value={birthD}
-            onChange={(e) => setBirthD(e.target.value ? Number(e.target.value) : "")}
-            className="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
-          >
-            <option value="">일</option>
-            {days.map((d) => (
-              <option key={d} value={d}>{d}일</option>
-            ))}
-          </select>
-        </div>
+        <BirthDateSelect
+          value={birth}
+          onChange={setBirth}
+          order="asc"
+          selectClassName="h-10 rounded-md border border-warm-200 bg-white px-2 text-sm focus:outline-none focus:border-brand-500"
+        />
       </div>
 
       <div>

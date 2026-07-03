@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { ServiceGuide } from "@/components/service-guide";
 import { AddressSearch } from "@/components/address-search";
+import { BirthDateSelect } from "@/components/ui/birth-date-select";
 import { serviceGuide } from "@/lib/serviceGuides";
 import { memberApi, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -125,10 +126,7 @@ export default function NewRequestPage() {
   // 회원가입 시 relation='본인'이면 기본 ON(대리 신청이면 '다른 산모'로 전환).
   const [ppSelf, setPpSelf] = useState(true);
   // 프로필에 없는 산모 필수정보(생년월일/주소/지역) + 서비스 필수값(출산일/유형/첫출산)
-  // 생년월일: 년/월/일 드롭다운(seniors/new와 동일 UX) → "YYYY-MM-DD". 캘린더로 수십년 넘길 필요 없음.
-  const [ppBirthY, setPpBirthY] = useState<number | "">("");
-  const [ppBirthM, setPpBirthM] = useState<number | "">("");
-  const [ppBirthD, setPpBirthD] = useState<number | "">("");
+  const [ppBirth, setPpBirth] = useState(""); // 생년월일 "YYYY-MM-DD" (BirthDateSelect)
   const [ppAddress, setPpAddress] = useState("");
   const [ppRegion, setPpRegion] = useState("");
   const [ppDeliveryDate, setPpDeliveryDate] = useState("");
@@ -413,28 +411,6 @@ export default function NewRequestPage() {
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
-
-  // 산후 self 생년월일 — 년/월/일 드롭다운 → "YYYY-MM-DD"
-  const ppCurrentYear = new Date().getFullYear();
-  const ppYears = Array.from({ length: ppCurrentYear - 1940 + 1 }, (_, i) => ppCurrentYear - i); // 올해→1940 내림차순
-  const ppMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-  const ppDaysInMonth = ppBirthY !== "" && ppBirthM !== "" ? new Date(ppBirthY, ppBirthM, 0).getDate() : 31;
-  const ppDays = Array.from({ length: ppDaysInMonth }, (_, i) => i + 1);
-  const ppBirth =
-    ppBirthY !== "" && ppBirthM !== "" && ppBirthD !== ""
-      ? `${ppBirthY}-${String(ppBirthM).padStart(2, "0")}-${String(ppBirthD).padStart(2, "0")}`
-      : "";
-  // 년/월 변경 시 선택한 일이 그 달 마지막 날을 넘으면 초기화(예: 2/30 방지)
-  function handlePpBirthYear(v: string) {
-    const y = v ? Number(v) : "";
-    setPpBirthY(y);
-    if (y !== "" && ppBirthM !== "" && ppBirthD !== "" && ppBirthD > new Date(y, ppBirthM, 0).getDate()) setPpBirthD("");
-  }
-  function handlePpBirthMonth(v: string) {
-    const m = v ? Number(v) : "";
-    setPpBirthM(m);
-    if (ppBirthY !== "" && m !== "" && ppBirthD !== "" && ppBirthD > new Date(ppBirthY, m, 0).getDate()) setPpBirthD("");
-  }
 
   // 산후 self: 프로필(이름·연락처) + 인라인 필수값이 모두 채워졌는지
   const ppSelfComplete = !!(
@@ -817,26 +793,7 @@ export default function NewRequestPage() {
                   )}
                   <div>
                     <label className={SECTION_LABEL}>생년월일</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <select value={ppBirthY} onChange={(e) => handlePpBirthYear(e.target.value)} className={SELECT_CLASS}>
-                        <option value="">년도</option>
-                        {ppYears.map((y) => (
-                          <option key={y} value={y}>{y}년</option>
-                        ))}
-                      </select>
-                      <select value={ppBirthM} onChange={(e) => handlePpBirthMonth(e.target.value)} className={SELECT_CLASS}>
-                        <option value="">월</option>
-                        {ppMonths.map((m) => (
-                          <option key={m} value={m}>{m}월</option>
-                        ))}
-                      </select>
-                      <select value={ppBirthD} onChange={(e) => setPpBirthD(e.target.value ? Number(e.target.value) : "")} className={SELECT_CLASS}>
-                        <option value="">일</option>
-                        {ppDays.map((d) => (
-                          <option key={d} value={d}>{d}일</option>
-                        ))}
-                      </select>
-                    </div>
+                    <BirthDateSelect value={ppBirth} onChange={setPpBirth} minYear={1940} />
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>주소</label>

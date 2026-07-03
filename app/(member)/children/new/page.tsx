@@ -9,46 +9,22 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddressSearch } from "@/components/address-search";
+import { BirthDateSelect } from "@/components/ui/birth-date-select";
 import { memberApi, type CreateChildPayload } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
-const SELECT_CLASS =
-  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
 export default function NewChildPage() {
   const router = useRouter();
   const qc = useQueryClient();
 
   const [name, setName] = useState("");
-  // 생년월일: 년/월/일 드롭다운(앱 공통 UX) → "YYYY-MM-DD". 캘린더로 넘길 필요 없음.
-  const [birthY, setBirthY] = useState<number | "">("");
-  const [birthM, setBirthM] = useState<number | "">("");
-  const [birthD, setBirthD] = useState<number | "">("");
+  const [birthDate, setBirthDate] = useState(""); // "YYYY-MM-DD" (BirthDateSelect)
   const [gender, setGender] = useState<"M" | "F">("F");
   const [homeAddress, setHomeAddress] = useState("");
   const [notes, setNotes] = useState("");
-
-  // 아이 대상 → 올해부터 18년 전까지(내림차순)
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 19 }, (_, i) => currentYear - i);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const daysInMonth = birthY !== "" && birthM !== "" ? new Date(birthY, birthM, 0).getDate() : 31;
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const birthDate =
-    birthY !== "" && birthM !== "" && birthD !== ""
-      ? `${birthY}-${String(birthM).padStart(2, "0")}-${String(birthD).padStart(2, "0")}`
-      : "";
-  function handleBirthYear(v: string) {
-    const y = v ? Number(v) : "";
-    setBirthY(y);
-    if (y !== "" && birthM !== "" && birthD !== "" && birthD > new Date(y, birthM, 0).getDate()) setBirthD("");
-  }
-  function handleBirthMonth(v: string) {
-    const m = v ? Number(v) : "";
-    setBirthM(m);
-    if (birthY !== "" && m !== "" && birthD !== "" && birthD > new Date(birthY, m, 0).getDate()) setBirthD("");
-  }
 
   const create = useMutation({
     mutationFn: (payload: CreateChildPayload) => memberApi.createChild(payload),
@@ -79,26 +55,7 @@ export default function NewChildPage() {
           </div>
           <div>
             <label className={SECTION_LABEL}>생년월일</label>
-            <div className="grid grid-cols-3 gap-2">
-              <select value={birthY} onChange={(e) => handleBirthYear(e.target.value)} className={SELECT_CLASS}>
-                <option value="">년도</option>
-                {years.map((y) => (
-                  <option key={y} value={y}>{y}년</option>
-                ))}
-              </select>
-              <select value={birthM} onChange={(e) => handleBirthMonth(e.target.value)} className={SELECT_CLASS}>
-                <option value="">월</option>
-                {months.map((m) => (
-                  <option key={m} value={m}>{m}월</option>
-                ))}
-              </select>
-              <select value={birthD} onChange={(e) => setBirthD(e.target.value ? Number(e.target.value) : "")} className={SELECT_CLASS}>
-                <option value="">일</option>
-                {days.map((d) => (
-                  <option key={d} value={d}>{d}일</option>
-                ))}
-              </select>
-            </div>
+            <BirthDateSelect value={birthDate} onChange={setBirthDate} minYear={currentYear - 18} />
           </div>
           <div>
             <label className={SECTION_LABEL}>성별</label>
