@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check, Baby } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 type Role = "guardian" | "caregiver" | "organization";
 /** 가입 화면에서 사용자가 고르는 카드. 가사요청자(housekeeping)는 백엔드상 guardian으로 가입한다. */
-type Kind = "guardian" | "housekeeping" | "caregiver" | "organization";
+type Kind = "guardian" | "housekeeping" | "postpartum" | "caregiver" | "organization";
 type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["본인", "자녀", "배우자", "부모", "형제", "기타"];
@@ -75,8 +75,8 @@ export default function SignupPage() {
 
   const [step, setStep] = useState<Step>("role");
   const [kind, setKind] = useState<Kind | null>(null);
-  // 백엔드 role은 카드 선택에서 파생 — 가사요청자는 guardian으로 가입
-  const role: Role | null = kind === "housekeeping" ? "guardian" : kind;
+  // 백엔드 role은 카드 선택에서 파생 — 가사요청자·산모요청자는 guardian으로 가입(intent로 구분)
+  const role: Role | null = kind === "housekeeping" || kind === "postpartum" ? "guardian" : kind;
 
   // 인증 (회원정보 화면에 인라인으로 통합)
   const [phone, setPhone] = useState("");
@@ -159,6 +159,7 @@ export default function SignupPage() {
         password_confirmation: passwordConfirm,
         role: role as Role,
         ...(kind === "housekeeping" ? { intent: "housekeeping" as const } : {}),
+        ...(kind === "postpartum" ? { intent: "postpartum" as const } : {}),
         ...(kind === "guardian" ? { relation } : {}),
         agree_terms: agreeTerms,
         agree_privacy: agreePrivacy,
@@ -316,7 +317,14 @@ export default function SignupPage() {
                 onClick={() => setKind("guardian")}
                 icon={<HeartHandshake className="w-6 h-6" />}
                 title="개인 돌봄 요청"
-                desc="어르신 · 아이 · 산모 · 마음 돌봄을 직접 요청해요"
+                desc="어르신 · 아이 · 마음 돌봄을 직접 요청해요"
+              />
+              <RoleCard
+                active={kind === "postpartum"}
+                onClick={() => setKind("postpartum")}
+                icon={<Baby className="w-6 h-6" />}
+                title="산모·산후관리 요청"
+                desc="본인(산모)을 위한 산후관리 돌봄을 직접 요청해요"
               />
               <RoleCard
                 active={kind === "housekeeping"}
@@ -381,6 +389,8 @@ export default function SignupPage() {
                 ? "기관 담당자 계정 정보를 입력해주세요."
                 : kind === "housekeeping"
                 ? "가사 서비스를 신청할 계정 정보를 입력해주세요."
+                : kind === "postpartum"
+                ? "산후관리 서비스를 신청할 계정 정보를 입력해주세요."
                 : "마지막으로 보호자 정보를 알려주세요."}
             </p>
 
@@ -721,6 +731,11 @@ export default function SignupPage() {
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
                   이제 서비스 받을 주소를 등록하고 생활지원서비스를 신청해보세요.
                 </>
+              ) : kind === "postpartum" ? (
+                <>
+                  {name ? `${name} 님, ` : ""}환영합니다.<br />
+                  이제 산후관리 서비스를 바로 신청해보세요. (본인 정보로 별도 산모 등록 없이 신청돼요)
+                </>
               ) : (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
@@ -742,6 +757,8 @@ export default function SignupPage() {
                     back ??
                       (kind === "housekeeping"
                         ? "/request/new?domain=living_support"
+                        : kind === "postpartum"
+                        ? "/request/new?domain=postpartum"
                         : "/request/new") // 개인 돌봄 요청 → 도메인 선택 유도
                   );
                 }}
@@ -750,6 +767,8 @@ export default function SignupPage() {
                   ? "홈으로 이동"
                   : kind === "housekeeping"
                   ? "생활지원서비스 신청하기"
+                  : kind === "postpartum"
+                  ? "산후관리 신청하기"
                   : "돌봄 서비스 신청하기"}
               </Button>
             </div>

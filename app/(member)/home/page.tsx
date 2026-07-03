@@ -278,13 +278,18 @@ function GServices({ go }: { go: GNav }) {
   if (domains.length === 0) return null;
 
   // featured(맨 위 큰 카드) 개인화 — 로그인한 보호자에 맞는 서비스를 최상단으로 끌어올림.
-  // 우선순위: 최근 요청 도메인(scheduled_start 최신) → intent(housekeeping=생활지원) → 기본(첫 도메인=요양보호)
+  // 우선순위: 최근 요청 도메인(scheduled_start 최신) → intent(housekeeping=생활지원, postpartum=산모) → 기본(첫 도메인=요양보호)
   const inDomains = (token?: string) => !!token && domains.some((d) => d.token === token);
   const recentToken = [...(reqQ.data ?? [])]
     .sort((a, b) => (b.scheduled_start ?? "").localeCompare(a.scheduled_start ?? ""))
     .map((r) => r.service_domain)
     .find(inDomains);
-  const intentToken = user?.guardian?.intent === "housekeeping" ? "living_support" : null;
+  const intentToken =
+    user?.guardian?.intent === "housekeeping"
+      ? "living_support"
+      : user?.guardian?.intent === "postpartum"
+        ? "postpartum"
+        : null;
   const preferredToken = role === "guardian" ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : null)) : null;
   let ordered = domains;
   if (preferredToken) {

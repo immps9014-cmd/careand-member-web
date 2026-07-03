@@ -30,7 +30,7 @@ export interface User {
   // 보호자 부가정보(로그인 응답 user.guardian). intent로 홈 서비스 허브 featured 개인화.
   guardian?: {
     id: number;
-    intent?: "care" | "housekeeping";
+    intent?: "care" | "housekeeping" | "postpartum";
     relation?: string | null;
   } | null;
   admin?: {
