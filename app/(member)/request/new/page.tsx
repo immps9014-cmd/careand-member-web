@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -83,6 +83,9 @@ export default function NewRequestPage() {
   const [step, setStep] = useState(1);
   // 확인 스텝 필수 동의
   const [agree, setAgree] = useState(false);
+  // 미동의 상태에서 제출을 시도하면 동의 박스를 강조/스크롤해 왜 진행이 안 되는지 안내.
+  const [agreeError, setAgreeError] = useState(false);
+  const agreeRef = useRef<HTMLLabelElement>(null);
   // 이용 불가 대상 스크리닝 확인(P0-4) — 도메인 변경 시 초기화
   const [screeningOk, setScreeningOk] = useState(false);
 
@@ -404,6 +407,22 @@ export default function NewRequestPage() {
     (domain !== "nursing" || (days >= 1 && days <= 30)) &&
     (!recurringNeedsWeekdays || weekdays.length >= 1) &&
     companionValid;
+
+  // 제출 시도 — 비활성으로 침묵하지 않고, 부족한 항목을 토스트/강조로 안내한다.
+  function submitRequest() {
+    if (create.isPending) return;
+    if (!agree) {
+      setAgreeError(true);
+      toast.error("개인정보 제3자 제공(필수) 동의에 체크해주세요.");
+      agreeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (!valid) {
+      toast.error("요청 내용을 다시 확인해주세요.");
+      return;
+    }
+    create.mutate();
+  }
 
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
@@ -1218,11 +1237,20 @@ export default function NewRequestPage() {
           </div>
 
           {/* 필수 동의 */}
-          <label className="mt-3 flex cursor-pointer items-start gap-2.5 rounded-xl border border-warm-200 bg-white p-3.5">
+          <label
+            ref={agreeRef}
+            className={
+              "mt-3 flex cursor-pointer items-start gap-2.5 rounded-xl border bg-white p-3.5 transition-colors " +
+              (agreeError && !agree ? "border-danger ring-2 ring-danger/20" : "border-warm-200")
+            }
+          >
             <input
               type="checkbox"
               checked={agree}
-              onChange={(e) => setAgree(e.target.checked)}
+              onChange={(e) => {
+                setAgree(e.target.checked);
+                if (e.target.checked) setAgreeError(false);
+              }}
               className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand-500"
             />
             <span className="text-[12.5px] leading-relaxed text-warm-700">
@@ -1330,8 +1358,8 @@ export default function NewRequestPage() {
               variant="brand"
               size="lg"
               className="flex-[2] rounded-2xl shadow-md"
-              disabled={!valid || !agree || create.isPending}
-              onClick={() => create.mutate()}
+              disabled={create.isPending}
+              onClick={submitRequest}
             >
               <Sparkle className="h-[18px] w-[18px]" />
               {create.isPending ? "요청 중…" : "AI 매칭 요청하기"}
