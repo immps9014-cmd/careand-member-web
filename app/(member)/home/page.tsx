@@ -217,8 +217,12 @@ function GFeed({ go }: { go: GNav }) {
     staleTime: 60_000,
     enabled: !q.isLoading,
   });
+  // 위 'AI 추천'에 이미 노출된 전문가는 전체 리스트에서 제외 — 같은 화면에서 카드가 중복 노출되지 않도록.
+  const recIds = new Set(list.map((c) => c.id));
   // 해당 도메인 전문가를 최대 10명만. 정렬은 백엔드가 보호자 지역(시·군·구) 우선 → 거리 순으로 처리.
-  const allList = (topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? [])).slice(0, 10);
+  const allList = (topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? []))
+    .filter((c) => !recIds.has(c.id))
+    .slice(0, 10);
   const allTitle = topDomain ? `${DOMAIN[topDomain] ?? "돌봄"} 돌봄전문가 전체` : "전체 돌봄전문가";
 
   return (
