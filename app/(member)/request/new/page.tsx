@@ -405,9 +405,11 @@ export default function NewRequestPage() {
         special_request: memo || undefined,
       });
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("매칭을 요청했습니다. AI가 후보를 추천합니다.");
-      router.push("/home");
+      // 생성된 요청 상세(후보 목록)로 바로 이동해 AI 추천 후보를 확인하게 한다. id 누락 시 홈 폴백.
+      const newId = (res?.data as { data?: { id?: number } } | undefined)?.data?.id;
+      router.push(newId ? `/request/${newId}` : "/home");
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
