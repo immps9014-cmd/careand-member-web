@@ -199,6 +199,8 @@ function GFeed({ go }: { go: GNav }) {
   const list = q.data ?? [];
   // AI 추천 카드 목록 — 접이식, 기본 접음.
   const [open, setOpen] = useState(false);
+  // 도메인 전체 목록 — 접이식, 기본 접음.
+  const [allOpen, setAllOpen] = useState(false);
   // 도메인 결정 — 개인화 도메인이 있으면 그 도메인, 없으면 추천 전문가의 최다 도메인.
   const domCount: Record<string, number> = {};
   list.forEach((c) => {
@@ -238,19 +240,24 @@ function GFeed({ go }: { go: GNav }) {
         </div>
       )}
 
-      {/* ② 전체 리스트 — 해당 도메인 전문가 전체 */}
+      {/* ② 전체 리스트 — 해당 도메인 전문가 전체(접이식, 기본 접음) */}
       <div style={{ marginTop: 22 }}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
+        <button onClick={() => setAllOpen((v) => !v)} aria-expanded={allOpen} style={{ display: "flex", alignItems: "center", width: "100%", background: "none", border: 0, padding: 0, cursor: "pointer" }}>
           <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>{allTitle}</div>
           {!allQ.isLoading && <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{allList.length}명</span>}
-        </div>
-        {allQ.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
-        {!allQ.isLoading && allList.length === 0 && (
-          <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>등록된 돌봄전문가가 없습니다</div>
+          <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: allOpen ? "rotate(180deg)" : "none" }} />
+        </button>
+        {allOpen && (
+          <div style={{ marginTop: 13 }}>
+            {allQ.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+            {!allQ.isLoading && allList.length === 0 && (
+              <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>등록된 돌봄전문가가 없습니다</div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {allList.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
+            </div>
+          </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {allList.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
-        </div>
       </div>
     </div>
   );
