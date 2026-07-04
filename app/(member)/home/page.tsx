@@ -105,77 +105,163 @@ const FEED_PALETTE: { fg: string; bg: string }[] = [
   { fg: "#D14A8E", bg: "#FDEBF3" },
 ];
 
-function GCgCard({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg: string }; go: GNav }) {
+/** 돌봄전문가 리스트 행 — AI 추천/전체 리스트 공용(가로형 1행). */
+function GCgRow({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg: string }; go: GNav }) {
   const display = c.name.replace(/^\[.*?\]\s*/, "");
   const av = display.charAt(0) || "?";
-  const meta = [c.spec, c.distance_km != null ? `${c.distance_km}km` : null].filter(Boolean).join(" · ");
+  const meta = [c.spec, c.region, c.distance_km != null ? `${c.distance_km}km` : null].filter(Boolean).join(" · ");
   return (
-    <div onClick={() => go(`/caregivers/${c.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden", cursor: "pointer" }}>
-      <div style={{ height: 108, background: pal.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: pal.fg, boxShadow: "0 4px 12px rgba(0,0,0,.08)" }}>{av}</div>
-        {c.tag && <span style={{ position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 7, padding: "3px 8px" }}>{c.tag}</span>}
-        <span style={{ position: "absolute", bottom: 9, right: 9, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2"><path d="M12 21s-7-4.3-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 3.5C19 16.7 12 21 12 21z" /></svg></span>
+    <div onClick={() => go(`/caregivers/${c.id}`)} style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer" }}>
+      <div style={{ width: 46, height: 46, borderRadius: "50%", background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: pal.fg, flexShrink: 0 }}>{av}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span>
+          <GStars n={c.rating} />
+          {c.tag && <span style={{ fontSize: 9.5, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 6, padding: "2px 6px", flexShrink: 0 }}>{c.tag}</span>}
+        </div>
+        <div style={{ fontSize: 11.5, color: INK2, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta || "돌봄전문가"}</div>
       </div>
-      <div style={{ padding: "10px 12px 12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13.5, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span><GStars n={c.rating} /></div>
-        <div style={{ fontSize: 11.5, color: INK2, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta}</div>
-        {c.base_rate != null && (
-          <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 3 }}>
-            <span style={{ fontSize: 11, color: INK3, fontWeight: 600 }}>시간당</span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: ACCENT }}>{c.base_rate.toLocaleString()}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>원~</span>
-          </div>
-        )}
-      </div>
+      {c.base_rate != null && (
+        <div style={{ textAlign: "right", flexShrink: 0, whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 15, fontWeight: 900, color: ACCENT }}>{c.base_rate.toLocaleString()}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: INK }}>원~</span>
+        </div>
+      )}
+      <ChevronRight size={16} color={INK3} style={{ flexShrink: 0 }} />
     </div>
   );
 }
 
+/**
+ * 보호자 개인화 도메인 신호 — 홈 featured(매칭 시작하기) 카드와 AI 추천 목록이 공유하는 SSOT.
+ * 우선순위: 최근 매칭요청 도메인 → 가입 intent(생활지원/산모/아이돌봄/마음돌봄)
+ *          → 대상 정보 보유 폴백(intent=care 자동인식) → null(기본, 전체 추천).
+ * 두 곳이 같은 도메인을 쓰도록 하나의 훅으로 묶어, 상단 카드와 아래 추천이 어긋나지 않게 한다.
+ */
+function useGuardianPreferredDomain(): string | null {
+  const user = useAuth((s) => s.user);
+  const role = user?.role;
+  const domainsQuery = useServiceDomains();
+  const reqQ = useQuery({
+    queryKey: ["member", "guardian", "requests"],
+    queryFn: () => memberApi.guardianRequests(),
+    retry: false,
+    staleTime: 30_000,
+    enabled: role === "guardian",
+  });
+  const needsFallback = role === "guardian" && (user?.guardian?.intent ?? "care") === "care";
+  const ppOwnQ = useQuery({ queryKey: ["member", "postpartum-clients"], queryFn: () => memberApi.postpartumClients(), retry: false, staleTime: 60_000, enabled: needsFallback });
+  const addrOwnQ = useQuery({ queryKey: ["member", "addresses"], queryFn: () => memberApi.addresses(), retry: false, staleTime: 60_000, enabled: needsFallback });
+  const childOwnQ = useQuery({ queryKey: ["member", "children"], queryFn: () => memberApi.children(), retry: false, staleTime: 60_000, enabled: needsFallback });
+  const mentalOwnQ = useQuery({ queryKey: ["member", "mental-care-clients"], queryFn: () => memberApi.mentalCareClients(), retry: false, staleTime: 60_000, enabled: needsFallback });
+
+  if (role !== "guardian") return null;
+
+  // 유효 도메인 토큰 집합 — guardian 은 병원간병(nursing)도 안내용으로 유지되므로 포함.
+  const tokens = new Set<string>((domainsQuery.data ?? FALLBACK_DOMAINS).map((d) => d.token));
+  tokens.add("nursing");
+  const inDomains = (token?: string): token is string => !!token && tokens.has(token);
+
+  const recentToken = [...(reqQ.data ?? [])]
+    .sort((a, b) => (b.scheduled_start ?? "").localeCompare(a.scheduled_start ?? ""))
+    .map((r) => r.service_domain)
+    .find(inDomains);
+  const intentToken =
+    user?.guardian?.intent === "housekeeping"
+      ? "living_support"
+      : (["postpartum", "childcare", "mental_care"] as const).includes(
+            user?.guardian?.intent as "postpartum" | "childcare" | "mental_care",
+          )
+        ? (user?.guardian?.intent as string)
+        : null;
+  const ownsFallbackToken =
+    (ppOwnQ.data?.length ?? 0) > 0 && inDomains("postpartum")
+      ? "postpartum"
+      : (addrOwnQ.data?.length ?? 0) > 0 && inDomains("living_support")
+        ? "living_support"
+        : (childOwnQ.data?.length ?? 0) > 0 && inDomains("childcare")
+          ? "childcare"
+          : (mentalOwnQ.data?.length ?? 0) > 0 && inDomains("mental_care")
+            ? "mental_care"
+            : null;
+  return recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : ownsFallbackToken);
+}
+
 function GFeed({ go }: { go: GNav }) {
+  // featured 카드와 동일한 도메인으로 추천 — 도메인 불일치 카드 노출 방지.
+  const preferredDomain = useGuardianPreferredDomain();
   const q = useQuery({
-    queryKey: ["member", "guardian", "recommended"],
-    queryFn: memberApi.recommendedCaregivers,
+    queryKey: ["member", "guardian", "recommended", preferredDomain ?? "all"],
+    queryFn: () => memberApi.recommendedCaregivers(preferredDomain ?? undefined),
     retry: false,
     staleTime: 60_000,
   });
   const list = q.data ?? [];
-  const [open, setOpen] = useState(true);
-  // 추천 전문가의 최다 도메인으로 '전체 보기' 필터 적용 (없으면 전체)
+  // AI 추천 카드 목록 — 접이식, 기본 접음.
+  const [open, setOpen] = useState(false);
+  // 도메인 결정 — 개인화 도메인이 있으면 그 도메인, 없으면 추천 전문가의 최다 도메인.
   const domCount: Record<string, number> = {};
   list.forEach((c) => {
     const d = c.domains?.[0];
     if (d) domCount[d] = (domCount[d] ?? 0) + 1;
   });
-  const topDomain = Object.entries(domCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const topDomain = preferredDomain ?? Object.entries(domCount).sort((a, b) => b[1] - a[1])[0]?.[0];
   const browseHref = topDomain ? `/caregivers/browse?domain=${topDomain}` : "/caregivers/browse";
+
+  // 전체 리스트 — 해당 도메인의 전문가만(도메인 미확정 시 전체 폴백). 추천 로딩 완료 후 조회.
+  const allQ = useQuery({
+    queryKey: ["member", "caregivers", "byDomain", topDomain ?? "all"],
+    queryFn: () => memberApi.caregiversByDomain(topDomain),
+    retry: false,
+    staleTime: 60_000,
+    enabled: !q.isLoading,
+  });
+  const allList = topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? []);
+  const allTitle = topDomain ? `${DOMAIN[topDomain] ?? "돌봄"} 전문가 전체` : "전체 돌봄전문가";
+
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
-      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
+      {/* ① AI 추천 — 접이식(기본 접음), 리스트형 */}
+      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", background: "none", border: 0, padding: 0, cursor: "pointer" }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 AI추천 돌봄전문가</div>
         <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
         <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
       {open && (
-        <>
+        <div style={{ marginTop: 13 }}>
           {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
           {!q.isLoading && list.length === 0 && (
             <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 돌봄전문가가 아직 없습니다</div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {list.map((c, i) => <GCgCard key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {list.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
           </div>
-          {/* 전체 돌봄전문가 보기 — 도메인별 리스트(검증된 돌봄전문가) */}
-          {!q.isLoading && (
-            <button
-              onClick={() => go(browseHref)}
-              style={{ width: "100%", marginTop: 12, height: 46, borderRadius: 14, border: `1px solid ${LINE}`, background: "#fff", color: INK, fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
-            >
-              전체 돌봄전문가 보기
-              <ChevronRight size={16} color={INK3} />
-            </button>
-          )}
-        </>
+        </div>
       )}
+
+      {/* ② 전체 리스트 — 해당 도메인 전문가 전체 */}
+      <div style={{ marginTop: 22 }}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 13 }}>
+          <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>{allTitle}</div>
+          {!allQ.isLoading && <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{allList.length}명</span>}
+        </div>
+        {allQ.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+        {!allQ.isLoading && allList.length === 0 && (
+          <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>등록된 돌봄전문가가 없습니다</div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {allList.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
+        </div>
+        {!allQ.isLoading && allList.length > 0 && (
+          <button
+            onClick={() => go(browseHref)}
+            style={{ width: "100%", marginTop: 12, height: 46, borderRadius: 14, border: `1px solid ${LINE}`, background: "#fff", color: INK, fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+          >
+            전체 돌봄전문가 보기
+            <ChevronRight size={16} color={INK3} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -257,46 +343,8 @@ function GServices({ go }: { go: GNav }) {
   const user = useAuth((s) => s.user);
   const role = user?.role;
   const domainsQuery = useServiceDomains();
-  // 개인화 신호: 보호자의 최근 매칭요청 도메인(있으면) → 가입 intent(생활지원) → 기본(요양보호)
-  const reqQ = useQuery({
-    queryKey: ["member", "guardian", "requests"],
-    queryFn: () => memberApi.guardianRequests(),
-    retry: false,
-    staleTime: 30_000,
-    enabled: role === "guardian",
-  });
-  // 폴백 신호(intent가 care/미지정인 계정만): 대상 정보를 이미 등록했으면 해당 도메인을 상단에 노출.
-  //  산모정보→산모 / 서비스주소→생활지원 / 아이→아이돌봄 / 마음돌봄대상→마음돌봄
-  // (수정 배포 이전 가입 등으로 intent=care인데 실제론 특정 도메인 이용자인 계정 자동 인식)
-  const needsFallback = role === "guardian" && (user?.guardian?.intent ?? "care") === "care";
-  const ppOwnQ = useQuery({
-    queryKey: ["member", "postpartum-clients"],
-    queryFn: () => memberApi.postpartumClients(),
-    retry: false,
-    staleTime: 60_000,
-    enabled: needsFallback,
-  });
-  const addrOwnQ = useQuery({
-    queryKey: ["member", "addresses"],
-    queryFn: () => memberApi.addresses(),
-    retry: false,
-    staleTime: 60_000,
-    enabled: needsFallback,
-  });
-  const childOwnQ = useQuery({
-    queryKey: ["member", "children"],
-    queryFn: () => memberApi.children(),
-    retry: false,
-    staleTime: 60_000,
-    enabled: needsFallback,
-  });
-  const mentalOwnQ = useQuery({
-    queryKey: ["member", "mental-care-clients"],
-    queryFn: () => memberApi.mentalCareClients(),
-    retry: false,
-    staleTime: 60_000,
-    enabled: needsFallback,
-  });
+  // 개인화 도메인 신호 — AI 추천 목록(GFeed)과 동일한 훅을 공유해 상단 featured 카드와 어긋나지 않게 한다.
+  const preferredToken = useGuardianPreferredDomain();
   // 레지스트리(SSOT). 보호자 신청 위저드는 병원간병을 숨기지만, 홈 허브에는 6번째 타일로
   // '기관 전용' 안내용 노출(탭 시 신청 대신 안내). 기관은 정상 신청 가능.
   const base = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
@@ -309,37 +357,7 @@ function GServices({ go }: { go: GNav }) {
       : base;
   if (domains.length === 0) return null;
 
-  // featured(맨 위 큰 카드) 개인화 — 로그인한 보호자에 맞는 서비스를 최상단으로 끌어올림.
-  // 우선순위: 최근 요청 도메인(최신) → intent(housekeeping=생활지원, postpartum=산모)
-  //          → 산모정보 보유 폴백(intent=care인 산모 자동인식) → 기본(첫 도메인=요양보호)
-  const inDomains = (token?: string) => !!token && domains.some((d) => d.token === token);
-  const recentToken = [...(reqQ.data ?? [])]
-    .sort((a, b) => (b.scheduled_start ?? "").localeCompare(a.scheduled_start ?? ""))
-    .map((r) => r.service_domain)
-    .find(inDomains);
-  // intent → featured 도메인 토큰 (housekeeping만 living_support로, 나머지는 동명 도메인)
-  const intentToken =
-    user?.guardian?.intent === "housekeeping"
-      ? "living_support"
-      : (["postpartum", "childcare", "mental_care"] as const).includes(
-            user?.guardian?.intent as "postpartum" | "childcare" | "mental_care",
-          )
-        ? (user?.guardian?.intent as string)
-        : null;
-  // 대상 정보 보유 폴백 — 산모정보→산모, 서비스주소→생활지원, 아이→아이돌봄, 마음돌봄대상→마음돌봄
-  const ownsFallbackToken =
-    (ppOwnQ.data?.length ?? 0) > 0 && inDomains("postpartum")
-      ? "postpartum"
-      : (addrOwnQ.data?.length ?? 0) > 0 && inDomains("living_support")
-        ? "living_support"
-        : (childOwnQ.data?.length ?? 0) > 0 && inDomains("childcare")
-          ? "childcare"
-          : (mentalOwnQ.data?.length ?? 0) > 0 && inDomains("mental_care")
-            ? "mental_care"
-            : null;
-  const preferredToken = role === "guardian"
-    ? (recentToken ?? (inDomains(intentToken ?? undefined) ? intentToken : ownsFallbackToken))
-    : null;
+  // featured(맨 위 큰 카드) 개인화 — preferredToken(useGuardianPreferredDomain)에 맞는 서비스를 최상단으로.
   let ordered = domains;
   if (preferredToken) {
     const idx = domains.findIndex((d) => d.token === preferredToken);

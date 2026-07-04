@@ -501,8 +501,8 @@ export const memberApi = {
     const { data } = await api.get("/v1/matching/requests", { params: status ? { status } : {} });
     return data.data ?? [];
   },
-  async recommendedCaregivers(): Promise<RecommendedCaregiver[]> {
-    const { data } = await api.get("/v1/caregivers/recommended");
+  async recommendedCaregivers(domain?: string): Promise<RecommendedCaregiver[]> {
+    const { data } = await api.get("/v1/caregivers/recommended", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },
   async caregiverDetail(id: number): Promise<CaregiverDetail> {
