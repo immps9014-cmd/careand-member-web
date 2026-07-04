@@ -216,7 +216,7 @@ function GFeed({ go }: { go: GNav }) {
     enabled: !q.isLoading,
   });
   const allList = topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? []);
-  const allTitle = topDomain ? `${DOMAIN[topDomain] ?? "돌봄"} 전문가 전체` : "전체 돌봄전문가";
+  const allTitle = topDomain ? `${DOMAIN[topDomain] ?? "돌봄"} 돌봄전문가 전체` : "전체 돌봄전문가";
 
   return (
     <div style={{ padding: "18px 16px 0", background: BG }}>
