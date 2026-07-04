@@ -217,7 +217,11 @@ function GFeed({ go }: { go: GNav }) {
     staleTime: 60_000,
     enabled: !q.isLoading,
   });
-  const allList = topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? []);
+  // 해당 도메인 전문가를 거리순(가까운 순, distance_km 없으면 뒤로)으로 최대 10명만.
+  const allList = (topDomain ? (allQ.data ?? []).filter((c) => (c.domains ?? []).includes(topDomain)) : (allQ.data ?? []))
+    .slice()
+    .sort((a, b) => (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity))
+    .slice(0, 10);
   const allTitle = topDomain ? `${DOMAIN[topDomain] ?? "돌봄"} 돌봄전문가 전체` : "전체 돌봄전문가";
 
   return (
