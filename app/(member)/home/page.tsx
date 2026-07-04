@@ -206,7 +206,6 @@ function GFeed({ go }: { go: GNav }) {
     if (d) domCount[d] = (domCount[d] ?? 0) + 1;
   });
   const topDomain = preferredDomain ?? Object.entries(domCount).sort((a, b) => b[1] - a[1])[0]?.[0];
-  const browseHref = topDomain ? `/caregivers/browse?domain=${topDomain}` : "/caregivers/browse";
 
   // 전체 리스트 — 해당 도메인의 전문가만(도메인 미확정 시 전체 폴백). 추천 로딩 완료 후 조회.
   const allQ = useQuery({
@@ -252,15 +251,6 @@ function GFeed({ go }: { go: GNav }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {allList.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
         </div>
-        {!allQ.isLoading && allList.length > 0 && (
-          <button
-            onClick={() => go(browseHref)}
-            style={{ width: "100%", marginTop: 12, height: 46, borderRadius: 14, border: `1px solid ${LINE}`, background: "#fff", color: INK, fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
-          >
-            전체 돌봄전문가 보기
-            <ChevronRight size={16} color={INK3} />
-          </button>
-        )}
       </div>
     </div>
   );
