@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ChevronLeft, Star, Check } from "lucide-react";
+import { ChevronLeft, Star, Check, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -200,6 +200,16 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                     <Badge key={r} variant="outline">{r}</Badge>
                   ))}
                 </div>
+              )}
+
+              {c.caregiver?.id != null && (
+                <Link
+                  href={`/caregivers/${c.caregiver.id}`}
+                  className="mb-2 flex w-full items-center justify-center gap-0.5 rounded-lg border border-warm-200 py-2 text-sm font-semibold text-warm-600 hover:bg-warm-50"
+                >
+                  프로필 자세히 보기
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
               )}
 
               <Button
