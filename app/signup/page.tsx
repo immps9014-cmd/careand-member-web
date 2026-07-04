@@ -775,7 +775,7 @@ export default function SignupPage() {
               ) : (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 필요한 돌봄 서비스를 선택하고 신청해보세요.
+                  이제 부모님(돌봄대상)을 등록하고 돌봄을 시작해보세요.
                 </>
               )}
             </p>
@@ -799,7 +799,7 @@ export default function SignupPage() {
                         ? "/request/new?domain=childcare"
                         : kind === "mental_care"
                         ? "/request/new?domain=mental_care"
-                        : "/request/new") // 어르신 돌봄 요청 → 도메인 선택 유도
+                        : "/home") // 어르신 돌봄 보호자 → 홈에서 부모님(돌봄대상) 등록 온보딩(요청 퍼널에 가두지 않음)
                   );
                 }}
               >
@@ -813,7 +813,7 @@ export default function SignupPage() {
                   ? "아이돌봄 신청하기"
                   : kind === "mental_care"
                   ? "마음돌봄 신청하기"
-                  : "돌봄 서비스 신청하기"}
+                  : "시작하기"}
               </Button>
             </div>
           </div>
