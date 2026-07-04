@@ -89,6 +89,13 @@ export const authApi = {
   },
 
   /**
+   * 회원 탈퇴 — 현재 비밀번호 확인 필수. 성공 시 서버에서 계정 소프트삭제·토큰 무효화.
+   */
+  async withdraw(payload: { current_password: string; reason?: string }): Promise<void> {
+    await api.delete("/v1/auth/me", { data: payload });
+  },
+
+  /**
    * 로그아웃
    */
   async logout(): Promise<void> {

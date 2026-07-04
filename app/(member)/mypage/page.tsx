@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,6 +128,26 @@ export default function MyPage() {
     logout();
     qc.clear(); // 다음 로그인 사용자에게 이전 계정 캐시가 남지 않도록 비움
     router.replace("/login");
+  }
+
+  /* ===== 회원 탈퇴 ===== */
+  const [wOpen, setWOpen] = useState(false);
+  const [wPw, setWPw] = useState("");
+  const [wReason, setWReason] = useState("");
+  const withdraw = useMutation({
+    mutationFn: () => authApi.withdraw({ current_password: wPw, reason: wReason.trim() || undefined }),
+    onSuccess: () => {
+      toast.success("회원 탈퇴가 완료되었습니다.");
+      logout();
+      qc.clear();
+      router.replace("/login");
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  function submitWithdraw() {
+    if (!wPw) { toast.error("현재 비밀번호를 입력하세요."); return; }
+    if (typeof window !== "undefined" && !window.confirm("정말 탈퇴하시겠습니까? 계정과 이용 내역은 복구할 수 없습니다.")) return;
+    withdraw.mutate();
   }
 
   return (
@@ -317,6 +337,61 @@ export default function MyPage() {
         <LogOut className="w-4 h-4" />
         로그아웃
       </Button>
+
+      {/* 회원 탈퇴 */}
+      <div className="mt-3">
+        {!wOpen ? (
+          <button
+            type="button"
+            onClick={() => setWOpen(true)}
+            className="mx-auto block text-[13px] font-semibold text-warm-400 underline underline-offset-2 hover:text-danger"
+          >
+            회원 탈퇴
+          </button>
+        ) : (
+          <Card className="p-5 border-danger/40">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-danger" />
+              <h2 className="font-bold text-danger">회원 탈퇴</h2>
+            </div>
+            <p className="text-[12.5px] leading-relaxed text-warm-600 mb-4">
+              탈퇴하면 계정과 이용 내역에 다시 접근할 수 없으며, 진행 중인 매칭 요청은 자동 취소됩니다.
+              {isCaregiver && " 활동 중인 돌봄전문가 프로필도 노출이 중단됩니다."} 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <Field label="현재 비밀번호 확인" icon={<KeyRound className="w-4 h-4 text-warm-400" />}>
+              <Input
+                type="password"
+                value={wPw}
+                onChange={(e) => setWPw(e.target.value)}
+                placeholder="현재 비밀번호"
+                autoComplete="current-password"
+              />
+            </Field>
+            <div className="mb-4">
+              <label className="mb-1.5 block text-[12.5px] font-bold text-warm-600">탈퇴 사유 (선택)</label>
+              <Input value={wReason} onChange={(e) => setWReason(e.target.value)} placeholder="개선에 참고할게요" maxLength={500} />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={withdraw.isPending}
+                onClick={() => { setWOpen(false); setWPw(""); setWReason(""); }}
+              >
+                취소
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                disabled={withdraw.isPending || !wPw}
+                onClick={submitWithdraw}
+              >
+                {withdraw.isPending ? "처리 중…" : "탈퇴하기"}
+              </Button>
+            </div>
+          </Card>
+        )}
+      </div>
 
       <p className="text-center text-xs text-warm-400 mt-6">Care& 회원 앱 v1.0</p>
       </div>

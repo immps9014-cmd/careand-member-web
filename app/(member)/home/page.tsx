@@ -197,8 +197,8 @@ function GFeed({ go }: { go: GNav }) {
     staleTime: 60_000,
   });
   const list = q.data ?? [];
-  // AI 추천 카드 목록 — 접이식, 기본 접음.
-  const [open, setOpen] = useState(false);
+  // AI 추천 카드 목록 — 접이식, 기본 펼침.
+  const [open, setOpen] = useState(true);
   // 도메인 전체 목록 — 접이식, 기본 접음.
   const [allOpen, setAllOpen] = useState(false);
   // 도메인 결정 — 개인화 도메인이 있으면 그 도메인, 없으면 추천 전문가의 최다 도메인.
