@@ -15,6 +15,14 @@ export interface GuardianRequest {
   nursing_patient?: { id: number; name: string; hospital_name: string | null };
   service_address?: { id: number; label: string; address: string };
   category?: { id: number; name: string; base_rate: number };
+  // 확정 매칭 정보(status=matched일 때). 케어자 이름·케어 일정·결제 상태.
+  match?: {
+    id: number;
+    scheduled_start: string | null;
+    scheduled_end: string | null;
+    caregiver_name: string | null;
+    payment_status: string | null;
+  } | null;
 }
 
 /* ===== 보호자: 케어일지(AI) 수신·열람 — Phase 2 ===== */

@@ -314,6 +314,22 @@ function GMyRequests({ go }: { go: GNav }) {
                 <div style={{ fontSize: 11.5, color: INK2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {(r.category?.name ?? "돌봄")} · {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"}
                 </div>
+                {/* 매칭완료: 케어자 이름·케어 일정 노출 */}
+                {r.status === "matched" && r.match && (
+                  <div style={{ marginTop: 7, paddingTop: 7, borderTop: `1px solid ${LINE}`, display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+                      <span style={{ color: INK3, fontWeight: 700, minWidth: 44 }}>케어자</span>
+                      <span style={{ color: INK, fontWeight: 800 }}>{r.match.caregiver_name ?? "배정 중"}</span>
+                      {r.match.payment_status === "paid" && (
+                        <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, color: "#1F9D63", background: "#E7F7EF", borderRadius: 6, padding: "2px 7px" }}>결제완료</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+                      <span style={{ color: INK3, fontWeight: 700, minWidth: 44 }}>케어 일정</span>
+                      <span style={{ color: INK2, fontWeight: 600 }}>{r.match.scheduled_start ? formatDateTime(r.match.scheduled_start) : (r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 협의 중")}</span>
+                    </div>
+                  </div>
+                )}
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
             </div>
