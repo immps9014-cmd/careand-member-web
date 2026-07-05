@@ -109,8 +109,8 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         </Card>
       )}
 
-      {/* 매칭 확정 시 결제 진입 (match_id는 백엔드가 노출하면 활성화 — P2-1) */}
-      {matched && data?.match_id && (
+      {/* 매칭 확정 & 미결제 시에만 결제 진입 (결제 완료 후에는 파이프라인으로 진행 표시) */}
+      {matched && data?.match_id && data?.payment_status !== "paid" && (
         <Link href={`/payments/${data.match_id}`}>
           <Card className="mb-4 flex items-center justify-between border-brand-200 bg-brand-50 p-4">
             <div>
