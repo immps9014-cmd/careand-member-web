@@ -17,6 +17,7 @@ import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverP
 import { organizationApi } from "@/lib/api/organization";
 import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
 import { formatDateTime, formatKRW } from "@/lib/utils";
+import { ProgressPipeline } from "@/components/ProgressPipeline";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -313,6 +314,14 @@ function GMyRequests({ go }: { go: GNav }) {
                 </div>
                 <div style={{ fontSize: 11.5, color: INK2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {(r.category?.name ?? "돌봄")} · {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"}
+                </div>
+                {/* 진행 단계 파이프라인 */}
+                <div style={{ marginTop: 10 }}>
+                  <ProgressPipeline
+                    requestStatus={r.status}
+                    matchStatus={r.match?.status}
+                    paymentStatus={r.match?.payment_status}
+                  />
                 </div>
                 {/* 매칭완료: 케어자 이름·케어 일정 노출 */}
                 {r.status === "matched" && r.match && (
@@ -721,6 +730,10 @@ function CaregiverHome() {
     return false;
   };
   const pending = matches.data?.filter((m) => m.response === "pending" && !isStaleProposal(m)) ?? [];
+  // 내가 수락해 확정된 매칭(진행 파이프라인 표시). 케어완료/취소는 제외.
+  const acceptedMatches = matches.data?.filter(
+    (m) => m.response === "accepted" && m.match_status !== "cancelled" && m.match_status !== "no_show",
+  ) ?? [];
 
   // 가입 직후: 자격 검수(pending)·반려(rejected)·등록 미완료(404) → 온보딩 화면
   if (profile.isLoading && !profile.data) {
@@ -843,6 +856,15 @@ function CaregiverHome() {
               <Badge variant="outline">{DOMAIN[m.service_domain] ?? m.service_domain}</Badge>
             </div>
 
+            {/* 진행 단계 파이프라인 */}
+            <div className="rounded-lg bg-warm-50 px-3 py-3 mb-3">
+              <ProgressPipeline
+                requestStatus={m.request_status}
+                matchStatus={m.match_status}
+                paymentStatus={m.payment_status}
+              />
+            </div>
+
             {/* 수당·거리·시간 한눈에 */}
             <div className="rounded-lg bg-warm-50 divide-y divide-warm-200/70 px-3.5 mb-4">
               <div className="flex items-center justify-between py-2.5">
@@ -919,6 +941,38 @@ function CaregiverHome() {
           </Card>
         ))}
       </div>
+
+      {/* 진행 중인 매칭 (수락·확정) */}
+      {acceptedMatches.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">진행 중인 매칭</h2>
+            <span className="text-xs text-warm-400">{acceptedMatches.length}건</span>
+          </div>
+          <div className="space-y-4 mb-7">
+            {acceptedMatches.map((m) => (
+              <Card key={`acc-${m.candidate_id}`} className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-extrabold text-warm-800">{m.senior_name}</span>
+                    <Badge variant="outline">{DOMAIN[m.service_domain] ?? m.service_domain}</Badge>
+                  </div>
+                  <span className="text-xs text-warm-400">
+                    {m.scheduled_start ? formatDateTime(m.scheduled_start) : "일정 협의 중"}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-warm-50 px-3 py-3">
+                  <ProgressPipeline
+                    requestStatus={m.request_status}
+                    matchStatus={m.match_status}
+                    paymentStatus={m.payment_status}
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* 오늘 일정 */}
       <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">내 {ui.actionNoun} 일정</h2>

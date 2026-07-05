@@ -18,6 +18,7 @@ export interface GuardianRequest {
   // 확정 매칭 정보(status=matched일 때). 케어자 이름·케어 일정·결제 상태.
   match?: {
     id: number;
+    status: string | null; // 케어 진행: confirmed|in_progress|completed|cancelled|no_show
     scheduled_start: string | null;
     scheduled_end: string | null;
     caregiver_name: string | null;
@@ -317,6 +318,8 @@ export interface MyMatch {
   scheduled_start: string | null;
   duration_min: number;
   request_status: string;
+  match_status: string | null; // confirmed|in_progress|completed (본인 확정 시)
+  payment_status: string | null; // 보호자 결제 상태
   senior_name: string;
   // 역경매 입찰
   bid_hourly: number | null;
@@ -549,10 +552,10 @@ export const memberApi = {
     const { data } = await api.get(`/v1/care-sessions/${sessionId}/ai-summary`);
     return data.data ?? null;
   },
-  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null }> {
+  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null; match_status: string | null; payment_status: string | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
     // match_id: 매칭 확정(인력 수락) 시 백엔드가 노출하면 결제 진입에 사용 (없으면 null → CTA 미노출)
-    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null, match_id: data.match_id ?? null };
+    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null, match_id: data.match_id ?? null, match_status: data.match_status ?? null, payment_status: data.payment_status ?? null };
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),

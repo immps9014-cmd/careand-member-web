@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { memberApi, type Candidate } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { ProgressPipeline } from "@/components/ProgressPipeline";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 
@@ -94,6 +95,19 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       <p className="text-sm text-warm-500 mb-4">
         돌봄전문가가 제시한 입찰가와 프로필을 비교해 선택하세요
       </p>
+
+      {/* 진행 단계 파이프라인 */}
+      {data && (
+        <Card className="mb-4 p-4">
+          <div className="mb-3 text-xs font-extrabold uppercase tracking-wider text-warm-400">진행 상태</div>
+          <ProgressPipeline
+            size="md"
+            requestStatus={data.request_status}
+            matchStatus={data.match_status}
+            paymentStatus={data.payment_status}
+          />
+        </Card>
+      )}
 
       {/* 매칭 확정 시 결제 진입 (match_id는 백엔드가 노출하면 활성화 — P2-1) */}
       {matched && data?.match_id && (
