@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown, ShieldCheck, XCircle, Phone, ClipboardList, Users, Search, ChevronRight, HeartPulse, Stethoscope, HelpCircle } from "lucide-react";
+import { Check, X, LogIn, LogOut, Clock, MapPin, Wallet, Sparkles, Camera, ChevronDown, ShieldCheck, XCircle, Phone, ClipboardList, Users, Search, ChevronRight, HeartPulse, Stethoscope, HelpCircle, MessageCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -355,13 +355,13 @@ function GMyRequests({ go }: { go: GNav }) {
    각 타일 탭 → 해당 서비스 신청 플로우(request/new?domain=). 케어네이션 메인 벤토 그리드 참고. */
 // 케어네이션풍 저채도 팔레트 — 붕 뜨지 않는 차분한 세이지/틸 계열. 배경은 미세 그라디언트,
 // ink는 그라디언트 동계열 딥톤(제목/설명/CTA). 도메인 순서가 바뀌어도 대비 유지.
-type Tone = { grad: string; ink: { title: string; sub: string; cta: string }; badge?: { label: string; color: string } };
+type Tone = { grad: string; ink: { title: string; sub: string; cta: string }; badge?: { label: string; variant: "new" | "hot" | "beta" | "info" } };
 const DOMAIN_TONE: Record<string, Tone> = {
   senior: { grad: "linear-gradient(135deg,#FDF1EC,#F8DDD0)", ink: { title: "#7A3A28", sub: "#A56A57", cta: "#B94C2E" } },
-  nursing: { grad: "linear-gradient(135deg,#F1EEEA,#E4DDD3)", ink: { title: "#4A4238", sub: "#7A7060", cta: "#6B5F4E" }, badge: { label: "기관", color: "#7A6E58" } },
+  nursing: { grad: "linear-gradient(135deg,#F1EEEA,#E4DDD3)", ink: { title: "#4A4238", sub: "#7A7060", cta: "#6B5F4E" }, badge: { label: "기관", variant: "info" } },
   living_support: { grad: "linear-gradient(135deg,#F6F0EA,#EBDFD2)", ink: { title: "#6B4A32", sub: "#927056", cta: "#8A6238" } },
-  postpartum: { grad: "linear-gradient(135deg,#FBEDEF,#F3D9DE)", ink: { title: "#7A3E48", sub: "#A5707A", cta: "#A65A66" }, badge: { label: "NEW", color: "#B85C6E" } },
-  childcare: { grad: "linear-gradient(135deg,#FBF2E6,#F2E2C6)", ink: { title: "#6E5228", sub: "#977442", cta: "#8F6E30" }, badge: { label: "NEW", color: "#9A7A38" } },
+  postpartum: { grad: "linear-gradient(135deg,#FBEDEF,#F3D9DE)", ink: { title: "#7A3E48", sub: "#A5707A", cta: "#A65A66" }, badge: { label: "NEW", variant: "new" } },
+  childcare: { grad: "linear-gradient(135deg,#FBF2E6,#F2E2C6)", ink: { title: "#6E5228", sub: "#977442", cta: "#8F6E30" }, badge: { label: "NEW", variant: "new" } },
   mental_care: { grad: "linear-gradient(135deg,#F7EEEC,#EFDCD6)", ink: { title: "#6E453C", sub: "#9A6D62", cta: "#8A574C" } },
 };
 const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F7F4F1,#EAE4DD)", ink: { title: "#3A342E", sub: "#6B655C", cta: "#8A6238" } };
@@ -391,11 +391,11 @@ function GServices({ go }: { go: GNav }) {
     if (idx > 0) ordered = [domains[idx], ...domains.slice(0, idx), ...domains.slice(idx + 1)];
   }
   const [featured, ...rest] = ordered;
-  const CornerBadge = ({ b }: { b?: { label: string; color: string } }) =>
+  const CornerBadge = ({ b }: { b?: { label: string; variant: "new" | "hot" | "beta" | "info" } }) =>
     b ? (
-      <span style={{ position: "absolute", top: 10, right: 10, background: b.color, color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 8, letterSpacing: ".02em" }}>
+      <Badge variant={b.variant} style={{ position: "absolute", top: 10, right: 10 }}>
         {b.label}
-      </span>
+      </Badge>
     ) : null;
 
   return (
@@ -485,6 +485,41 @@ function GOnboardSenior({ go }: { go: GNav }) {
   );
 }
 
+/* 홈 최상단 마스트헤드 배너 — careand 실제 차별점(AI 산출 적정 간병비)을 노출하는 홍보 슬롯.
+   케어네이션 홈 최상단 프로모 배너 구조 참고, 광고 대신 자사 기능 홍보로 채움. */
+function GHeroBanner({ go }: { go: GNav }) {
+  return (
+    <div style={{ padding: "16px 16px 0" }}>
+      <button
+        onClick={() => go("/request/new")}
+        style={{ position: "relative", width: "100%", borderRadius: 20, overflow: "hidden", background: `linear-gradient(120deg,${ACCENT_SOFT},${ACCENT})`, padding: "22px 20px", textAlign: "left", cursor: "pointer", border: "none", display: "block" }}
+      >
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(255,255,255,.85)", letterSpacing: ".01em" }}>AI 매칭 · 적정 간병비</div>
+        <div style={{ fontSize: 19, fontWeight: 900, color: "#fff", letterSpacing: "-.02em", lineHeight: 1.35, marginTop: 6 }}>AI가 산출한 적정 간병비로<br />투명하게 매칭받으세요</div>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: "#fff", color: ACCENT, fontSize: 13, fontWeight: 800 }}>
+          지금 시작하기 <ChevronRight size={15} />
+        </span>
+        <Sparkles size={72} color="#fff" strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.22 }} />
+      </button>
+    </div>
+  );
+}
+
+/* 상시 AI 상담 진입점(FAB) — 케어네이션 홈 우하단 AI챗봇 버튼 참고.
+   실제 챗봇 백엔드는 아직 없어 준비중 안내로 처리(기관전용 도메인 게이팅과 동일한 toast 패턴). */
+function GAiFab() {
+  return (
+    <button
+      onClick={() => toast("AI 챗봇 상담은 준비 중이에요. 빠른 시일 내 만나요.")}
+      className="lg:hidden"
+      style={{ position: "fixed", right: 16, bottom: "calc(90px + var(--safe-bot,0px))", zIndex: 15, display: "flex", alignItems: "center", gap: 7, height: 44, padding: "0 16px 0 14px", borderRadius: 22, background: INK, color: "#fff", border: "none", boxShadow: "0 8px 20px rgba(28,32,48,.28)", cursor: "pointer" }}
+    >
+      <MessageCircle size={19} />
+      <span style={{ fontSize: 12.5, fontWeight: 800 }}>AI 챗봇</span>
+    </button>
+  );
+}
+
 function GuardianHome() {
   const router = useRouter();
   const go: GNav = (path) => { if (path) router.push(path); };
@@ -499,12 +534,14 @@ function GuardianHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
+      <GHeroBanner go={go} />
       <GOnboardSenior go={go} />
       <GServices go={go} />
       <GQuick go={go} />
       <GMyRequests go={go} />
       <GFeed go={go} />
       <div style={{ height: 26 }} />
+      <GAiFab />
     </div>
   );
 }
