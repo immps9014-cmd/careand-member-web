@@ -81,7 +81,7 @@ export default function NewChildPage() {
           <div>
             <label className={SECTION_LABEL}>돌봄 장소 주소</label>
             <AddressSearch onChange={setHomeAddress} />
-            <p className="text-[11px] text-warm-400 mt-1.5">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
+            <p className="text-[11px] text-warm-500 mt-1.5">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
           </div>
           <div>
             <label className={SECTION_LABEL}>특이사항 (선택)</label>
@@ -91,7 +91,7 @@ export default function NewChildPage() {
               rows={3}
               maxLength={500}
               placeholder="알레르기·투약·돌봄 요청사항 등"
-              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-400 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
+              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-500 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
             />
           </div>
         </Card>

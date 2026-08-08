@@ -40,15 +40,15 @@ export default function FavoriteCaregiversPage() {
     <div className="min-h-screen bg-warm-50 pb-24">
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-white border-b border-warm-200 px-4 py-3 flex items-center gap-2">
-        <button onClick={() => router.push("/home")} className="p-1 -ml-1 text-warm-500">
+        <button onClick={() => router.push("/home")} className="p-2.5 -ml-2.5 text-warm-500" aria-label="뒤로">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-extrabold text-warm-800">관심 돌봄전문가</h1>
-        {list.length > 0 && <span className="ml-auto text-xs font-semibold text-warm-400">{list.length}명</span>}
+        {list.length > 0 && <span className="ml-auto text-xs font-semibold text-warm-500">{list.length}명</span>}
       </div>
 
       <div className="p-4 space-y-3 lg:mx-auto lg:max-w-3xl">
-        {q.isLoading && <div className="py-12 text-center text-warm-400 text-sm">불러오는 중…</div>}
+        {q.isLoading && <div className="py-12 text-center text-warm-500 text-sm">불러오는 중…</div>}
 
         {q.isError && (
           <Card className="p-6 text-center text-warm-500 text-sm">{getApiErrorMessage(q.error)}</Card>
@@ -58,7 +58,7 @@ export default function FavoriteCaregiversPage() {
           <Card className="p-10 text-center">
             <Heart className="w-8 h-8 text-warm-300 mx-auto mb-3" />
             <div className="text-sm text-warm-600 font-semibold">아직 찜한 돌봄전문가가 없어요.</div>
-            <div className="text-xs text-warm-400 mt-1">추천·전체 목록에서 하트를 눌러 담아보세요.</div>
+            <div className="text-xs text-warm-500 mt-1">추천·전체 목록에서 하트를 눌러 담아보세요.</div>
             <Button variant="brand" size="lg" className="mt-5" onClick={() => router.push("/caregivers/browse")}>
               돌봄전문가 둘러보기
             </Button>
@@ -111,7 +111,7 @@ function FavCard({
             </div>
           )}
         </div>
-        <ChevronRight className="w-5 h-5 text-warm-300 shrink-0" />
+        <ChevronRight className="w-5 h-5 text-warm-500 shrink-0" />
       </div>
 
       <div className="flex gap-2 mt-3">

@@ -65,10 +65,10 @@ function BrowseList() {
 
       <div className="flex items-baseline justify-between mb-4">
         <h1 className="text-xl font-extrabold text-warm-800 tracking-tight">{title}</h1>
-        {!q.isLoading && <span className="text-sm font-semibold text-warm-400">{list.length}명</span>}
+        {!q.isLoading && <span className="text-sm font-semibold text-warm-500">{list.length}명</span>}
       </div>
 
-      {q.isLoading && <Card className="p-8 text-center text-warm-400 text-sm">불러오는 중…</Card>}
+      {q.isLoading && <Card className="p-8 text-center text-warm-500 text-sm">불러오는 중…</Card>}
 
       {!q.isLoading && q.isError && (
         <Card className="p-8 text-center">
@@ -86,7 +86,7 @@ function BrowseList() {
                 <h2 className="inline-flex items-center gap-1 text-[15px] font-extrabold text-brand-700">
                   <Star className="h-4 w-4 fill-current" /> 찜한 돌봄전문가
                 </h2>
-                <span className="text-xs font-semibold text-warm-400">{favorites.length}명</span>
+                <span className="text-xs font-semibold text-warm-500">{favorites.length}명</span>
               </div>
               <GroupBody list={favorites} onFav={onFav} onDetail={goDetail} />
             </section>
@@ -98,10 +98,10 @@ function BrowseList() {
               <section key={d}>
                 <div className="mb-2 flex items-baseline gap-2">
                   <h2 className="text-[15px] font-extrabold text-warm-800">{domainLabel(d)}</h2>
-                  <span className="text-xs font-semibold text-warm-400">{group.length}명</span>
+                  <span className="text-xs font-semibold text-warm-500">{group.length}명</span>
                 </div>
                 {group.length === 0 ? (
-                  <Card className="p-5 text-center text-warm-400 text-sm">등록된 전문가가 없습니다</Card>
+                  <Card className="p-5 text-center text-warm-500 text-sm">등록된 전문가가 없습니다</Card>
                 ) : (
                   <GroupBody list={group} onFav={onFav} onDetail={goDetail} />
                 )}
@@ -170,7 +170,7 @@ function GroupBody({
                       <Star className="w-3.5 h-3.5 fill-current" />
                       {c.rating}
                     </span>
-                    <span className="text-warm-400 text-xs"> ({c.rating_count})</span>
+                    <span className="text-warm-500 text-xs"> ({c.rating_count})</span>
                   </td>
                   <td className="px-3 py-3 text-center text-warm-600 tabular-nums">{c.completed_sessions}회</td>
                   <td className="px-3 py-3 text-center">
@@ -212,7 +212,7 @@ function GroupBody({
                     <Star className="w-3 h-3 fill-current" />
                     {c.rating}
                   </span>
-                  <span className="shrink-0 text-warm-400">완료 {c.completed_sessions}회</span>
+                  <span className="shrink-0 text-warm-500">완료 {c.completed_sessions}회</span>
                 </div>
               </div>
               <FavBox active={!!c.is_favorited} onToggle={() => onFav(c.id)} />
@@ -247,7 +247,7 @@ function FavBox({ active, onToggle }: { active: boolean; onToggle: () => void })
 
 export default function CaregiverBrowsePage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-warm-400 text-sm">불러오는 중…</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-warm-500 text-sm">불러오는 중…</div>}>
       <BrowseList />
     </Suspense>
   );

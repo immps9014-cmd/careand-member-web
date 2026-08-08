@@ -160,7 +160,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
   if (!hasHydrated || !isAuthenticated || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-warm-400">
+      <div className="flex items-center justify-center min-h-screen text-warm-500">
         로딩 중…
       </div>
     );

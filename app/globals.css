@@ -59,6 +59,19 @@
   }
 }
 
+/* prefers-reduced-motion: 모션에 민감한 사용자는 애니메이션/트랜지션을 즉시 완료 처리
+   (tailwindcss-animate의 animate-in/slide-in-from-* 등 포함). 색상·레이아웃 로직에는 영향 없음. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer components {
   .card-soft {
     @apply bg-white rounded-lg shadow-card border border-warm-100;

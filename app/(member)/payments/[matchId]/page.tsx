@@ -98,7 +98,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
         <p className="mt-1.5 text-sm text-warm-500">확정된 돌봄 매칭 금액을 결제합니다.</p>
 
         {calc.isLoading ? (
-          <p className="mt-6 text-sm text-warm-400">결제 금액을 불러오는 중…</p>
+          <p className="mt-6 text-sm text-warm-500">결제 금액을 불러오는 중…</p>
         ) : calc.isError || !calc.data ? (
           <Card className="mt-5 p-5">
             <p className="text-sm text-warm-500">
@@ -119,7 +119,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                   <span className="text-sm text-warm-500">
                     장기요양공단 부담
                     {calc.data.copay_rate != null && (
-                      <span className="text-warm-400"> · 본인부담 {Math.round(calc.data.copay_rate * 100)}%</span>
+                      <span className="text-warm-500"> · 본인부담 {Math.round(calc.data.copay_rate * 100)}%</span>
                     )}
                   </span>
                   <span className="text-[14px] font-semibold text-warm-500 tabular-nums">- {won(calc.data.ltc_pay)}</span>
@@ -130,7 +130,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                 <span className="text-[22px] font-extrabold text-brand-700 tabular-nums">{won(calc.data.self_pay)}</span>
               </div>
               {calc.data.voucher_remaining != null && (
-                <p className="mt-2 text-[11.5px] text-warm-400 tabular-nums">
+                <p className="mt-2 text-[11.5px] text-warm-500 tabular-nums">
                   장기요양 바우처 잔액 {won(calc.data.voucher_remaining)}
                   {calc.data.voucher_after_payment != null && ` → 결제 후 ${won(calc.data.voucher_after_payment)}`}
                 </p>
@@ -156,15 +156,15 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                         (on ? "border-brand-500 bg-brand-50" : "border-warm-200 bg-white")
                       }
                     >
-                      <Icon className={"h-5 w-5 " + (on ? "text-brand-600" : "text-warm-400")} />
+                      <Icon className={"h-5 w-5 " + (on ? "text-brand-600" : "text-warm-500")} />
                       <span className={"text-[12.5px] font-bold " + (on ? "text-brand-700" : "text-warm-700")}>{m.label}</span>
-                      <span className="text-[10px] text-warm-400">{m.desc}</span>
+                      <span className="text-[10px] text-warm-500">{m.desc}</span>
                     </button>
                   );
                 })}
               </div>
               {method === "card" && (
-                <p className="mt-2.5 text-[11px] leading-relaxed text-warm-400">
+                <p className="mt-2.5 text-[11px] leading-relaxed text-warm-500">
                   {isRealPgConfigured()
                     ? "‘결제하기’를 누르면 카드 결제창이 열립니다."
                     : "현재는 테스트 모드예요. 실제 카드 청구 없이 결제 절차만 진행됩니다."}

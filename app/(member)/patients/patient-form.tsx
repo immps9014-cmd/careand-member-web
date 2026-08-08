@@ -92,8 +92,8 @@ export function PatientForm({
   return (
     <Card className="p-5 space-y-4">
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">성함</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={50} placeholder="홍길동" />
+        <label htmlFor="patient-name" className="block text-xs font-semibold text-warm-600 mb-1.5">성함</label>
+        <Input id="patient-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} placeholder="홍길동" />
       </div>
 
       <div>
@@ -118,13 +118,13 @@ export function PatientForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">병원명</label>
-        <Input value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} maxLength={100} placeholder="OO대학교병원" />
+        <label htmlFor="patient-hospital" className="block text-xs font-semibold text-warm-600 mb-1.5">병원명</label>
+        <Input id="patient-hospital" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} maxLength={100} placeholder="OO대학교병원" />
       </div>
 
       {/* 병원 주소: Daum 우편번호 검색 */}
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">병원 주소</label>
+        <label htmlFor="patient-address-detail" className="block text-xs font-semibold text-warm-600 mb-1.5">병원 주소</label>
         <Button type="button" variant="outline" className="w-full mb-2" onClick={handleSearchAddress}>
           <Search className="w-4 h-4" /> 주소 검색
         </Button>
@@ -132,12 +132,13 @@ export function PatientForm({
           <div className="flex items-start gap-2 text-sm text-warm-700 bg-warm-50 rounded-md p-2.5 mb-2">
             <MapPin className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
             <span>
-              {zonecode && <span className="text-xs text-warm-400 font-en mr-1">[{zonecode}]</span>}
+              {zonecode && <span className="text-xs text-warm-500 font-en mr-1">[{zonecode}]</span>}
               {baseAddress}
             </span>
           </div>
         )}
         <Input
+          id="patient-address-detail"
           value={detailAddress}
           onChange={(e) => setDetailAddress(e.target.value)}
           maxLength={100}
@@ -147,8 +148,8 @@ export function PatientForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">병동·호실 (선택)</label>
-        <Input value={wardRoom} onChange={(e) => setWardRoom(e.target.value)} maxLength={50} placeholder="본관 7병동 701호" />
+        <label htmlFor="patient-ward" className="block text-xs font-semibold text-warm-600 mb-1.5">병동·호실 (선택)</label>
+        <Input id="patient-ward" value={wardRoom} onChange={(e) => setWardRoom(e.target.value)} maxLength={50} placeholder="본관 7병동 701호" />
       </div>
 
       <div>
@@ -169,8 +170,8 @@ export function PatientForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">질환 (선택, 쉼표로 구분)</label>
-        <Input value={diseases} onChange={(e) => setDiseases(e.target.value)} placeholder="뇌경색, 당뇨, 고관절 골절" />
+        <label htmlFor="patient-diseases" className="block text-xs font-semibold text-warm-600 mb-1.5">질환 (선택, 쉼표로 구분)</label>
+        <Input id="patient-diseases" value={diseases} onChange={(e) => setDiseases(e.target.value)} placeholder="뇌경색, 당뇨, 고관절 골절" />
       </div>
 
       {/* 케어 요구사항: 프리셋 태그 + 자유입력 */}
@@ -215,14 +216,15 @@ export function PatientForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">특이사항 (선택)</label>
+        <label htmlFor="patient-notes" className="block text-xs font-semibold text-warm-600 mb-1.5">특이사항 (선택)</label>
         <textarea
+          id="patient-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           maxLength={1000}
           placeholder="수술 이력, 주의사항, 보호자 요청 등"
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus:outline-none focus:border-brand-500 resize-none"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-500 focus:outline-none focus:border-brand-500 resize-none"
         />
       </div>
 

@@ -571,7 +571,7 @@ export default function NewRequestPage() {
                     }
                   >
                     {on && "✓ "}{nm}
-                    {c.region ? <span className={on ? "text-white/80" : "text-warm-400"}> · {c.region}</span> : null}
+                    {c.region ? <span className={on ? "text-white/80" : "text-warm-500"}> · {c.region}</span> : null}
                   </button>
                 );
               })}
@@ -642,7 +642,7 @@ export default function NewRequestPage() {
                 <span
                   className={
                     "mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl " +
-                    (active ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-400")
+                    (active ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-500")
                   }
                 >
                   <Icon className="h-[18px] w-[18px]" />
@@ -650,7 +650,7 @@ export default function NewRequestPage() {
                 <div className={"text-[12.5px] font-bold " + (active ? "text-brand-700" : "text-warm-800")}>
                   {d.label}
                 </div>
-                <div className="text-[10px] text-warm-400 mt-0.5">{d.desc}</div>
+                <div className="text-[10px] text-warm-500 mt-0.5">{d.desc}</div>
               </button>
             );
           })}
@@ -999,7 +999,7 @@ export default function NewRequestPage() {
           {recurringNeedsWeekdays && (
             <div className="mt-4">
               <label className={SECTION_LABEL}>
-                반복 요일 <span className="font-semibold text-warm-400">(정기 · 중복 가능)</span>
+                반복 요일 <span className="font-semibold text-warm-500">(정기 · 중복 가능)</span>
               </label>
               <div className="grid grid-cols-7 gap-1.5">
                 {([[1, "월"], [2, "화"], [3, "수"], [4, "목"], [5, "금"], [6, "토"], [7, "일"]] as const).map(([d, l]) => {
@@ -1039,7 +1039,7 @@ export default function NewRequestPage() {
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-2 text-[11px] text-warm-400">
+              <p className="mt-2 text-[11px] text-warm-500">
                 {weekdays.length
                   ? `선택한 요일마다 ${weeks}주간 반복 방문해요. (매칭 확정 후 회차별 일정이 생성돼요)`
                   : "반복할 요일을 선택해 주세요."}
@@ -1072,7 +1072,7 @@ export default function NewRequestPage() {
               </button>
               <div className="flex-1 text-center">
                 <span className="text-[22px] font-extrabold text-warm-800">{duration}</span>
-                <span className="text-[13px] font-semibold text-warm-400"> 분 · {durHours}시간</span>
+                <span className="text-[13px] font-semibold text-warm-500"> 분 · {durHours}시간</span>
               </div>
               <button
                 type="button"
@@ -1107,7 +1107,7 @@ export default function NewRequestPage() {
                 {start.slice(11, 16)}부터 {durHours}시간 진행 예정이에요.
               </p>
             )}
-            <p className="text-[11px] text-warm-400 mt-2">
+            <p className="text-[11px] text-warm-500 mt-2">
               60분~{maxDuration}분{domain === "nursing" ? " · 최대 24시간" : ""} · 30분 단위로 조절돼요
             </p>
           </div>
@@ -1116,7 +1116,7 @@ export default function NewRequestPage() {
           {serviceGuide(domain).items.length > 0 && (
             <div className="mt-4">
               <label className={SECTION_LABEL}>
-                필요한 세부 항목 <span className="font-semibold text-warm-400">(선택 · 중복 가능)</span>
+                필요한 세부 항목 <span className="font-semibold text-warm-500">(선택 · 중복 가능)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {serviceGuide(domain).items.map((it) => {
@@ -1136,7 +1136,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-warm-400 mt-1.5">
+              <p className="text-[11px] text-warm-500 mt-1.5">
                 필요한 항목을 선택하면 돌봄전문가에게 전달돼 매칭이 더 정확해져요.
               </p>
             </div>
@@ -1155,7 +1155,7 @@ export default function NewRequestPage() {
                 onChange={(e) => setDays(Number(e.target.value))}
                 className="h-12 rounded-xl text-[14.5px]"
               />
-              <p className="text-[11px] text-warm-400 mt-1.5">
+              <p className="text-[11px] text-warm-500 mt-1.5">
                 {days >= 2 ? `매일 같은 시간에 ${days}일간 반복되는 정기 간병으로 요청됩니다.` : "하루 단위 간병으로 요청됩니다."}
               </p>
             </div>
@@ -1165,7 +1165,7 @@ export default function NewRequestPage() {
           {isCompanion && (
             <div className="mt-4 rounded-2xl border border-warm-200 bg-warm-50/60 p-4">
               <label className={SECTION_LABEL}>동행 경로</label>
-              <p className="-mt-1 mb-2 text-[11px] text-warm-400">
+              <p className="-mt-1 mb-2 text-[11px] text-warm-500">
                 만남 장소는 앞서 선택한 서비스 주소예요. 방문 장소와 이동 수단을 알려주세요.
               </p>
               <div className="text-[12px] font-bold text-warm-600 mb-1">방문 장소</div>
@@ -1206,12 +1206,13 @@ export default function NewRequestPage() {
                     value={wp}
                     onChange={(e) => setWaypoints((w) => w.map((x, j) => (j === i ? e.target.value : x)))}
                     placeholder={`경유지 ${i + 1} 주소`}
+                    aria-label={`경유지 ${i + 1} 주소`}
                     className="h-11 flex-1 rounded-xl text-[13.5px]"
                   />
                   <button
                     type="button"
                     onClick={() => setWaypoints((w) => w.filter((_, j) => j !== i))}
-                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-warm-200 text-warm-400"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-warm-200 text-warm-500"
                     aria-label="경유지 삭제"
                   >
                     <Minus className="h-4 w-4" />
@@ -1238,7 +1239,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-warm-400">
+              <p className="mt-2 text-[11px] leading-relaxed text-warm-500">
                 자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.
               </p>
             </div>
@@ -1268,7 +1269,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-warm-400 mt-1.5">
+              <p className="text-[11px] text-warm-500 mt-1.5">
                 {photoRequired
                   ? "작업자가 완료사진을 등록해야 작업을 종료할 수 있습니다."
                   : "완료사진 없이 작업을 종료할 수 있습니다."}
@@ -1311,7 +1312,7 @@ export default function NewRequestPage() {
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-warm-400 mt-1.5">
+                <p className="text-[11px] text-warm-500 mt-1.5">
                   {genderRecommended && !genderTouched && recipientGender
                     ? "이 서비스는 신체 케어가 포함돼 동성 돌봄을 권장합니다. 대상자와 같은 성별로 기본 선택했어요. (변경 가능)"
                     : "선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)"}
@@ -1322,14 +1323,15 @@ export default function NewRequestPage() {
 
           {/* 메모 */}
           <div className="mt-4">
-            <label className={SECTION_LABEL}>요청사항 (선택)</label>
+            <label htmlFor="request-memo" className={SECTION_LABEL}>요청사항 (선택)</label>
             <textarea
+              id="request-memo"
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={3}
               maxLength={1000}
               placeholder="특이사항이나 요청사항을 입력하세요"
-              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-400 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
+              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-500 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
             />
           </div>
         </Card>
@@ -1414,8 +1416,8 @@ export default function NewRequestPage() {
 
         {/* 스텝 1·2 하단 반복 고지(간략) */}
         {step !== 3 && (
-          <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-warm-400">
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-warm-400" />
+          <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-warm-500">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-warm-500" />
             <span>안전을 위해 돌봄전문가와의 직거래·외부 연락처 교환은 금지돼요.</span>
           </div>
         )}
@@ -1428,14 +1430,14 @@ export default function NewRequestPage() {
         <Card className="mt-3.5 p-4 lg:mt-0">
           <label className={SECTION_LABEL}>적정 간병비</label>
           {!estimateEnabled ? (
-            <p className="text-[12.5px] text-warm-400 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
+            <p className="text-[12.5px] text-warm-500 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
           ) : priceEstimate.isLoading ? (
-            <p className="text-[12.5px] text-warm-400 mt-1">권장 시급 계산 중…</p>
+            <p className="text-[12.5px] text-warm-500 mt-1">권장 시급 계산 중…</p>
           ) : priceEstimate.data ? (
             <div className="mt-1.5">
               <div className="flex items-baseline gap-2">
                 <span className="text-[22px] font-extrabold text-brand-700 tabular-nums">{won(priceEstimate.data.suggested)}</span>
-                <span className="text-[12px] text-warm-400">권장 시급</span>
+                <span className="text-[12px] text-warm-500">권장 시급</span>
               </div>
               <div className="text-[12px] text-warm-500 mt-0.5 tabular-nums">
                 권장 범위 {won(priceEstimate.data.floor)} ~ {won(priceEstimate.data.ceil)}
@@ -1444,7 +1446,7 @@ export default function NewRequestPage() {
               </div>
             </div>
           ) : (
-            <p className="text-[12.5px] text-warm-400 mt-1">권장 시급을 불러오지 못했습니다.</p>
+            <p className="text-[12.5px] text-warm-500 mt-1">권장 시급을 불러오지 못했습니다.</p>
           )}
 
           <label className={SECTION_LABEL + " mt-4"}>희망 상한 시급 (선택)</label>
@@ -1457,13 +1459,13 @@ export default function NewRequestPage() {
             placeholder={priceEstimate.data ? String(priceEstimate.data.suggested) : "예) 20000"}
             className="tabular-nums"
           />
-          <p className="text-[11px] text-warm-400 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
+          <p className="text-[11px] text-warm-500 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
         </Card>
         )}
 
         {/* 요청 전 안내 (확인 스텝) */}
         {step === 3 && (
-        <div className="mt-3.5 flex items-center gap-2 text-[11.5px] text-warm-400">
+        <div className="mt-3.5 flex items-center gap-2 text-[11.5px] text-warm-500">
           <Sparkle className="h-3.5 w-3.5 text-brand-500 shrink-0" />
           <span>
             요청을 보내면 AI가 잘 맞는 후보 <b className="text-warm-600">3~5명</b>을 빠르게 추천해 드려요.

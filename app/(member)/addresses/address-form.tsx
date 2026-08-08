@@ -65,13 +65,13 @@ export function AddressForm({
   return (
     <Card className="p-5 space-y-4">
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">주소 이름</label>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} maxLength={50} placeholder="우리집, 부모님댁" />
+        <label htmlFor="address-label" className="block text-xs font-semibold text-warm-600 mb-1.5">주소 이름</label>
+        <Input id="address-label" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={50} placeholder="우리집, 부모님댁" />
       </div>
 
       {/* 주소: Daum 우편번호 검색 */}
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">주소</label>
+        <label htmlFor="address-detail" className="block text-xs font-semibold text-warm-600 mb-1.5">주소</label>
         <Button type="button" variant="outline" className="w-full mb-2" onClick={handleSearchAddress}>
           <Search className="w-4 h-4" /> 주소 검색
         </Button>
@@ -79,12 +79,13 @@ export function AddressForm({
           <div className="flex items-start gap-2 text-sm text-warm-700 bg-warm-50 rounded-md p-2.5 mb-2">
             <MapPin className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
             <span>
-              {zonecode && <span className="text-xs text-warm-400 font-en mr-1">[{zonecode}]</span>}
+              {zonecode && <span className="text-xs text-warm-500 font-en mr-1">[{zonecode}]</span>}
               {baseAddress}
             </span>
           </div>
         )}
         <Input
+          id="address-detail"
           value={detailAddress}
           onChange={(e) => setDetailAddress(e.target.value)}
           maxLength={100}
@@ -110,8 +111,9 @@ export function AddressForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">평수 (㎡, 선택)</label>
+        <label htmlFor="address-size" className="block text-xs font-semibold text-warm-600 mb-1.5">평수 (㎡, 선택)</label>
         <Input
+          id="address-size"
           type="number"
           min={1}
           max={3000}
@@ -139,14 +141,15 @@ export function AddressForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-warm-600 mb-1.5">출입 안내 (선택)</label>
+        <label htmlFor="address-entry-note" className="block text-xs font-semibold text-warm-600 mb-1.5">출입 안내 (선택)</label>
         <textarea
+          id="address-entry-note"
           value={entryNote}
           onChange={(e) => setEntryNote(e.target.value)}
           rows={3}
           maxLength={500}
           placeholder="공동현관 비밀번호, 주차 안내 등 (확정된 돌봄전문가에게만 전달됩니다)"
-          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus:outline-none focus:border-brand-500 resize-none"
+          className="w-full rounded-md border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-500 focus:outline-none focus:border-brand-500 resize-none"
         />
       </div>
 

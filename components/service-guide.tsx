@@ -41,8 +41,8 @@ export function ServiceGuide({ domain, confirmed, onConfirm, className }: Servic
         <div className="text-[12.5px] font-bold text-warm-500">제공하지 않는 서비스</div>
         <ul className="mt-2 space-y-1.5">
           {g.notProvided.map((item) => (
-            <li key={item} className="flex items-start gap-1.5 text-[12px] leading-relaxed text-warm-400">
-              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warm-300" strokeWidth={3} />
+            <li key={item} className="flex items-start gap-1.5 text-[12px] leading-relaxed text-warm-500">
+              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warm-500" strokeWidth={3} />
               <span>{item}</span>
             </li>
           ))}
@@ -62,7 +62,7 @@ export function ServiceGuide({ domain, confirmed, onConfirm, className }: Servic
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-[11px] leading-relaxed text-warm-400">
+        <p className="mt-2 text-[11px] leading-relaxed text-warm-500">
           위 상태에 해당하면 안전을 위해 매칭이 제한될 수 있어요. 정확한 이용 여부는 고객센터로 문의해 주세요.
         </p>
       </div>

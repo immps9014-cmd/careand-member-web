@@ -58,10 +58,10 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
         <h1 className="text-xl font-extrabold text-warm-800">케어 일지</h1>
       </div>
 
-      {validId && query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {validId && query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
 
       {(!validId || query.isError) && (
-        <Card className="p-8 text-center text-warm-400 text-sm mt-3">
+        <Card className="p-8 text-center text-warm-500 text-sm mt-3">
           아직 일지를 볼 수 없습니다.
           <br />관리자 검수가 끝나면 케어 일지가 도착해요.
         </Card>
@@ -69,7 +69,7 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
 
       {summary && (
         <>
-          <p className="text-xs text-warm-400 mb-4">
+          <p className="text-xs text-warm-500 mb-4">
             {summary.generated_at ? formatDateTime(summary.generated_at) : ""} 기준
           </p>
 
@@ -104,7 +104,7 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
           )}
 
           {typeof summary.confidence === "number" && (
-            <p className="text-xs text-warm-400 text-center">
+            <p className="text-xs text-warm-500 text-center">
               AI 신뢰도 {Math.round(summary.confidence * 100)}%
             </p>
           )}

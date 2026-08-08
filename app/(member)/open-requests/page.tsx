@@ -55,7 +55,7 @@ export default function OpenRequestsPage() {
     <div className="min-h-screen bg-warm-50">
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-white border-b border-warm-200 px-4 py-3 flex items-center gap-2">
-        <button onClick={() => router.back()} className="p-1 -ml-1 text-warm-500">
+        <button onClick={() => router.back()} className="p-2.5 -ml-2.5 text-warm-500" aria-label="뒤로">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-extrabold text-warm-800">{ui.actionNoun} 요청 둘러보기</h1>
@@ -70,7 +70,7 @@ export default function OpenRequestsPage() {
       <div className="p-4 space-y-3 lg:mx-auto lg:max-w-4xl">
         {tab === "open" ? (
           <>
-            {open.isLoading && <div className="py-12 text-center text-warm-400 text-sm">불러오는 중…</div>}
+            {open.isLoading && <div className="py-12 text-center text-warm-500 text-sm">불러오는 중…</div>}
             {open.isError && (
               <Card className="p-6 text-center text-warm-500 text-sm">
                 {getApiErrorMessage(open.error)}
@@ -80,7 +80,7 @@ export default function OpenRequestsPage() {
               <Card className="p-10 text-center">
                 <Search className="w-8 h-8 text-warm-300 mx-auto mb-3" />
                 <div className="text-sm text-warm-500">지금은 지원 가능한 {ui.actionNoun} 요청이 없어요.</div>
-                <div className="text-xs text-warm-400 mt-1">새 요청이 올라오면 여기에 표시됩니다.</div>
+                <div className="text-xs text-warm-500 mt-1">새 요청이 올라오면 여기에 표시됩니다.</div>
               </Card>
             )}
             {open.data?.map((r) => (
@@ -96,7 +96,7 @@ export default function OpenRequestsPage() {
           </>
         ) : (
           <>
-            {blocks.isLoading && <div className="py-12 text-center text-warm-400 text-sm">불러오는 중…</div>}
+            {blocks.isLoading && <div className="py-12 text-center text-warm-500 text-sm">불러오는 중…</div>}
             {blocks.data?.length === 0 && (
               <Card className="p-10 text-center text-sm text-warm-500">기피한 대상이 없어요.</Card>
             )}
@@ -139,7 +139,7 @@ function BlockReasonSheet({
       >
         <div className="flex items-start justify-between mb-1">
           <h2 className="text-base font-extrabold text-warm-800">‘{target.recipient_name}’ 기피하기</h2>
-          <button onClick={onClose} className="p-1 -mr-1 text-warm-400"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-3 -mr-3 text-warm-500" aria-label="닫기"><X className="w-5 h-5" /></button>
         </div>
         <p className="text-xs text-warm-500 mb-4">기피하면 이후 검색·자동 매칭에서 제외돼요. (사유는 선택)</p>
 
@@ -219,7 +219,7 @@ function OpenCard({
     <Card className="p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-warm-400" />
+          <User className="w-4 h-4 text-warm-500" />
           <span className="text-base font-extrabold text-warm-800">{r.recipient_name}</span>
         </div>
         <Badge variant="outline">{DOMAIN_LABEL[r.service_domain] ?? r.service_domain}</Badge>
@@ -253,14 +253,14 @@ function OpenCard({
           </div>
           <div className="space-y-1 text-xs text-warm-600">
             {r.companion_route.destination && (
-              <div className="flex gap-1.5"><span className="text-warm-400 shrink-0">방문</span><span className="font-semibold">{r.companion_route.destination}</span></div>
+              <div className="flex gap-1.5"><span className="text-warm-500 shrink-0">방문</span><span className="font-semibold">{r.companion_route.destination}</span></div>
             )}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-warm-500">
               <span>이동 {r.companion_route.transport === "taxi" ? "택시" : r.companion_route.transport === "transit" ? "대중교통" : "협의"}</span>
               <span>복귀 {r.companion_route.return_to_origin ? "만남 장소" : "별도 장소"}</span>
               {r.companion_route.waypoint_count > 0 && <span>경유 {r.companion_route.waypoint_count}곳</span>}
             </div>
-            <div className="text-[11px] text-warm-400">정확한 장소는 매칭 확정 후 안내돼요.</div>
+            <div className="text-[11px] text-warm-500">정확한 장소는 매칭 확정 후 안내돼요.</div>
           </div>
         </div>
       )}
@@ -287,11 +287,11 @@ function BlockCard({ b, onRemove, removing }: { b: MyBlock; onRemove: () => void
   return (
     <Card className="p-4 flex items-center gap-3">
       <div className="w-9 h-9 rounded-full bg-warm-100 flex items-center justify-center shrink-0">
-        <Ban className="w-4 h-4 text-warm-400" />
+        <Ban className="w-4 h-4 text-warm-500" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-bold text-warm-800">{b.target_name}</div>
-        <div className="text-xs text-warm-400 truncate">
+        <div className="text-xs text-warm-500 truncate">
           {DOMAIN_LABEL[b.target_type] ?? b.target_type}
           {b.reason ? ` · ${b.reason}` : ""}
         </div>

@@ -26,9 +26,9 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
       {query.data?.data.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">알림이 없습니다</Card>
+        <Card className="p-8 text-center text-warm-500 text-sm">알림이 없습니다</Card>
       )}
 
       <div className="space-y-2">
@@ -41,7 +41,7 @@ export default function NotificationsPage() {
             <div className="flex items-start gap-3">
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                n.is_read ? "bg-warm-100 text-warm-400" : "bg-brand-50 text-brand-600"
+                n.is_read ? "bg-warm-100 text-warm-500" : "bg-brand-50 text-brand-600"
               )}>
                 <Bell className="w-4 h-4" />
               </div>
@@ -50,7 +50,7 @@ export default function NotificationsPage() {
                   <span className={cn("text-sm font-semibold truncate", n.is_read ? "text-warm-600" : "text-warm-800")}>
                     {n.title}
                   </span>
-                  <span className="text-[11px] text-warm-400 flex-shrink-0">{n.created_ago}</span>
+                  <span className="text-[11px] text-warm-500 flex-shrink-0">{n.created_ago}</span>
                 </div>
                 <p className="text-xs text-warm-500 mt-0.5 line-clamp-2">{n.body}</p>
               </div>

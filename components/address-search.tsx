@@ -46,7 +46,7 @@ export function AddressSearch({ onChange, className }: AddressSearchProps) {
         <div className="mb-2 flex items-start gap-2 rounded-md bg-warm-50 p-2.5 text-sm text-warm-700">
           <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-500" />
           <span>
-            {zonecode && <span className="font-en mr-1 text-xs text-warm-400">[{zonecode}]</span>}
+            {zonecode && <span className="font-en mr-1 text-xs text-warm-500">[{zonecode}]</span>}
             {base}
           </span>
         </div>

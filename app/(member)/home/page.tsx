@@ -37,17 +37,36 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
     <div style={{ background: "#fff", padding: "calc(12px + var(--safe-top,0px)) 16px 12px", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${LINE}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
         <div style={{ fontSize: 23, fontWeight: 900, letterSpacing: "-.03em", color: ACCENT, fontStyle: "italic" }}>Care&amp;</div>
-        <div onClick={() => go(searchTo)} style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}>
+        <div
+          onClick={() => go(searchTo)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(searchTo); } }}
+          style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2.6"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
           <span style={{ fontSize: 13, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{searchPlaceholder}</span>
         </div>
-        <div onClick={() => go("/notifications")} style={{ position: "relative", cursor: "pointer" }}>
+        <div
+          onClick={() => go("/notifications")}
+          role="button"
+          tabIndex={0}
+          aria-label={unread > 0 ? `알림, 읽지 않은 알림 ${unread}건` : "알림"}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go("/notifications"); } }}
+          style={{ position: "relative", cursor: "pointer" }}
+        >
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.9"><path d="M5 7h14l-1.2 10.5a2 2 0 01-2 1.8H8.2a2 2 0 01-2-1.8z" /><path d="M9 7a3 3 0 016 0" /></svg>
           {unread > 0 && (
             <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: ACCENT, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
           )}
         </div>
-        <div onClick={() => go("/mypage")} style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}>
+        <div
+          onClick={() => go("/mypage")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go("/mypage"); } }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}
+        >
           <span style={{ fontSize: 10, fontWeight: 700, color: INK3 }}>{roleLabel(user?.role)}</span>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
         </div>
@@ -112,7 +131,13 @@ function GCgRow({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg
   const av = display.charAt(0) || "?";
   const meta = [c.spec, c.region, c.distance_km != null ? `${c.distance_km}km` : null].filter(Boolean).join(" · ");
   return (
-    <div onClick={() => go(`/caregivers/${c.id}`)} style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer" }}>
+    <div
+      onClick={() => go(`/caregivers/${c.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(`/caregivers/${c.id}`); } }}
+      style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer" }}
+    >
       <div style={{ width: 46, height: 46, borderRadius: "50%", background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: pal.fg, flexShrink: 0 }}>{av}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -774,7 +799,7 @@ function CaregiverHome() {
 
   // 가입 직후: 자격 검수(pending)·반려(rejected)·등록 미완료(404) → 온보딩 화면
   if (profile.isLoading && !profile.data) {
-    return <div className="p-8 text-center text-warm-400 text-sm">불러오는 중…</div>;
+    return <div className="p-8 text-center text-warm-500 text-sm">불러오는 중…</div>;
   }
   const profileErrStatus = getApiErrorStatus(profile.error);
   // 미등록(404)·검수중·반려만 온보딩으로. 일시 오류(네트워크·5xx)는 온보딩이 아니라 재시도 안내.
@@ -813,8 +838,8 @@ function CaregiverHome() {
       {/* 이번 달 요약 */}
       <Card className="p-5 mb-6 border-brand-200" style={{ background: "#FBF7EC" }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">이번 달 요약</h2>
-          <span className="text-[11px] font-semibold text-warm-400">{now.getMonth() + 1}월</span>
+          <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase">이번 달 요약</h2>
+          <span className="text-[11px] font-semibold text-warm-500">{now.getMonth() + 1}월</span>
         </div>
         <div className="flex divide-x divide-warm-200">
           <div className="flex-1 pr-4">
@@ -827,7 +852,7 @@ function CaregiverHome() {
           </div>
         </div>
         {(profile.data?.completed_sessions ?? 0) > 0 && (
-          <div className="mt-3 pt-3 border-t border-warm-200/70 flex items-center justify-between text-[11px] text-warm-400">
+          <div className="mt-3 pt-3 border-t border-warm-200/70 flex items-center justify-between text-[11px] text-warm-500">
             <span>누적 {profile.data?.completed_sessions}건 완료</span>
             {(profile.data?.rating_count ?? 0) > 0 && (
               <span>⭐ {profile.data?.rating_avg?.toFixed(1)} ({profile.data?.rating_count})</span>
@@ -848,11 +873,11 @@ function CaregiverHome() {
           <div className="text-sm font-extrabold text-warm-800">{ui.actionNoun} 요청 둘러보기</div>
           <div className="text-xs text-warm-500 mt-0.5">내 직군의 열린 요청에 직접 지원해보세요</div>
         </div>
-        <ChevronRight className="w-5 h-5 text-warm-300" />
+        <ChevronRight className="w-5 h-5 text-warm-500" />
       </Card>
 
       {/* 자주 쓰는 메뉴 (하단 탭바와 중복 최소화한 바로가기) */}
-      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">자주 쓰는 메뉴</h2>
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mb-3">자주 쓰는 메뉴</h2>
       <div className="grid grid-cols-4 gap-2 mb-6">
         {[
           { l: "일감찾기", to: "/open-requests", bg: "#EAF1FF", fg: "#3E72D6", Ic: Search },
@@ -871,11 +896,11 @@ function CaregiverHome() {
 
       {/* 매칭 알림 (수락 대기) */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">새 매칭 제안</h2>
-        <span className="text-xs text-warm-400">{pending.length}건</span>
+        <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase">새 매칭 제안</h2>
+        <span className="text-xs text-warm-500">{pending.length}건</span>
       </div>
       {pending.length === 0 && (
-        <Card className="p-6 text-center text-warm-400 text-sm mb-6">대기 중인 매칭 제안이 없습니다</Card>
+        <Card className="p-6 text-center text-warm-500 text-sm mb-6">대기 중인 매칭 제안이 없습니다</Card>
       )}
       <div className="space-y-4 mb-7">
         {pending.map((m) => (
@@ -883,7 +908,7 @@ function CaregiverHome() {
             {/* 새 요청 헤더 */}
             <div className="flex items-center gap-2 mb-3">
               <Badge variant="brand">새 요청</Badge>
-              <span className="text-xs font-semibold text-warm-400 font-en">AI {(m.ai_score * 100).toFixed(0)}점 추천</span>
+              <span className="text-xs font-semibold text-warm-500 font-en">AI {(m.ai_score * 100).toFixed(0)}점 추천</span>
               {m.rank === 1 && <Badge variant="success" className="ml-auto">1순위</Badge>}
             </div>
 
@@ -916,7 +941,7 @@ function CaregiverHome() {
               </div>
               <div className="flex items-center justify-between py-2.5">
                 <span className="flex items-center gap-1.5 text-xs text-warm-500"><MapPin className="w-3.5 h-3.5" /> 이동 거리</span>
-                <span className="text-sm font-medium text-warm-400">위치 확인 필요</span>
+                <span className="text-sm font-medium text-warm-500">위치 확인 필요</span>
               </div>
               {m.price_guide?.suggested != null && (
                 <div className="flex items-center justify-between py-2.5">
@@ -924,7 +949,7 @@ function CaregiverHome() {
                   <span className="text-sm font-semibold text-warm-700 tabular-nums">
                     {formatKRW(m.price_guide.suggested)}
                     {m.price_guide.floor != null && m.price_guide.ceil != null && (
-                      <span className="text-[11px] font-medium text-warm-400"> ({formatKRW(m.price_guide.floor)}~{formatKRW(m.price_guide.ceil)})</span>
+                      <span className="text-[11px] font-medium text-warm-500"> ({formatKRW(m.price_guide.floor)}~{formatKRW(m.price_guide.ceil)})</span>
                     )}
                   </span>
                 </div>
@@ -983,8 +1008,8 @@ function CaregiverHome() {
       {acceptedMatches.length > 0 && (
         <>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase">진행 중인 매칭</h2>
-            <span className="text-xs text-warm-400">{acceptedMatches.length}건</span>
+            <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase">진행 중인 매칭</h2>
+            <span className="text-xs text-warm-500">{acceptedMatches.length}건</span>
           </div>
           <div className="space-y-4 mb-7">
             {acceptedMatches.map((m) => (
@@ -994,7 +1019,7 @@ function CaregiverHome() {
                     <span className="text-base font-extrabold text-warm-800">{m.senior_name}</span>
                     <Badge variant="outline">{DOMAIN[m.service_domain] ?? m.service_domain}</Badge>
                   </div>
-                  <span className="text-xs text-warm-400">
+                  <span className="text-xs text-warm-500">
                     {m.scheduled_start ? formatDateTime(m.scheduled_start) : "일정 협의 중"}
                   </span>
                 </div>
@@ -1012,9 +1037,9 @@ function CaregiverHome() {
       )}
 
       {/* 오늘 일정 */}
-      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-3">내 {ui.actionNoun} 일정</h2>
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mb-3">내 {ui.actionNoun} 일정</h2>
       {sessions.data?.length === 0 && (
-        <Card className="p-6 text-center text-warm-400 text-sm">예정된 일정이 없습니다</Card>
+        <Card className="p-6 text-center text-warm-500 text-sm">예정된 일정이 없습니다</Card>
       )}
       <div className="space-y-3">
         {sessions.data?.map((s) => {
@@ -1071,7 +1096,7 @@ function CaregiverHome() {
                         />
                       </label>
                       {(photoCount[s.id] ?? 0) === 0 && (
-                        <p className="text-[11px] text-warm-400 text-center">
+                        <p className="text-[11px] text-warm-500 text-center">
                           완료 사진을 1장 이상 등록해야 퇴근 체크가 완료됩니다
                         </p>
                       )}
@@ -1164,7 +1189,7 @@ function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | nu
         </p>
       </Card>
 
-      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mt-7 mb-3">진행 상황</h2>
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mt-7 mb-3">진행 상황</h2>
       <Card className="p-5">
         <OnbStep state="done" label="가입 완료" desc="계정이 생성되었어요" />
         <OnbStep state={!isHk && profile?.license_verified ? "done" : "active"} label={c.verifyLabel} desc={c.verifyDesc} />
@@ -1172,7 +1197,7 @@ function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | nu
         <OnbStep state="todo" label="활동 시작" desc={isHk ? "가사 요청을 받을 수 있어요" : "매칭 제안을 받을 수 있어요"} last />
       </Card>
 
-      <h2 className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mt-7 mb-3">제출한 정보</h2>
+      <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mt-7 mb-3">제출한 정보</h2>
       <Card className="px-5 divide-y divide-warm-100">
         <OnbRow label="이름" value={profile?.name ?? name ?? "-"} />
         {c.showLicenseRow && <OnbRow label="자격번호" value={profile?.license_no ?? "-"} />}
@@ -1181,7 +1206,7 @@ function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | nu
       </Card>
 
       <Button variant="outline" size="lg" className="w-full mt-5" onClick={() => router.push("/mypage")}>내 정보 보기</Button>
-      <p className="text-xs text-warm-400 text-center mt-4">검수 관련 문의: 고객센터 1600-0000</p>
+      <p className="text-xs text-warm-500 text-center mt-4">검수 관련 문의: 고객센터 1600-0000</p>
     </div>
   );
 }
@@ -1191,18 +1216,18 @@ function OnbStep({ state, label, desc, last }: { state: "done" | "active" | "tod
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-          state === "done" ? "bg-brand-500 text-white" : state === "active" ? "bg-brand-100 text-brand-700 ring-2 ring-brand-400" : "bg-warm-100 text-warm-400"
+          state === "done" ? "bg-brand-500 text-white" : state === "active" ? "bg-brand-100 text-brand-700 ring-2 ring-brand-400" : "bg-warm-100 text-warm-500"
         }`}>
           {state === "done" ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
         </div>
         {!last && <div className={`w-0.5 flex-1 my-1 ${state === "done" ? "bg-brand-300" : "bg-warm-200"}`} style={{ minHeight: 20 }} />}
       </div>
       <div className={last ? "" : "pb-4"}>
-        <div className={`text-sm font-bold ${state === "todo" ? "text-warm-400" : "text-warm-800"}`}>
+        <div className={`text-sm font-bold ${state === "todo" ? "text-warm-500" : "text-warm-800"}`}>
           {label}
           {state === "active" && <span className="ml-2 text-[11px] font-bold text-brand-600">진행중</span>}
         </div>
-        <div className="text-xs text-warm-400 mt-0.5">{desc}</div>
+        <div className="text-xs text-warm-500 mt-0.5">{desc}</div>
       </div>
     </div>
   );

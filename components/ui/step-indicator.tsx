@@ -46,7 +46,7 @@ export function StepIndicator({ steps, current, className, onStepClick }: StepIn
                     ? "bg-brand-500 text-white"
                     : active
                       ? "bg-brand-500 text-white ring-4 ring-brand-500/20"
-                      : "bg-warm-100 text-warm-400",
+                      : "bg-warm-100 text-warm-500",
                   clickable && "cursor-pointer active:scale-95",
                 )}
               >
@@ -63,7 +63,7 @@ export function StepIndicator({ steps, current, className, onStepClick }: StepIn
             <span
               className={cn(
                 "mt-1.5 text-center text-[11.5px] font-bold leading-tight",
-                active ? "text-brand-700" : done ? "text-warm-600" : "text-warm-400",
+                active ? "text-brand-700" : done ? "text-warm-600" : "text-warm-500",
               )}
             >
               {label}

@@ -35,12 +35,12 @@ export default function SeniorsPage() {
 
       <div className="flex items-center justify-between mb-3 lg:mt-7">
         <h2 className="font-bold text-warm-700">등록 돌봄대상</h2>
-        <span className="text-xs text-warm-400">{query.data?.length ?? 0}명</span>
+        <span className="text-xs text-warm-500">{query.data?.length ?? 0}명</span>
       </div>
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
       {query.data?.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">
+        <Card className="p-8 text-center text-warm-500 text-sm">
           등록된 돌봄대상이 없습니다.
           <br />돌봄대상을 등록하면 돌봄 매칭과 건강 모니터링을 이용할 수 있습니다.
         </Card>
@@ -65,7 +65,7 @@ export default function SeniorsPage() {
                   </div>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-warm-500 flex-shrink-0" />
             </Card>
           </Link>
         ))}

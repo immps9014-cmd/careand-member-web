@@ -35,7 +35,7 @@ export default function LogsPage() {
         <span className="flex items-center gap-2 text-sm font-bold text-warm-700">
           <Star className="h-4 w-4 fill-brand-400 text-brand-400" /> 케어 만족도 평가하기
         </span>
-        <ChevronRight className="h-4 w-4 text-warm-400" />
+        <ChevronRight className="h-4 w-4 text-warm-500" />
       </Link>
 
       {LOG_MOCK_ENABLED && (
@@ -44,17 +44,17 @@ export default function LogsPage() {
         </Card>
       )}
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
 
       {!LOG_MOCK_ENABLED && query.isError && (
-        <Card className="p-8 text-center text-warm-400 text-sm">
+        <Card className="p-8 text-center text-warm-500 text-sm">
           케어 일지 기능을 준비 중입니다.
           <br />잠시 후 다시 시도해 주세요.
         </Card>
       )}
 
       {!query.isLoading && !query.isError && sessions.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">
+        <Card className="p-8 text-center text-warm-500 text-sm">
           아직 케어 일지가 없습니다.
           <br />돌봄이 진행되면 케어 일지가 여기에 표시됩니다.
         </Card>
@@ -74,7 +74,7 @@ export default function LogsPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Badge variant={st.variant}>{st.label}</Badge>
-                  {st.viewable && <ChevronRight className="w-4 h-4 text-warm-400" />}
+                  {st.viewable && <ChevronRight className="w-4 h-4 text-warm-500" />}
                 </div>
               </div>
               <div className="text-xs text-warm-500">
@@ -85,7 +85,7 @@ export default function LogsPage() {
               {st.viewable ? (
                 <p className="text-xs text-brand-600 mt-2 font-medium">탭하여 케어 일지 보기</p>
               ) : (
-                <p className="text-xs text-warm-400 mt-2">
+                <p className="text-xs text-warm-500 mt-2">
                   {st.label === "검수 중" ? "관리자 검수 후 일지가 도착해요." : "돌봄이 끝나면 AI 케어 일지가 정리됩니다."}
                 </p>
               )}

@@ -23,9 +23,9 @@ export default function SchedulePage() {
       <h1 className="text-xl font-extrabold text-warm-800 mb-1">내 일정</h1>
       <p className="text-sm text-warm-500 mb-5">배정된 케어 세션 일정입니다</p>
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
       {query.data?.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">예정된 일정이 없습니다</Card>
+        <Card className="p-8 text-center text-warm-500 text-sm">예정된 일정이 없습니다</Card>
       )}
 
       {/* 모바일: 카드 리스트 */}
@@ -73,7 +73,7 @@ export default function SchedulePage() {
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-warm-600">
                       <span className="inline-flex items-center gap-1.5">
-                        <CalendarClock className="h-3.5 w-3.5 text-warm-400" />
+                        <CalendarClock className="h-3.5 w-3.5 text-warm-500" />
                         {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"}
                       </span>
                     </td>

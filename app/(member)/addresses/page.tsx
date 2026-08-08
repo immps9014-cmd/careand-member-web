@@ -35,12 +35,12 @@ export default function AddressesPage() {
 
       <div className="flex items-center justify-between mb-3 lg:mt-7">
         <h2 className="font-bold text-warm-700">등록 주소</h2>
-        <span className="text-xs text-warm-400">{query.data?.length ?? 0}곳</span>
+        <span className="text-xs text-warm-500">{query.data?.length ?? 0}곳</span>
       </div>
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
       {query.data?.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">
+        <Card className="p-8 text-center text-warm-500 text-sm">
           등록된 주소가 없습니다.
           <br />주소를 등록하면 가사 서비스 매칭을 이용할 수 있습니다.
         </Card>
@@ -59,7 +59,7 @@ export default function AddressesPage() {
                     <span className="font-bold text-warm-800 truncate">{a.label}</span>
                     <Badge variant="outline">{dwellingLabel(a.dwelling_type)}</Badge>
                     {a.has_pets && (
-                      <span className="inline-flex items-center text-warm-400">
+                      <span className="inline-flex items-center text-warm-500">
                         <PawPrint className="w-3.5 h-3.5" />
                       </span>
                     )}
@@ -70,7 +70,7 @@ export default function AddressesPage() {
                   </div>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-warm-500 flex-shrink-0" />
             </Card>
           </Link>
         ))}

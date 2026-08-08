@@ -99,7 +99,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       {/* 진행 단계 파이프라인 */}
       {data && (
         <Card className="mb-4 p-4">
-          <div className="mb-3 text-xs font-extrabold uppercase tracking-wider text-warm-400">진행 상태</div>
+          <div className="mb-3 text-xs font-extrabold uppercase tracking-wider text-warm-500">진행 상태</div>
           <ProgressPipeline
             size="md"
             requestStatus={data.request_status}
@@ -125,10 +125,10 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       {/* 적정 간병비 권장 가격대 */}
       {est && (
         <Card className="p-4 mb-4 border-brand-200" style={{ background: "rgba(63,125,82,.05)" }}>
-          <div className="text-xs font-extrabold tracking-wider text-warm-400 uppercase mb-1.5">적정 간병비 (시급)</div>
+          <div className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mb-1.5">적정 간병비 (시급)</div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-brand-700 tabular-nums">{won(est.suggested)}</span>
-            <span className="text-xs text-warm-400">권장</span>
+            <span className="text-xs text-warm-500">권장</span>
           </div>
           <div className="text-xs text-warm-500 mt-1 tabular-nums">권장 범위 {won(est.floor)} ~ {won(est.ceil)}</div>
         </Card>
@@ -151,10 +151,10 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         </div>
       )}
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
 
       {data && sorted.length === 0 && (
-        <Card className="p-8 text-center text-warm-400 text-sm">
+        <Card className="p-8 text-center text-warm-500 text-sm">
           {data.message ?? "추천 후보가 없습니다."}
         </Card>
       )}
@@ -175,7 +175,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                   {c.response === "accepted" && <Badge variant="success">수락됨</Badge>}
                   {c.response === "rejected" && <Badge variant="danger">거절</Badge>}
                 </div>
-                <span className="text-xs text-warm-400 font-en">
+                <span className="text-xs text-warm-500 font-en">
                   {c.source === "self" ? "직접 지원" : `AI ${(c.ai_score * 100).toFixed(0)}점`}
                 </span>
               </div>
@@ -200,7 +200,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                     {tone && <Badge variant={tone.variant}>{tone.label}</Badge>}
                   </span>
                 ) : (
-                  <span className="text-xs text-warm-400">입찰 대기 중</span>
+                  <span className="text-xs text-warm-500">입찰 대기 중</span>
                 )}
               </div>
 

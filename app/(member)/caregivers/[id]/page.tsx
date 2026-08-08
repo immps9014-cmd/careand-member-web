@@ -53,7 +53,7 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
         <ChevronLeft className="w-4 h-4" /> 뒤로
       </button>
 
-      {q.isLoading && <Card className="p-8 text-center text-warm-400 text-sm">불러오는 중…</Card>}
+      {q.isLoading && <Card className="p-8 text-center text-warm-500 text-sm">불러오는 중…</Card>}
 
       {!q.isLoading && q.isError && (
         <Card className="p-8 text-center">

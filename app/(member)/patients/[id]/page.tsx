@@ -51,10 +51,10 @@ export default function PatientEditPage({ params }: { params: { id: string } }) 
       <h1 className="text-xl font-extrabold text-warm-800 mb-1">환자 정보 수정</h1>
       <p className="text-sm text-warm-500 mb-5">환자 정보를 수정하거나 삭제할 수 있습니다</p>
 
-      {query.isLoading && <p className="text-center text-warm-400 py-10">불러오는 중…</p>}
+      {query.isLoading && <p className="text-center text-warm-500 py-10">불러오는 중…</p>}
 
       {!query.isLoading && !patient && (
-        <Card className="p-8 text-center text-warm-400 text-sm">환자 정보를 찾을 수 없습니다.</Card>
+        <Card className="p-8 text-center text-warm-500 text-sm">환자 정보를 찾을 수 없습니다.</Card>
       )}
 
       {patient && (

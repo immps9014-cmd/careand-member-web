@@ -30,9 +30,9 @@ export default function PaymentsPage() {
       <h1 className="mb-1 text-xl font-extrabold text-warm-800">결제 내역</h1>
       <p className="mb-5 text-sm text-warm-500">돌봄 서비스 결제 내역을 확인하세요</p>
 
-      {query.isLoading && <p className="py-10 text-center text-warm-400">불러오는 중…</p>}
+      {query.isLoading && <p className="py-10 text-center text-warm-500">불러오는 중…</p>}
       {query.data?.length === 0 && (
-        <Card className="p-8 text-center text-sm text-warm-400">결제 내역이 없습니다</Card>
+        <Card className="p-8 text-center text-sm text-warm-500">결제 내역이 없습니다</Card>
       )}
 
       <div className="space-y-3">
@@ -49,7 +49,7 @@ export default function PaymentsPage() {
                 <Badge variant={st.variant}>{st.label}</Badge>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-[12px] text-warm-400">
+                <span className="text-[12px] text-warm-500">
                   {METHOD_LABEL[p.method] ?? p.method}
                   {p.paid_at ? ` · ${p.paid_at.slice(0, 10)}` : p.created_at ? ` · ${p.created_at.slice(0, 10)}` : ""}
                 </span>

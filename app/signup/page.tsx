@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useId, isValidElement, cloneElement, type ReactElement } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -467,7 +467,7 @@ export default function SignupPage() {
                       {verifyOtpM.isPending ? "확인중" : "확인"}
                     </Button>
                   </div>
-                  <p className="text-[11px] text-warm-400 mt-1.5">
+                  <p className="text-[11px] text-warm-500 mt-1.5">
                     개발 테스트 중에는 인증번호 <b className="text-warm-600">123456</b> 을 입력하세요.
                   </p>
                 </Field>
@@ -882,11 +882,16 @@ function StepBadge({ current, total, name }: { current: number; total?: number; 
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  // 시각적으로는 라벨-입력이 붙어 보이지만 <label>과 입력이 프로그래밍적으로 연결돼 있지 않아
+  // 스크린리더에서 필드명을 읽지 못하던 문제 — 단일 엘리먼트 children이면 자동 생성 id로 연결한다.
+  const autoId = useId();
+  const canLink = isValidElement(children);
+  const fieldId = canLink ? (children as ReactElement<{ id?: string }>).props.id ?? autoId : undefined;
   return (
     <div>
-      <label className="text-sm font-semibold text-warm-700 block mb-1.5">{label}</label>
-      {children}
-      {error && <p className="text-xs text-danger mt-1.5">{error}</p>}
+      <label htmlFor={fieldId} className="text-sm font-semibold text-warm-700 block mb-1.5">{label}</label>
+      {canLink ? cloneElement(children as ReactElement<{ id?: string }>, { id: fieldId }) : children}
+      {error && <p className="text-xs text-danger mt-1.5" role="alert">{error}</p>}
     </div>
   );
 }

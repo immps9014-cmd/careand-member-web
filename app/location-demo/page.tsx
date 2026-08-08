@@ -96,7 +96,7 @@ export default function LocationDemoPage() {
               <div className="flex items-start gap-2 text-sm text-warm-700 bg-white rounded-md p-3 border border-warm-100 mb-2">
                 <MapPin className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
                 <span>
-                  {zonecode && <span className="text-xs text-warm-400 font-en mr-1">[{zonecode}]</span>}
+                  {zonecode && <span className="text-xs text-warm-500 font-en mr-1">[{zonecode}]</span>}
                   {address}
                 </span>
               </div>
@@ -104,7 +104,7 @@ export default function LocationDemoPage() {
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
                 placeholder="상세주소 (동/호수 등)"
-                className="w-full h-10 rounded-md border border-warm-200 bg-white px-3 text-sm placeholder:text-warm-400 focus:outline-none focus:border-brand-500 mb-5"
+                className="w-full h-10 rounded-md border border-warm-200 bg-white px-3 text-sm placeholder:text-warm-500 focus:outline-none focus:border-brand-500 mb-5"
               />
             </>
           )}
@@ -118,17 +118,17 @@ export default function LocationDemoPage() {
               </div>
               <Card className="p-4 mb-5">
                 {loading ? (
-                  <div className="flex items-center gap-2 text-warm-400 text-sm">
+                  <div className="flex items-center gap-2 text-warm-500 text-sm">
                     <Loader2 className="w-4 h-4 animate-spin" /> 좌표 변환 중…
                   </div>
                 ) : coords ? (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-[11px] text-warm-400 mb-0.5">위도 (lat)</div>
+                      <div className="text-[11px] text-warm-500 mb-0.5">위도 (lat)</div>
                       <div className="font-en font-bold text-warm-800">{coords.lat.toFixed(6)}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-warm-400 mb-0.5">경도 (lng)</div>
+                      <div className="text-[11px] text-warm-500 mb-0.5">경도 (lng)</div>
                       <div className="font-en font-bold text-warm-800">{coords.lng.toFixed(6)}</div>
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export default function LocationDemoPage() {
           {error && <p className="text-sm text-danger mt-4 text-center">{error}</p>}
         </main>
 
-        <footer className="px-5 py-4 text-center text-[11px] text-warm-400 border-t border-warm-100">
+        <footer className="px-5 py-4 text-center text-[11px] text-warm-500 border-t border-warm-100">
           Care&amp; · 위치 기반 돌봄 매칭 서비스 예시 화면
         </footer>
       </div>

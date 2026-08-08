@@ -103,11 +103,11 @@ export default function OrgCaregiversPage() {
         <div>
           <div className="flex items-center mb-2">
             <h2 className="text-base font-extrabold text-warm-800">소속 간병인</h2>
-            <span className="ml-auto text-xs font-bold text-warm-400">{members.length}명</span>
+            <span className="ml-auto text-xs font-bold text-warm-500">{members.length}명</span>
           </div>
-          {roster.isLoading && <div className="text-center text-warm-400 text-sm py-6">불러오는 중…</div>}
+          {roster.isLoading && <div className="text-center text-warm-500 text-sm py-6">불러오는 중…</div>}
           {!roster.isLoading && members.length === 0 && (
-            <Card className="p-6 text-center text-warm-400 text-sm">아직 소속 간병인이 없습니다</Card>
+            <Card className="p-6 text-center text-warm-500 text-sm">아직 소속 간병인이 없습니다</Card>
           )}
           <div className="space-y-2">
             {members.map((m) => {
@@ -127,7 +127,7 @@ export default function OrgCaregiversPage() {
                   </div>
                   <button
                     onClick={() => { if (confirm(`${m.name} 간병인의 소속을 해제할까요?`)) remove.mutate(m.caregiver_id); }}
-                    className="text-warm-400 hover:text-danger p-1"
+                    className="text-warm-500 hover:text-danger p-1"
                     aria-label="소속 해제"
                   >
                     <X className="w-5 h-5" />
@@ -150,14 +150,14 @@ export default function OrgCaregiversPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 text-warm-700 font-semibold">
-                      <Phone className="w-3.5 h-3.5 text-warm-400" />
+                      <Phone className="w-3.5 h-3.5 text-warm-500" />
                       {iv.phone}
                     </div>
-                    <div className="text-xs text-warm-400 mt-0.5">가입 대기 중</div>
+                    <div className="text-xs text-warm-500 mt-0.5">가입 대기 중</div>
                   </div>
                   <button
                     onClick={() => cancel.mutate(iv.invite_id)}
-                    className="text-warm-400 hover:text-danger p-1"
+                    className="text-warm-500 hover:text-danger p-1"
                     aria-label="초대 취소"
                   >
                     <X className="w-5 h-5" />

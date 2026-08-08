@@ -170,7 +170,7 @@ export default function MyPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-warm-500 mt-3">
-          <ShieldCheck className="w-3.5 h-3.5 text-warm-400" />
+          <ShieldCheck className="w-3.5 h-3.5 text-warm-500" />
           {user?.status === "active" ? "활성 계정" : user?.status}
         </div>
       </Card>
@@ -217,13 +217,13 @@ export default function MyPage() {
           <h2 className="font-bold text-warm-800">계정 정보</h2>
         </div>
 
-        <Field label="이름" icon={<UserIcon className="w-4 h-4 text-warm-400" />}>
+        <Field label="이름" icon={<UserIcon className="w-4 h-4 text-warm-500" />}>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="이름" maxLength={50} />
         </Field>
-        <Field label="연락처" icon={<Phone className="w-4 h-4 text-warm-400" />}>
+        <Field label="연락처" icon={<Phone className="w-4 h-4 text-warm-500" />}>
           <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\-]/g, ""))} inputMode="numeric" placeholder="01012345678" className="font-en tabular-nums" />
         </Field>
-        <Field label="이메일" icon={<Mail className="w-4 h-4 text-warm-400" />}>
+        <Field label="이메일" icon={<Mail className="w-4 h-4 text-warm-500" />}>
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="font-en" />
         </Field>
 
@@ -233,9 +233,9 @@ export default function MyPage() {
           onClick={() => setPwOpen((v) => !v)}
           className="flex items-center gap-2 w-full mt-1 mb-1 text-[13px] font-semibold text-warm-600"
         >
-          <KeyRound className="w-4 h-4 text-warm-400" />
+          <KeyRound className="w-4 h-4 text-warm-500" />
           비밀번호 변경
-          <ChevronDown className={`w-4 h-4 ml-auto text-warm-400 transition-transform ${pwOpen ? "rotate-180" : ""}`} />
+          <ChevronDown className={`w-4 h-4 ml-auto text-warm-500 transition-transform ${pwOpen ? "rotate-180" : ""}`} />
         </button>
         {pwOpen && (
           <div className="space-y-2.5 mt-2 mb-1">
@@ -262,10 +262,10 @@ export default function MyPage() {
             <MapPin className="w-4 h-4 text-brand-600" />
             <h2 className="font-bold text-warm-800">가입 정보</h2>
           </div>
-          <Field label="활동 지역(주소)" icon={<MapPin className="w-4 h-4 text-warm-400" />}>
+          <Field label="활동 지역(주소)" icon={<MapPin className="w-4 h-4 text-warm-500" />}>
             <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예) 경기 화성시 동탄대로 100" maxLength={255} />
           </Field>
-          <p className="text-[11px] text-warm-400 mt-1.5">주소를 바꾸면 매칭 거리 계산에 자동 반영됩니다.</p>
+          <p className="text-[11px] text-warm-500 mt-1.5">주소를 바꾸면 매칭 거리 계산에 자동 반영됩니다.</p>
           {cg.data.specialties && cg.data.specialties.length > 0 && (
             <div className="mt-3">
               <div className="text-[12.5px] font-bold text-warm-600 mb-1.5">가능 서비스</div>
@@ -303,7 +303,7 @@ export default function MyPage() {
             placeholder="예) 20000"
             className="tabular-nums"
           />
-          <p className="text-[11px] text-warm-400 mt-1.5">매칭 초대 시 입찰가가 이 금액으로 미리 채워집니다.</p>
+          <p className="text-[11px] text-warm-500 mt-1.5">매칭 초대 시 입찰가가 이 금액으로 미리 채워집니다.</p>
 
           <label className="flex items-center justify-between mt-4 cursor-pointer">
             <span className="text-[13.5px] font-semibold text-warm-700">자동 입찰</span>
@@ -317,7 +317,7 @@ export default function MyPage() {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${autoBid ? "translate-x-5" : ""}`} />
             </button>
           </label>
-          <p className="text-[11px] text-warm-400 mt-1.5">켜면 새 매칭 초대 시 표준 시급으로 자동 입찰합니다.</p>
+          <p className="text-[11px] text-warm-500 mt-1.5">켜면 새 매칭 초대 시 표준 시급으로 자동 입찰합니다.</p>
 
           <Button
             variant="brand"
@@ -344,7 +344,7 @@ export default function MyPage() {
           <button
             type="button"
             onClick={() => setWOpen(true)}
-            className="mx-auto block text-[13px] font-semibold text-warm-400 underline underline-offset-2 hover:text-danger"
+            className="mx-auto block text-[13px] font-semibold text-warm-500 underline underline-offset-2 hover:text-danger"
           >
             회원 탈퇴
           </button>
@@ -358,7 +358,7 @@ export default function MyPage() {
               탈퇴하면 계정과 이용 내역에 다시 접근할 수 없으며, 진행 중인 매칭 요청은 자동 취소됩니다.
               {isCaregiver && " 활동 중인 돌봄전문가 프로필도 노출이 중단됩니다."} 이 작업은 되돌릴 수 없습니다.
             </p>
-            <Field label="현재 비밀번호 확인" icon={<KeyRound className="w-4 h-4 text-warm-400" />}>
+            <Field label="현재 비밀번호 확인" icon={<KeyRound className="w-4 h-4 text-warm-500" />}>
               <Input
                 type="password"
                 value={wPw}
@@ -393,7 +393,7 @@ export default function MyPage() {
         )}
       </div>
 
-      <p className="text-center text-xs text-warm-400 mt-6">Care& 회원 앱 v1.0</p>
+      <p className="text-center text-xs text-warm-500 mt-6">Care& 회원 앱 v1.0</p>
       </div>
       </div>
     </div>

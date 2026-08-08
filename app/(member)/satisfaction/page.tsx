@@ -36,7 +36,7 @@ export default function SatisfactionPage() {
         완료된 케어에 대해 돌봄전문가 만족도를 남겨주세요. 다른 보호자의 선택에도 도움이 돼요.
       </p>
 
-      {q.isLoading && <Card className="mt-5 p-8 text-center text-sm text-warm-400">불러오는 중…</Card>}
+      {q.isLoading && <Card className="mt-5 p-8 text-center text-sm text-warm-500">불러오는 중…</Card>}
 
       {!q.isLoading && q.isError && (
         <Card className="mt-5 p-8 text-center">
@@ -46,7 +46,7 @@ export default function SatisfactionPage() {
       )}
 
       {!q.isLoading && !q.isError && list.length === 0 && (
-        <Card className="mt-5 p-8 text-center text-sm text-warm-400">
+        <Card className="mt-5 p-8 text-center text-sm text-warm-500">
           평가할 완료된 케어가 아직 없어요.
           <br />
           돌봄이 끝나면 이곳에서 만족도를 남길 수 있어요.
@@ -104,10 +104,10 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
             aria-label={`${n}점`}
             onClick={() => setRating(n)}
             onMouseEnter={() => setHover(n)}
-            className="p-0.5"
+            className="p-2"
           >
             <Star
-              className={`h-7 w-7 transition-colors ${(hover || rating) >= n ? "fill-amber-400 text-amber-400" : "text-warm-300"}`}
+              className={`h-7 w-7 transition-colors ${(hover || rating) >= n ? "fill-amber-400 text-amber-400" : "text-warm-500"}`}
             />
           </button>
         ))}
@@ -142,7 +142,7 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
         rows={2}
         maxLength={1000}
         placeholder="더 남기고 싶은 의견이 있다면 적어주세요 (선택)"
-        className="mt-3 w-full resize-none rounded-xl border border-warm-200 px-3 py-2.5 text-sm text-warm-700 placeholder:text-warm-400 focus:border-brand-400 focus:outline-none"
+        className="mt-3 w-full resize-none rounded-xl border border-warm-200 px-3 py-2.5 text-sm text-warm-700 placeholder:text-warm-500 focus:border-brand-400 focus:outline-none"
       />
 
       <Button
