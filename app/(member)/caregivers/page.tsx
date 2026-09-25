@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { organizationApi } from "@/lib/api/organization";
+import { useAuth } from "@/lib/auth/store";
 import { caregiverDomainLabels } from "@/lib/caregiverType";
 import { getApiErrorMessage } from "@/lib/api/client";
 
@@ -25,9 +26,20 @@ export default function OrgCaregiversPage() {
   const qc = useQueryClient();
   const [phone, setPhone] = useState("");
 
+  // 기관 전용 화면 — 보호자·돌봄전문가가 URL로 직접 들어오면 인력 탐색으로 보낸다.
+  // (E2E 점검에서 보호자에게 이 화면이 그대로 열리는 걸 발견, 2026-09-25)
+  const user = useAuth((s) => s.user);
+  const hasHydrated = useAuth((s) => s.hasHydrated);
+  const isOrg = user?.role === "organization";
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (user && !isOrg) router.replace("/caregivers/browse");
+  }, [hasHydrated, user, isOrg, router]);
+
   const roster = useQuery({
     queryKey: ["org", "roster"],
     queryFn: organizationApi.roster,
+    enabled: isOrg,
     retry: false,
   });
 
@@ -62,6 +74,9 @@ export default function OrgCaregiversPage() {
   const phoneValid = /^01[0-9]\d{7,8}$/.test(phone);
   const members = roster.data?.members ?? [];
   const invites = roster.data?.pending_invites ?? [];
+
+  // 리다이렉트가 끝나기 전까지 기관 UI를 그리지 않는다 (rehydration 전에는 판정 불가라 함께 대기)
+  if (!hasHydrated || !isOrg) return null;
 
   return (
     <div className="min-h-screen bg-warm-50">
