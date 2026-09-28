@@ -1,12 +1,42 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { memberApi } from "@/lib/api/member";
+import { memberApi, type MemberNotification } from "@/lib/api/member";
 import { cn } from "@/lib/utils";
 
+/** 알림 종류 → 눌렀을 때 갈 화면. 없으면 읽음 처리만 */
+function linkFor(n: MemberNotification): string | null {
+  const d = n.data ?? {};
+  switch (n.type) {
+    case "CARE_SUMMARY_READY":
+    case "SAFETY_ALERT":
+      return d.session_id ? `/logs/${d.session_id}` : "/logs";
+    case "MATCH_CONFIRMED":
+      return d.match_id ? `/payments/${d.match_id}` : "/home";
+    case "MATCH_REQUEST_EXPIRED":
+      return "/request/new";
+    case "PAYMENT_PAID":
+    case "PAYMENT_FAILED":
+      return "/payments";
+    case "SETTLEMENT_CONFIRMED":
+    case "SETTLEMENT_PAID":
+      return "/settlements";
+    case "REVIEW_REQUEST":
+      return "/satisfaction";
+    case "MATCH_REQUEST_ASSIGNED":
+    case "CARE_STARTED":
+    case "CAREGIVER_APPROVED":
+      return "/home";
+    default:
+      return null;
+  }
+}
+
 export default function NotificationsPage() {
+  const router = useRouter();
   const qc = useQueryClient();
   const query = useQuery({ queryKey: ["member", "notifications"], queryFn: memberApi.notifications });
 
@@ -36,7 +66,11 @@ export default function NotificationsPage() {
           <Card
             key={n.id}
             className={cn("p-4 cursor-pointer transition-colors lg:hover:bg-warm-50/60", !n.is_read && "border-l-4 border-l-brand-500")}
-            onClick={() => !n.is_read && read.mutate(n.id)}
+            onClick={() => {
+              if (!n.is_read) read.mutate(n.id);
+              const href = linkFor(n);
+              if (href) router.push(href);
+            }}
           >
             <div className="flex items-start gap-3">
               <div className={cn(

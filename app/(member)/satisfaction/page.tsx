@@ -68,9 +68,10 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState(care.comment ?? "");
   const [tags, setTags] = useState<string[]>(care.tags ?? []);
+  const [scores, setScores] = useState<Record<string, number>>(care.scores ?? {});
 
   const submit = useMutation({
-    mutationFn: () => memberApi.submitReview({ match_id: care.match_id, rating, comment: comment || undefined, tags }),
+    mutationFn: () => memberApi.submitReview({ match_id: care.match_id, rating, comment: comment || undefined, tags, scores }),
     onSuccess: () => {
       toast.success("케어 만족도가 등록되었어요");
       qc.invalidateQueries({ queryKey: ["member", "reviewable"] });
@@ -113,6 +114,33 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
         ))}
         <span className="ml-2 text-sm font-bold text-warm-600">{rating ? `${rating}.0` : "평점 선택"}</span>
       </div>
+
+      {/* 서비스별 평가 항목(선택) */}
+      {care.criteria?.length > 0 && (
+        <div className="mt-3 rounded-xl bg-warm-50 px-3 py-2">
+          <p className="mb-1 text-xs font-semibold text-warm-600">항목별 평가 (선택)</p>
+          {care.criteria.map((c) => (
+            <div key={c.key} className="flex items-center justify-between gap-2">
+              <span className="text-sm text-warm-700">{c.label}</span>
+              <div className="flex" role="radiogroup" aria-label={`${c.label} 점수`}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    role="radio"
+                    aria-checked={scores[c.key] === n}
+                    aria-label={`${c.label} ${n}점`}
+                    onClick={() => setScores((p) => ({ ...p, [c.key]: n }))}
+                    className="p-1.5"
+                  >
+                    <Star className={`h-5 w-5 ${(scores[c.key] ?? 0) >= n ? "fill-amber-400 text-amber-400" : "text-warm-400"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 빠른 태그 */}
       <div className="mt-3 flex flex-wrap gap-2">

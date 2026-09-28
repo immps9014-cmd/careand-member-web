@@ -462,6 +462,10 @@ export interface ReviewableCare {
   rating: number | null;
   comment: string | null;
   tags: string[];
+  /** 도메인별 평가 항목 점수 {항목키: 1~5} */
+  scores: Record<string, number>;
+  /** 도메인별 평가 항목 — 백엔드 config/review_criteria.php */
+  criteria: { key: string; label: string }[];
   reviewed: boolean;
 }
 
@@ -501,6 +505,7 @@ export interface MemberNotification {
   type: string;
   title: string;
   body: string;
+  data?: Record<string, unknown> | null;
   is_read: boolean;
   created_ago: string;
   created_at: string;
@@ -530,7 +535,7 @@ export const memberApi = {
     return data.data ?? [];
   },
   /** 케어 만족도 등록/수정 */
-  async submitReview(payload: { match_id: number; rating: number; comment?: string; tags?: string[] }): Promise<void> {
+  async submitReview(payload: { match_id: number; rating: number; comment?: string; tags?: string[]; scores?: Record<string, number> }): Promise<void> {
     await api.post("/v1/guardians/reviews", payload);
   },
   /** 찜 토글 → { favorited } */
