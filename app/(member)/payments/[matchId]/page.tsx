@@ -10,8 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { memberApi, type PaymentMethod } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { tokenizeCard, isRealPgConfigured } from "@/lib/pg";
-import { useAuth } from "@/lib/auth/store";
+import { openTossPayment } from "@/lib/toss";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
@@ -29,7 +28,6 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [agree, setAgree] = useState(false);
   const [done, setDone] = useState(false);
-  const buyerName = useAuth((s) => s.user?.name ?? undefined);
 
   const calc = useQuery({
     queryKey: ["member", "payment-calc", matchId],
@@ -42,23 +40,21 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
 
   const approve = useMutation({
     mutationFn: async () => {
-      // 카드 결제는 PG SDK로 토큰화 후 승인 (미설정 시 스텁 토큰)
-      let cardToken: string | undefined;
-      if (method === "card" && calc.data) {
-        const r = await tokenizeCard({
-          amount: calc.data.self_pay,
-          orderId: `care-${matchId}-${Date.now()}`,
-          buyerName,
-        });
-        cardToken = r.card_token;
+      // 카드·계좌이체 = 토스페이먼츠 결제창(S4). 서버가 금액·주문번호를 정하고, 성공하면 결제창이
+      // /app/payments/toss/success 로 돌려보내 거기서 서버 승인한다(이 경우 이 함수는 돌아오지 않음).
+      if (method !== "voucher_only") {
+        const prep = await memberApi.tossPrepare(matchId, method);
+        if (prep.toss_required) {
+          await openTossPayment(prep, method, matchId);
+          return "redirect" as const;
+        }
       }
-      return memberApi.paymentApprove({
-        match_id: matchId,
-        method,
-        ...(method === "card" && cardToken ? { card_token: cardToken } : {}),
-      });
+      // 바우처 전액(본인부담 0원) — 결제창 없이 서버 승인
+      await memberApi.paymentApprove({ match_id: matchId, method: "voucher_only" });
+      return "done" as const;
     },
-    onSuccess: () => {
+    onSuccess: (r) => {
+      if (r === "redirect") return;
       setDone(true);
       qc.invalidateQueries({ queryKey: ["member", "payments"] });
       toast.success("결제가 완료되었습니다.");
@@ -165,9 +161,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
               </div>
               {method === "card" && (
                 <p className="mt-2.5 text-[11px] leading-relaxed text-warm-500">
-                  {isRealPgConfigured()
-                    ? "‘결제하기’를 누르면 카드 결제창이 열립니다."
-                    : "현재는 테스트 모드예요. 실제 카드 청구 없이 결제 절차만 진행됩니다."}
+                  ‘결제하기’를 누르면 토스페이먼츠 결제창이 열립니다. 지금은 테스트 결제라 실제로 청구되지 않아요.
                 </p>
               )}
             </Card>

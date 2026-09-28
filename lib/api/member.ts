@@ -755,6 +755,16 @@ export const memberApi = {
     const { data } = await api.post("/v1/payments/approve", payload);
     return data.data as Payment;
   },
+  /** 토스페이먼츠 결제 준비 — 서버가 금액 재계산·주문번호 발급 (S4). POST /v1/payments/toss/prepare */
+  async tossPrepare(matchId: number, method: "card" | "account"): Promise<import("@/lib/toss").TossPrepared> {
+    const { data } = await api.post("/v1/payments/toss/prepare", { match_id: matchId, method });
+    return data.data;
+  },
+  /** 토스 결제창 성공 후 서버 승인. POST /v1/payments/toss/confirm */
+  async tossConfirm(payload: { payment_key: string; order_id: string; amount: number }): Promise<Payment> {
+    const { data } = await api.post("/v1/payments/toss/confirm", payload);
+    return data.data as Payment;
+  },
   /** 내 결제 내역. GET /v1/payments */
   async payments(status?: string): Promise<Payment[]> {
     const { data } = await api.get("/v1/payments", { params: status ? { status } : {} });
