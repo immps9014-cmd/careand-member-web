@@ -434,6 +434,25 @@ export interface Payment {
   match?: { id: number; senior_name?: string | null };
 }
 
+/** 영수증(기능 8) — GET /v1/payments/{id}/receipt */
+export interface PaymentReceipt {
+  receipt_no: string;
+  status: string;
+  paid_at: string | null;
+  method: string;
+  pg_tid_tail: string | null;
+  service: string;
+  service_period: string | null;
+  recipient: string;
+  caregiver: string | null;
+  buyer: string;
+  total_amount: number;
+  self_pay: number;
+  ltc_pay: number;
+  items: { description: string; amount: number }[];
+  seller: { name: string; ceo: string; biz_no: string; address: string; tel: string };
+}
+
 export interface RecommendedCaregiver {
   id: number;
   name: string;
@@ -836,9 +855,17 @@ export const memberApi = {
     return data.data as Payment;
   },
   /** 내 결제 내역. GET /v1/payments */
-  async payments(status?: string): Promise<Payment[]> {
-    const { data } = await api.get("/v1/payments", { params: status ? { status } : {} });
+  async payments(status?: string, filter?: { month?: string; domain?: string }): Promise<Payment[]> {
+    const params: Record<string, string> = {};
+    if (status) params.status = status;
+    if (filter?.month) params.month = filter.month;
+    if (filter?.domain) params.domain = filter.domain;
+    const { data } = await api.get("/v1/payments", { params });
     return data.data ?? [];
+  },
+  async receipt(paymentId: number): Promise<PaymentReceipt> {
+    const { data } = await api.get(`/v1/payments/${paymentId}/receipt`);
+    return data.data;
   },
 };
 
