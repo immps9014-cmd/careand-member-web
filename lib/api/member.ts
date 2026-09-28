@@ -500,6 +500,29 @@ export interface MemberSettlement {
   paid_at: string | null;
 }
 
+/** 돌봄전문가 제출 서류(기능 9·20) — GET /v1/caregivers/me/documents */
+export type DocStatus = "missing" | "submitted" | "verified" | "rejected" | "expired";
+export interface CaregiverDocItem {
+  type: string;
+  label: string;
+  required: boolean;
+  hint: string | null;
+  status: DocStatus;
+  document: {
+    id: number;
+    original_name: string | null;
+    issued_at: string | null;
+    expires_at: string | null;
+    reject_reason: string | null;
+    created_at: string;
+  } | null;
+}
+export interface CaregiverDocuments {
+  checklist: CaregiverDocItem[];
+  payout: { bank_name: string | null; bank_account_masked: string | null; bank_holder: string | null; updated_at: string | null };
+  accept: { mimes: string[]; max_kb: number };
+}
+
 export interface MemberNotification {
   id: number;
   type: string;
@@ -737,6 +760,19 @@ export const memberApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+  async myDocuments(): Promise<CaregiverDocuments> {
+    const { data } = await api.get("/v1/caregivers/me/documents");
+    return data.data;
+  },
+  uploadDocument: (docType: string, file: File, issuedAt?: string) => {
+    const fd = new FormData();
+    fd.append("doc_type", docType);
+    fd.append("file", file);
+    if (issuedAt) fd.append("issued_at", issuedAt);
+    return api.post("/v1/caregivers/me/documents", fd, { headers: { "Content-Type": "multipart/form-data" } });
+  },
+  updatePayout: (payload: { bank_name: string; bank_account: string; bank_holder: string }) =>
+    api.put("/v1/caregivers/me/payout-account", payload),
   async settlements(): Promise<MemberSettlement[]> {
     const { data } = await api.get("/v1/settlements");
     return data.data ?? [];

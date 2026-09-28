@@ -26,6 +26,8 @@ function linkFor(n: MemberNotification): string | null {
       return "/settlements";
     case "REVIEW_REQUEST":
       return "/satisfaction";
+    case "CAREGIVER_DOC_REJECTED":
+      return "/documents";
     case "MATCH_REQUEST_ASSIGNED":
     case "CARE_STARTED":
     case "CAREGIVER_APPROVED":

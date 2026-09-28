@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle, FileCheck2, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -254,6 +255,20 @@ export default function MyPage() {
           {saveAccount.isPending ? "저장 중…" : "계정 정보 저장"}
         </Button>
       </Card>
+
+      {/* 서류·정산 계좌(인력) — 기능 9·20 */}
+      {isCaregiver && (
+        <Link href="/documents" className="mb-4 block">
+          <Card className="flex items-center gap-3 p-5 transition-colors lg:hover:bg-warm-50/60">
+            <FileCheck2 className="h-5 w-5 flex-none text-brand-600" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-warm-800">서류 · 정산 계좌</div>
+              <div className="text-xs text-warm-500">신분증·통장 사본·범죄경력 회보서 제출과 정산 계좌 등록</div>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
+          </Card>
+        </Link>
+      )}
 
       {/* 가입 정보(인력): 활동 지역 */}
       {isCaregiver && cg.data && (
