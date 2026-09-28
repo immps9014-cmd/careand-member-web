@@ -87,6 +87,7 @@ export interface Candidate {
     age: number | null;
     specialties: string[] | null;
     rating_avg: number;
+    rating_count?: number;   // 0 이면 「신규」(09-29)
     completed_sessions: number;
   };
 }

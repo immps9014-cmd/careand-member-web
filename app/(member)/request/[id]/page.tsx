@@ -183,7 +183,8 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
               <div className="flex items-center gap-3 text-xs text-warm-500 mb-2">
                 <span className="inline-flex items-center gap-1">
                   <Star className="w-3 h-3 fill-warn text-warn" />
-                  {c.caregiver?.rating_avg?.toFixed(1) ?? "-"}
+                  {/* 후기가 없으면 0.0 대신 「신규」(09-29 평점 초기화) */}
+                  {c.caregiver?.rating_count ? c.caregiver.rating_avg?.toFixed(1) : "신규"}
                 </span>
                 <span>경력 {c.caregiver?.completed_sessions ?? 0}회</span>
                 {c.caregiver?.age && <span>{c.caregiver.age}세</span>}

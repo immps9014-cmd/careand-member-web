@@ -87,9 +87,9 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
                   <div className="flex items-center gap-2 mt-1 text-sm text-warm-500">
                     <span className="inline-flex items-center gap-1 text-amber-500 font-bold">
                       <Star className="w-3.5 h-3.5 fill-current" />
-                      {Number(c.rating_avg).toFixed(1)}
+                      {c.rating_count ? Number(c.rating_avg).toFixed(1) : "신규"}
                     </span>
-                    <span>({c.rating_count})</span>
+                    {!!c.rating_count && <span>({c.rating_count})</span>}
                     {genderAge && <span>· {genderAge}</span>}
                   </div>
                   {domains.length > 0 && (
