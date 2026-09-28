@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useId, isValidElement, cloneElement, type ReactElement } from "react";
+import { useEffect, useMemo, useState, useId, isValidElement, cloneElement, type ReactElement } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -9,6 +9,7 @@ import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Spark
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
+import { SOCIAL_SIGNUP_KEY, type SocialSignup } from "@/lib/auth/social";
 import { caregiverApi } from "@/lib/api/caregiver";
 import { organizationApi } from "@/lib/api/organization";
 import { useAuth } from "@/lib/auth/store";
@@ -95,6 +96,19 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  // 카카오·구글 첫 가입(S4) — 복귀 페이지가 넘긴 가입 토큰. 있으면 비밀번호 없이 가입하고 소셜 계정을 연결한다
+  const [social, setSocial] = useState<SocialSignup | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined" || !new URLSearchParams(window.location.search).get("social")) return;
+    try {
+      const raw = sessionStorage.getItem(SOCIAL_SIGNUP_KEY);
+      if (!raw) return;
+      const v = JSON.parse(raw) as SocialSignup;
+      setSocial(v);
+      if (v.profile.name) setName((n) => n || v.profile.name || "");
+      if (v.profile.email) setEmail((e) => e || v.profile.email || "");
+    } catch {}
+  }, []);
   const [relation, setRelation] = useState("자녀");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -161,8 +175,7 @@ export default function SignupPage() {
         phone,
         phone_verify_token: verifyToken,
         name,
-        password,
-        password_confirmation: passwordConfirm,
+        ...(social ? { social_token: social.social_token } : { password, password_confirmation: passwordConfirm }),
         role: role as Role,
         ...(kind === "housekeeping" ? { intent: "housekeeping" as const } : {}),
         ...(kind === "postpartum" ? { intent: "postpartum" as const } : {}),
@@ -226,10 +239,12 @@ export default function SignupPage() {
     if (!/^[A-Za-z0-9][A-Za-z0-9._@+-]{3,}$/.test(email)) {
       toast.error("아이디는 영문/숫자로 시작하는 4자 이상이어야 해요."); return;
     }
-    if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      toast.error("비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요."); return;
+    if (!social) {   // 소셜 가입은 비밀번호 없음
+      if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+        toast.error("비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요."); return;
+      }
+      if (password !== passwordConfirm) { toast.error("비밀번호가 일치하지 않아요."); return; }
     }
-    if (password !== passwordConfirm) { toast.error("비밀번호가 일치하지 않아요."); return; }
     if (!agreeTerms || !agreePrivacy) { toast.error("이용약관과 개인정보 처리방침에 동의해주세요."); return; }
     signupM.mutate();
   };
@@ -491,6 +506,11 @@ export default function SignupPage() {
                   autoComplete="username"
                 />
               </Field>
+              {social ? (
+                <p className="rounded-lg bg-brand-50 px-3 py-2.5 text-[13px] text-brand-700">
+                  {social.profile.provider === "google" ? "구글" : "카카오"} 계정으로 가입해요 — 비밀번호 없이 {social.profile.provider === "google" ? "구글" : "카카오"}로 로그인합니다.
+                </p>
+              ) : (<>
               <Field label="비밀번호 (8자 이상, 영문+숫자)">
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
               </Field>
@@ -505,6 +525,7 @@ export default function SignupPage() {
                   placeholder="••••••••"
                 />
               </Field>
+              </>)}
 
               {kind === "guardian" && (
                 <Field label="돌봄 대상과의 관계 (선택)">

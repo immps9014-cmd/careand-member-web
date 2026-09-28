@@ -12,6 +12,7 @@ import { authApi } from "@/lib/api/auth";
 import { useAuth, setAuthCookie } from "@/lib/auth/store";
 import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 
 // 로그인 후에는 역할과 무관하게 항상 앱 홈(/home)으로 진입시킨다.
 // (홈이 역할별 화면을 렌더 — 보호자/돌봄전문가/기관 모두 /home 진입)
@@ -131,6 +132,7 @@ export default function LoginPage() {
                 {loginMutation.isPending ? "로그인 중..." : "로그인"}
               </Button>
             </form>
+            <SocialLoginButtons />
           </CardContent>
         </Card>
 

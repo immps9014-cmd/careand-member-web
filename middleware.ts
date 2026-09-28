@@ -9,7 +9,8 @@ import type { NextRequest } from "next/server";
  * 주: basePath("/app")가 적용되어 미들웨어가 보는 pathname/matcher에는 /app가 제외되고,
  * redirect의 pathname에는 Next가 basePath를 자동으로 다시 붙인다.
  */
-const PUBLIC_PATHS = ["/login", "/signup"];
+// /auth/callback = 카카오·구글 로그인 복귀(비로그인 상태로 도착, S4)
+const PUBLIC_PATHS = ["/login", "/signup", "/auth/callback"];
 
 export function middleware(req: NextRequest) {
   let pathname = req.nextUrl.pathname;

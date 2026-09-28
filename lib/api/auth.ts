@@ -14,8 +14,11 @@ export interface SignupPayload {
   phone: string;
   phone_verify_token: string;
   name: string;
-  password: string;
-  password_confirmation: string;
+  /** 소셜 가입(social_token)이면 생략 */
+  password?: string;
+  password_confirmation?: string;
+  /** 카카오·구글 첫 가입 토큰(30분) — 비밀번호 없이 가입하고 소셜 계정 연결 (S4) */
+  social_token?: string;
   role: "guardian" | "caregiver" | "organization";
   /** 보호자 가입 의도: care=보호자, housekeeping=가사, postpartum=산모, childcare=아이돌봄, mental_care=마음돌봄 (백엔드에서 guardian으로 가입) */
   intent?: "care" | "housekeeping" | "postpartum" | "childcare" | "mental_care";
@@ -59,6 +62,25 @@ export const authApi = {
    */
   async signup(payload: SignupPayload): Promise<LoginResponse> {
     const { data } = await api.post<LoginResponse>("/v1/auth/signup", payload);
+    return data;
+  },
+
+  /** 쓸 수 있는 소셜 로그인(앱 키가 등록된 것만 true) — S4 */
+  async oauthProviders(): Promise<Record<"kakao" | "google", boolean>> {
+    const { data } = await api.get("/v1/auth/oauth/providers");
+    return data.data;
+  },
+  /** 카카오·구글 동의 화면 주소(일회용 state 포함) */
+  async oauthUrl(provider: "kakao" | "google"): Promise<string> {
+    const { data } = await api.get(`/v1/auth/oauth/${provider}/url`);
+    return data.data.url;
+  },
+  /** 동의 후 복귀 — 로그인 토큰 또는 첫 가입(signup_required + social_token) */
+  async oauthCallback(provider: "kakao" | "google", code: string, state: string): Promise<
+    | (LoginResponse & { signup_required?: false })
+    | { signup_required: true; social_token: string; profile: { provider: string; name: string | null; email: string | null } }
+  > {
+    const { data } = await api.post(`/v1/auth/oauth/${provider}/callback`, { code, state });
     return data;
   },
 
