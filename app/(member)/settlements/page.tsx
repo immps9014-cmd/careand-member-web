@@ -1,6 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/client";
+import type { MemberSettlement } from "@/lib/api/member";
 import { Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +17,46 @@ const STATUS: Record<string, { variant: "warn" | "success" | "danger" | "outline
   paid: { variant: "success", label: "지급완료" },
   failed: { variant: "danger", label: "실패" },
 };
+
+/** 명세서 확인·이의제기(기능 15) — 확정된 명세서를 확인하면 입금 대상, 이의가 있으면 사유를 남긴다(운영팀 24시간 내 답변) */
+function SettlementActions({ s }: { s: MemberSettlement }) {
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: ["member", "settlements"] });
+  const ack = useMutation({
+    mutationFn: () => memberApi.ackSettlement(s.id),
+    onSuccess: (r) => { toast.success(r.data?.message ?? "확인했어요"); done(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const dispute = useMutation({
+    mutationFn: (reason: string) => memberApi.disputeSettlement(s.id, reason),
+    onSuccess: (r) => { toast.success(r.data?.message ?? "이의제기를 접수했어요"); done(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  return (
+    <div className="mt-3 space-y-2 text-left">
+      {s.dispute_status === "open" && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">이의제기 답변 대기 중 — {s.dispute_reason}</p>
+      )}
+      {s.dispute_reply && (
+        <p className="rounded-lg bg-warm-50 px-3 py-2 text-xs text-warm-700">운영팀 답변: {s.dispute_reply}</p>
+      )}
+      {s.caregiver_ack_at && s.status === "confirmed" && <p className="text-xs font-semibold text-brand-700">명세서 확인 완료 — 입금을 기다리고 있어요</p>}
+      {(s.status === "confirmed" || s.status === "draft") && !s.caregiver_ack_at && (
+        <div className="flex gap-2">
+          {s.status === "confirmed" && s.dispute_status !== "open" && (
+            <Button variant="brand" size="sm" className="flex-1" disabled={ack.isPending} onClick={() => ack.mutate()}>명세서 확인</Button>
+          )}
+          {s.dispute_status !== "open" && (
+            <Button variant="outline" size="sm" className="flex-1" disabled={dispute.isPending}
+              onClick={() => { const r = window.prompt("이의 내용을 적어 주세요 (예: 9/24 근무 2시간 누락)"); if (r && r.trim().length >= 5) dispute.mutate(r.trim()); }}>
+              이의제기
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MemberSettlementsPage() {
   const query = useQuery({ queryKey: ["member", "settlements"], queryFn: memberApi.settlements });
@@ -54,6 +98,7 @@ export default function MemberSettlementsPage() {
                 <span className="font-en font-extrabold text-brand-600">{formatKRW(s.net_amount)}</span>
               </div>
             </div>
+            <SettlementActions s={s} />
           </Card>
         ))}
       </div>
@@ -70,6 +115,7 @@ export default function MemberSettlementsPage() {
                   <th className="px-5 py-3 text-right">원천징수 (3.3%)</th>
                   <th className="px-5 py-3 text-right">실지급액</th>
                   <th className="px-5 py-3 text-center">상태</th>
+                  <th className="px-5 py-3 text-left">확인·이의</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,6 +135,7 @@ export default function MemberSettlementsPage() {
                         {STATUS[s.status]?.label ?? s.status}
                       </Badge>
                     </td>
+                    <td className="px-5 py-2 w-64"><SettlementActions s={s} /></td>
                   </tr>
                 ))}
               </tbody>

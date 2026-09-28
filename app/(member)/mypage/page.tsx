@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle, FileCheck2, ChevronRight } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle, FileCheck2, ChevronRight, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,11 @@ export default function MyPage() {
   const logout = useAuth((s) => s.logout);
   const isCaregiver = user?.role === "caregiver";
   const cg = useQuery({ queryKey: ["mypage", "caregiver"], queryFn: memberApi.myCaregiver, enabled: isCaregiver, retry: false });
+  const leaveToggle = useMutation({
+    mutationFn: (returning: boolean) => (returning ? memberApi.requestReturn() : memberApi.requestLeave()),
+    onSuccess: (res) => { toast.success(res.data?.message ?? "처리했어요"); qc.invalidateQueries({ queryKey: ["mypage", "caregiver"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
 
   /* ===== 계정 정보 ===== */
   const [name, setName] = useState("");
@@ -268,6 +273,38 @@ export default function MyPage() {
             <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
           </Card>
         </Link>
+      )}
+
+      {/* 받은 후기·활동(기능 16) */}
+      {isCaregiver && (
+        <Link href="/my-activity" className="mb-4 block">
+          <Card className="flex items-center gap-3 p-5 transition-colors lg:hover:bg-warm-50/60">
+            <Star className="h-5 w-5 flex-none text-amber-500" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-warm-800">받은 후기 · 활동</div>
+              <div className="text-xs text-warm-500">평균 평점, 월별 돌봄 횟수, 보호자 후기</div>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
+          </Card>
+        </Link>
+      )}
+
+      {/* 휴직·복귀(기능 16) — 휴직 중엔 새 매칭 후보에서 빠진다 */}
+      {isCaregiver && cg.data && (cg.data.status === "active" || cg.data.status === "leave") && (
+        <Card className="p-5 mb-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="font-bold text-warm-800">{cg.data.status === "leave" ? "휴직 중" : "활동 중"}</div>
+              <div className="text-xs text-warm-500">
+                {cg.data.status === "leave" ? "복귀하면 다시 새 돌봄 요청을 받을 수 있어요." : "휴직하면 새 돌봄 요청을 받지 않아요. 이미 잡힌 일정은 그대로 진행해 주세요."}
+              </div>
+            </div>
+            <Button variant="outline" size="sm" disabled={leaveToggle.isPending}
+              onClick={() => { if (window.confirm(cg.data!.status === "leave" ? "복귀할까요?" : "휴직할까요?")) leaveToggle.mutate(cg.data!.status === "leave"); }}>
+              {cg.data.status === "leave" ? "복귀하기" : "휴직 신청"}
+            </Button>
+          </div>
+        </Card>
       )}
 
       {/* 가입 정보(인력): 활동 지역 */}

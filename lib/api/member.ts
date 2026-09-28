@@ -348,6 +348,8 @@ export interface MySession {
   actual_end: string | null;
   duration_min: number;
   photo_required: boolean;
+  /** 방문 장소(길찾기, 기능 35) — 예정·진행 중 세션만 */
+  place?: { name: string; lat: number; lng: number } | null;
 }
 
 /* ===== 돌봄전문가: 케어 활동 기록 입력 ===== */
@@ -526,6 +528,23 @@ export interface MemberSettlement {
   net_amount: number;
   status: string;
   paid_at: string | null;
+  /** 명세서 확인·이의제기(기능 15) */
+  caregiver_ack_at?: string | null;
+  dispute_status?: "open" | "resolved" | null;
+  dispute_reason?: string | null;
+  dispute_reply?: string | null;
+}
+
+/** 받은 후기·월별 활동(기능 16) — GET /v1/caregivers/me/performance */
+export interface CaregiverPerformance {
+  rating_avg: number;
+  rating_count: number;
+  completed_sessions: number;
+  career_track: string;
+  status: string;
+  rating_note: string;
+  months: { month: string; sessions: number; hours: number; reviews: number; avg_rating: number | null }[];
+  reviews: { rating: number; comment: string | null; tags: string[]; scores: { label: string; score: number }[]; service: string; reply: string | null; created_at: string }[];
 }
 
 /** 돌봄전문가 제출 서류(기능 9·20) — GET /v1/caregivers/me/documents */
@@ -841,6 +860,14 @@ export const memberApi = {
   },
   saveSessionChips: (sessionId: number, chips: string[], note: string | null) =>
     api.put(`/v1/care-sessions/${sessionId}/chips`, { chips, note }),
+  async myPerformance(): Promise<CaregiverPerformance> {
+    const { data } = await api.get("/v1/caregivers/me/performance");
+    return data.data;
+  },
+  requestLeave: () => api.post("/v1/caregivers/me/leave"),
+  requestReturn: () => api.post("/v1/caregivers/me/return"),
+  ackSettlement: (id: number) => api.post(`/v1/settlements/${id}/ack`),
+  disputeSettlement: (id: number, reason: string) => api.post(`/v1/settlements/${id}/dispute`, { reason }),
   async settlements(): Promise<MemberSettlement[]> {
     const { data } = await api.get("/v1/settlements");
     return data.data ?? [];

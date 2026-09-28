@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { memberApi } from "@/lib/api/member";
 import { formatDateTime } from "@/lib/utils";
+import { DirectionsLink } from "@/components/care/directions-link";
 
 const STATUS: Record<string, { variant: "warn" | "success" | "outline"; label: string }> = {
   scheduled: { variant: "warn", label: "예정" },
@@ -46,6 +47,7 @@ export default function SchedulePage() {
               {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"}
               {s.duration_min ? ` · ${s.duration_min}분` : ""}
             </div>
+            {s.place && <div className="mt-2"><DirectionsLink place={s.place} /></div>}
           </Card>
         ))}
       </div>

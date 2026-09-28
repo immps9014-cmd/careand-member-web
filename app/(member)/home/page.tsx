@@ -18,6 +18,7 @@ import { organizationApi } from "@/lib/api/organization";
 import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
 import { formatDateTime, formatKRW } from "@/lib/utils";
 import { ProgressPipeline } from "@/components/ProgressPipeline";
+import { DirectionsLink } from "@/components/care/directions-link";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -1067,6 +1068,7 @@ function CaregiverHome() {
                 <Clock className="w-3.5 h-3.5" />
                 {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"} · {s.duration_min}분
               </div>
+              {s.place && <div className="mb-3"><DirectionsLink place={s.place} /></div>}
               {active && (
                 <div className="flex items-center gap-2 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold px-3 py-2 mb-3">
                   <Sparkles className="w-3.5 h-3.5" /> {ui.actionNoun} 진행 중입니다
