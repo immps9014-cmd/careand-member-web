@@ -523,6 +523,25 @@ export interface CaregiverDocuments {
   accept: { mimes: string[]; max_kb: number };
 }
 
+/** 칩 기반 케어일지(기능 40) — 원본은 온톨로지 care-journal 계층 */
+export interface JournalChip {
+  code: string;
+  label: string;
+  category: string;
+  category_label: string;
+  category_order: number;
+  phrase: string;
+  tone: "good" | "neutral" | "caution" | "alert";
+  order: number;
+  alert: { id: string; label: string; severity: string } | null;
+}
+export interface SessionChips {
+  chips: string[];
+  note: string | null;
+  updated_at: string | null;
+  locked: boolean;
+}
+
 export interface MemberNotification {
   id: number;
   type: string;
@@ -773,6 +792,16 @@ export const memberApi = {
   },
   updatePayout: (payload: { bank_name: string; bank_account: string; bank_holder: string }) =>
     api.put("/v1/caregivers/me/payout-account", payload),
+  async journalChips(): Promise<JournalChip[]> {
+    const { data } = await api.get("/v1/care-journal/chips");
+    return data.data?.chips ?? [];
+  },
+  async sessionChips(sessionId: number): Promise<SessionChips> {
+    const { data } = await api.get(`/v1/care-sessions/${sessionId}/chips`);
+    return data.data;
+  },
+  saveSessionChips: (sessionId: number, chips: string[], note: string | null) =>
+    api.put(`/v1/care-sessions/${sessionId}/chips`, { chips, note }),
   async settlements(): Promise<MemberSettlement[]> {
     const { data } = await api.get("/v1/settlements");
     return data.data ?? [];

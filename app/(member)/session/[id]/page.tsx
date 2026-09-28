@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { memberApi, type CareActivityItem, type VoiceLogItem } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/utils";
+import { ChipJournalCard } from "@/components/care/chip-journal-card";
 
 /**
  * 돌봄전문가 케어 활동 입력 화면 (진행 중 세션)
@@ -239,6 +240,9 @@ export default function SessionActivityPage({ params }: { params: { id: string }
           진행 중인 케어에서만 기록할 수 있습니다
         </Card>
       )}
+
+      {/* ───────── 칩 기록(기능 40) ───────── */}
+      {validId && session && <ChipJournalCard sessionId={sessionId} status={session.status} />}
 
       {/* ───────── 음성 기록 ───────── */}
       <Card className="p-4 mb-5">
