@@ -521,6 +521,8 @@ export default function SignupPage() {
               <div className="bg-warm-100 rounded-xl p-4 space-y-3">
                 <CheckRow checked={agreeTerms} onToggle={() => setAgreeTerms((v) => !v)} label="(필수) 이용약관 동의" />
                 <CheckRow checked={agreePrivacy} onToggle={() => setAgreePrivacy((v) => !v)} label="(필수) 개인정보 처리방침 동의" />
+                {/* 동의 대상 문서 — 공개 웹 /www/privacy (S2-5) */}
+                <a href="/www/privacy" target="_blank" rel="noopener" className="block pl-7 -mt-1 text-xs font-semibold text-brand-600 underline underline-offset-2">개인정보 처리방침 전문 보기</a>
               </div>
             </div>
 
