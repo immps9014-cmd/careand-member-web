@@ -763,7 +763,12 @@ function CaregiverHome() {
       const coords = await getCurrentCoords();
       return memberApi.checkin(sid, coords);
     },
-    onSuccess: () => { toast.success("출근 체크 완료"); qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] }); },
+    onSuccess: (res) => {
+      // 반경 밖이지만 허용 한도 안이면 출근은 되고 운영팀 확인 요청(기능 12)
+      if (res?.data?.out_of_range) toast.warning(res.data.message ?? "출근 완료 — 서비스 장소 밖이라 운영팀이 확인해요.");
+      else toast.success("출근 체크 완료");
+      qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] });
+    },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
   const checkout = useMutation({
@@ -771,7 +776,11 @@ function CaregiverHome() {
       const coords = await getCurrentCoords();
       return memberApi.checkout(sid, coords);
     },
-    onSuccess: () => { toast.success("퇴근 체크 완료"); qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] }); },
+    onSuccess: (res) => {
+      if (res?.data?.out_of_range) toast.warning(res.data.message ?? "퇴근 완료 — 서비스 장소 밖이라 운영팀이 확인해요.");
+      else toast.success("퇴근 체크 완료");
+      qc.invalidateQueries({ queryKey: ["member", "cg", "sessions"] });
+    },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
   const uploadPhoto = useMutation({

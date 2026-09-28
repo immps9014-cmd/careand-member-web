@@ -47,6 +47,15 @@ export interface AiSummary {
   categorized: Record<string, unknown> | null; // meal/exercise/vital/mood ...
   confidence: number | null;
   generated_at: string;
+  /** 일지와 함께 보는 돌봄 사진(기능 5) */
+  photos?: { url: string; thumbnail: string; caption: string | null }[];
+  /** 돌봄전문가에게만(기능 14) */
+  medical_version?: string | null;
+  review_status?: string;
+  sent?: boolean;
+  editable?: boolean;
+  review_note?: string | null;
+  edited_at?: string | null;
 }
 
 export interface PriceEstimate {
@@ -618,6 +627,17 @@ export const memberApi = {
     const { data } = await api.get(`/v1/care-sessions/${sessionId}/ai-summary`);
     return data.data ?? null;
   },
+  async shareCareLog(sessionId: number): Promise<{ url: string; expires_at: string }> {
+    const { data } = await api.post(`/v1/care-sessions/${sessionId}/share`);
+    return data.data;
+  },
+  async careLogShares(sessionId: number): Promise<{ id: number; expires_at: string; view_count: number; created_at: string }[]> {
+    const { data } = await api.get(`/v1/care-sessions/${sessionId}/shares`);
+    return data.data ?? [];
+  },
+  revokeCareLogShare: (shareId: number) => api.delete(`/v1/care-log-shares/${shareId}`),
+  updateSessionLog: (sessionId: number, guardianVersion: string, reason?: string) =>
+    api.put(`/v1/care-sessions/${sessionId}/log`, { guardian_version: guardianVersion, reason }),
   async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null; match_status: string | null; payment_status: string | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
     // match_id: 매칭 확정(인력 수락) 시 백엔드가 노출하면 결제 진입에 사용 (없으면 null → CTA 미노출)

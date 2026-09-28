@@ -59,6 +59,8 @@ export function categorizedItems(categorized: AiSummary["categorized"]): { key: 
 
 function renderCategoryValue(key: string, raw: unknown): string {
   if (raw == null) return "-";
+  // 칩 일지·활동 기록은 항목 이름 배열(예: ["식사 절반 정도", "수분 충분"]) — 기능 5 체크리스트
+  if (Array.isArray(raw)) return raw.length ? raw.map(String).join(", ") : "기록됨";
   if (typeof raw === "string") {
     if (key === "mood") return raw === "positive" ? "안정적" : raw === "negative" ? "주의 필요" : raw;
     return raw;

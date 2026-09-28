@@ -16,6 +16,7 @@ import { memberApi, type CareActivityItem, type VoiceLogItem } from "@/lib/api/m
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/utils";
 import { ChipJournalCard } from "@/components/care/chip-journal-card";
+import { CareLogReviewCard } from "@/components/care/care-log-review-card";
 
 /**
  * 돌봄전문가 케어 활동 입력 화면 (진행 중 세션)
@@ -240,6 +241,9 @@ export default function SessionActivityPage({ params }: { params: { id: string }
           진행 중인 케어에서만 기록할 수 있습니다
         </Card>
       )}
+
+      {/* ───────── 퇴근 후 일지 확인·수정(기능 14) ───────── */}
+      {validId && session?.status === "completed" && <CareLogReviewCard sessionId={sessionId} />}
 
       {/* ───────── 칩 기록(기능 40) ───────── */}
       {validId && session && <ChipJournalCard sessionId={sessionId} status={session.status} />}
