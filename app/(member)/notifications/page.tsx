@@ -6,9 +6,10 @@ import { Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { memberApi, type MemberNotification } from "@/lib/api/member";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/store";
 
 /** 알림 종류 → 눌렀을 때 갈 화면. 없으면 읽음 처리만 */
-function linkFor(n: MemberNotification): string | null {
+function linkFor(n: MemberNotification, role?: string): string | null {
   const d = n.data ?? {};
   switch (n.type) {
     case "CARE_SUMMARY_READY":
@@ -28,6 +29,10 @@ function linkFor(n: MemberNotification): string | null {
       return "/satisfaction";
     case "CAREGIVER_DOC_REJECTED":
       return "/documents";
+    case "MATCH_OFFER_TIMEOUT":
+      return d.request_id ? `/request/${d.request_id}` : "/home";
+    case "CARE_REMINDER":
+      return role === "caregiver" ? "/schedule" : "/home";
     case "MATCH_REQUEST_ASSIGNED":
     case "CARE_STARTED":
     case "CAREGIVER_APPROVED":
@@ -39,6 +44,7 @@ function linkFor(n: MemberNotification): string | null {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const role = useAuth((s) => s.user?.role);
   const qc = useQueryClient();
   const query = useQuery({ queryKey: ["member", "notifications"], queryFn: memberApi.notifications });
 
@@ -70,7 +76,7 @@ export default function NotificationsPage() {
             className={cn("p-4 cursor-pointer transition-colors lg:hover:bg-warm-50/60", !n.is_read && "border-l-4 border-l-brand-500")}
             onClick={() => {
               if (!n.is_read) read.mutate(n.id);
-              const href = linkFor(n);
+              const href = linkFor(n, role);
               if (href) router.push(href);
             }}
           >
