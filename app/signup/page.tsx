@@ -824,7 +824,7 @@ export default function SignupPage() {
               ) : kind === "childcare" ? (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 아이 정보를 등록하고 아이돌봄 서비스를 신청해보세요.
+                  이제 아이돌봄 서비스를 바로 신청해보세요. (아이 정보는 신청 화면에서 함께 입력해요)
                 </>
               ) : kind === "mental_care" ? (
                 <>

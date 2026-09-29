@@ -121,6 +121,14 @@ export default function NewRequestPage() {
   const [addressId, setAddressId] = useState<number | "">("");
   const [photoRequired, setPhotoRequired] = useState(true);
 
+  // 아이돌봄: 등록된 아이는 칩으로 바로 선택, 처음이거나 「새 아이」면 이 화면에서 아이 정보를 입력(별도 등록 화면 없음).
+  // 제출 때 아이 레코드를 자동 생성한 뒤 요청한다.
+  const [ccNew, setCcNew] = useState(false);
+  const [ccName, setCcName] = useState("");
+  const [ccBirth, setCcBirth] = useState(""); // "YYYY-MM-DD" (BirthDateSelect)
+  const [ccGender, setCcGender] = useState<"M" | "F">("F");
+  const [ccAddress, setCcAddress] = useState("");
+
   // 마음돌봄 '본인이 받아요' self — 별도 대상 등록 화면 없이 가입 정보(이름) + 방문 주소만 여기서 입력.
   // 이미 본인(relation=본인)으로 등록된 대상이 있으면 그걸 그대로 쓴다. 제출 때 없으면 대상 레코드를 자동 생성.
   const [mcSelf, setMcSelf] = useState(true);
@@ -377,9 +385,15 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "childcare") {
+        let ccId = Number(childId);
+        if (ccAdding) {
+          const res = await memberApi.createChild({ name: ccName.trim(), birth_date: ccBirth, gender: ccGender, home_address: ccAddress });
+          ccId = res?.data?.data?.id;
+          if (!ccId) throw new Error("아이 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
         return memberApi.createRequest({
           service_domain: "childcare",
-          childcare_child_id: Number(childId),
+          childcare_child_id: Number(ccId),
           category_id: Number(categoryId),
           mode: "normal",
           scheduled_start: scheduled,
@@ -435,6 +449,10 @@ export default function NewRequestPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  // 아이돌봄: 등록된 아이가 없으면 곧바로 입력 모드
+  const ccAdding = ccNew || (childrenQ.isSuccess && childrenQ.data.length === 0);
+  const ccRecipientReady = ccAdding ? !!(ccName.trim() && ccBirth && ccAddress) : !!childId;
+
   // 마음돌봄 self: 본인으로 등록된 대상이 있으면 그것, 없으면 이름(가입 정보)+방문 주소가 있어야 진행
   const mcSelfClient = mentalClients.data?.find((m) => m.relation === "본인");
   const mcRecipientReady = mcSelf ? !!mcSelfClient || !!(user?.name && mcAddress) : !!mentalClientId;
@@ -455,7 +473,7 @@ export default function NewRequestPage() {
         : domain === "postpartum"
           ? ppRecipientReady && categoryId && start && duration >= 60 && duration <= 720
           : domain === "childcare"
-            ? childId && categoryId && start && duration >= 60 && duration <= 720
+            ? ccRecipientReady && categoryId && start && duration >= 60 && duration <= 720
             : domain === "mental_care"
               ? mcRecipientReady && categoryId && start && duration >= 60 && duration <= 720
               : seniorId && categoryId && start && duration >= 60 && (mode !== "recurring" || weekdays.length >= 1);
@@ -474,7 +492,7 @@ export default function NewRequestPage() {
               ? mentalClientId
               : seniorId;
   const step1Valid =
-    (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : !!recipientId) &&
+    (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : !!recipientId) &&
     !!categoryId &&
     screeningOk;
   const step2Valid =
@@ -506,7 +524,6 @@ export default function NewRequestPage() {
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
   const noPostpartum = domain === "postpartum" && postpartumClients.isSuccess && postpartumClients.data.length === 0;
-  const noChildren = domain === "childcare" && childrenQ.isSuccess && childrenQ.data.length === 0;
   const noMental = domain === "mental_care" && mentalClients.isSuccess && mentalClients.data.length === 0;
   const noCategories = categories.isSuccess && categories.data.length === 0;
 
@@ -542,7 +559,9 @@ export default function NewRequestPage() {
             ? `${user?.name ?? "본인"} (본인)`
             : postpartumClients.data?.find((p) => p.id === postpartumClientId)?.name
           : domain === "childcare"
-            ? childrenQ.data?.find((c) => c.id === childId)?.name
+            ? ccAdding
+              ? ccName
+              : childrenQ.data?.find((c) => c.id === childId)?.name
             : domain === "mental_care"
               ? mcSelf
                 ? `${user?.name ?? "본인"} (본인)`
@@ -915,29 +934,80 @@ export default function NewRequestPage() {
 
           {domain === "childcare" && (
             <div>
-              <label className={SECTION_LABEL}>아이 선택</label>
-              {noChildren ? (
-                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
-                  <p className="text-xs text-warm-500 mb-2.5">등록된 아이가 없습니다. 먼저 아이를 등록해주세요.</p>
-                  <Link href="/children/new">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Plus className="w-4 h-4" /> 아이 등록하러 가기
-                    </Button>
-                  </Link>
+              <label className={SECTION_LABEL}>돌봄받을 아이</label>
+              {/* 등록된 아이는 칩으로 바로 선택, 「새 아이」는 아래에서 바로 입력 */}
+              {(childrenQ.data?.length ?? 0) > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {childrenQ.data!.map((c) => {
+                    const on = !ccNew && childId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => { setChildId(c.id); setCcNew(false); }}
+                        className={
+                          "h-10 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        }
+                      >
+                        {c.name}
+                        {c.birth_date ? <span className={on ? "text-white/80" : "text-warm-500"}> · {c.birth_date.slice(0, 4)}년생</span> : null}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => { setCcNew(true); setChildId(""); }}
+                    className={
+                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                      (ccNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
+                    }
+                  >
+                    <Plus className="h-4 w-4" /> 새 아이
+                  </button>
                 </div>
-              ) : (
-                <select
-                  value={childId}
-                  onChange={(e) => setChildId(e.target.value ? Number(e.target.value) : "")}
-                  className={SELECT_CLASS}
-                >
-                  <option value="">아이를 선택하세요</option>
-                  {childrenQ.data?.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} {c.birth_date ? `(${c.birth_date})` : ""}
-                    </option>
-                  ))}
-                </select>
+              )}
+
+              {ccAdding && (
+                <div className={((childrenQ.data?.length ?? 0) > 0 ? "mt-3 " : "") + "space-y-3.5"}>
+                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warm-600">
+                    아이 정보를 여기서 입력하면 신청할 때 함께 등록돼요. 별도 등록 화면은 필요 없어요.
+                  </p>
+                  <div>
+                    <label className={SECTION_LABEL}>아이 이름</label>
+                    <Input value={ccName} onChange={(e) => setCcName(e.target.value)} placeholder="이름" maxLength={50} className="h-12 rounded-xl text-[14.5px]" />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>생년월일</label>
+                    <BirthDateSelect value={ccBirth} onChange={setCcBirth} minYear={new Date().getFullYear() - 18} />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>성별</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["F", "여아"], ["M", "남아"]] as const).map(([v, l]) => {
+                        const on = ccGender === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setCcGender(v)}
+                            className={
+                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                            }
+                          >
+                            {l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>돌봄 주소</label>
+                    <AddressSearch onChange={setCcAddress} />
+                    <p className="mt-1.5 text-[11px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
+                  </div>
+                </div>
               )}
             </div>
           )}
