@@ -23,6 +23,23 @@ type Kind = "guardian" | "housekeeping" | "postpartum" | "childcare" | "mental_c
 type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["본인", "자녀", "배우자", "부모", "형제", "기타"];
+
+/** 이용자가 가입 때 고르는 「주로 이용할 서비스」(복수). 병원간병은 기관 전용이라 제외. */
+const USER_SERVICES = [
+  { token: "senior", label: "요양보호", desc: "어르신 방문 돌봄", icon: HeartHandshake },
+  { token: "living_support", label: "생활지원서비스", desc: "청소·정리·동행", icon: Sparkles },
+  { token: "postpartum", label: "산모·산후관리", desc: "산모·신생아", icon: Baby },
+  { token: "childcare", label: "아이돌봄", desc: "등하원·놀이돌봄", icon: Blocks },
+  { token: "mental_care", label: "마음돌봄", desc: "정서지원·상담동행", icon: Brain },
+] as const;
+/** 대표 서비스(처음 고른 것) → 기존 가입 kind. 백엔드 intent 는 kind 에서 파생된다. */
+const SERVICE_KIND: Record<string, Kind> = {
+  senior: "guardian",
+  living_support: "housekeeping",
+  postpartum: "postpartum",
+  childcare: "childcare",
+  mental_care: "mental_care",
+};
 const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병", "산후관리", "아이돌봄", "마음돌봄", "방문목욕", "치매전문"];
 
 /** 돌봄전문가 활동 도메인(공급자 직군) 선택지 — service_domains 전송용 */
@@ -76,7 +93,19 @@ export default function SignupPage() {
   const { setUser, setTokens } = useAuth();
 
   const [step, setStep] = useState<Step>("role");
-  const [kind, setKind] = useState<Kind | null>(null);
+  // 첫 화면: 이용자(요청자) / 돌봄전문가 / 기관. 이용자는 주로 이용할 서비스를 여러 개 고른다(선택 순서 유지).
+  const [group, setGroup] = useState<"user" | "caregiver" | "organization" | null>(null);
+  const [services, setServices] = useState<string[]>([]);
+  const toggleService = (t: string) =>
+    setServices((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  // 이하 문구·완료 동선은 기존 단일 kind 기준 — 이용자는 처음 고른 서비스(대표 서비스)로 kind 를 정한다.
+  const kind: Kind | null =
+    group === "caregiver" || group === "organization"
+      ? group
+      : group === "user" && services.length > 0
+        ? (SERVICE_KIND[services[0]] ?? "guardian")
+        : null;
+  const needsRelation = group === "user" && services.includes("senior");
   // 백엔드 role은 카드 선택에서 파생 — 도메인 요청자(가사·산모·아이돌봄·마음돌봄)는 guardian으로 가입(intent로 구분)
   const REQUESTER_KINDS = ["housekeeping", "postpartum", "childcare", "mental_care"] as const;
   const role: Role | null =
@@ -182,7 +211,8 @@ export default function SignupPage() {
         ...(kind === "postpartum" ? { intent: "postpartum" as const } : {}),
         ...(kind === "childcare" ? { intent: "childcare" as const } : {}),
         ...(kind === "mental_care" ? { intent: "mental_care" as const } : {}),
-        ...(kind === "guardian" ? { relation } : {}),
+        ...(needsRelation ? { relation } : {}),
+        ...(group === "user" ? { services } : {}),
         agree_terms: agreeTerms,
         agree_privacy: agreePrivacy,
       }),
@@ -337,50 +367,55 @@ export default function SignupPage() {
 
             <div className="mt-7 space-y-3">
               <RoleCard
-                active={kind === "guardian"}
-                onClick={() => setKind("guardian")}
+                active={group === "user"}
+                onClick={() => setGroup("user")}
                 icon={<HeartHandshake className="w-6 h-6" />}
-                title="어르신 돌봄 요청"
-                desc="어르신 방문요양·돌봄을 직접 요청해요"
+                title="돌봄 서비스 이용"
+                desc="가족이나 본인을 위한 돌봄을 요청해요"
               />
+              {group === "user" && (
+                <div className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4">
+                  <div className="text-sm font-bold text-warm-800">주로 이용할 서비스를 모두 골라주세요</div>
+                  <p className="mt-0.5 text-xs text-warm-500">여러 개 고를 수 있어요. 가입 후에도 모든 서비스를 신청할 수 있어요.</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {USER_SERVICES.map((o) => {
+                      const Icon = o.icon;
+                      const on = services.includes(o.token);
+                      return (
+                        <button
+                          key={o.token}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => toggleService(o.token)}
+                          className={cn(
+                            "relative flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left transition-colors",
+                            on ? "border-brand-500 bg-white ring-2 ring-brand-500/20" : "border-warm-200 bg-white"
+                          )}
+                        >
+                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-600")}>
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[13px] font-bold text-warm-800">{o.label}</span>
+                            <span className="block truncate text-[10.5px] text-warm-500">{o.desc}</span>
+                          </span>
+                          {on && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-brand-500" strokeWidth={3} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <RoleCard
-                active={kind === "postpartum"}
-                onClick={() => setKind("postpartum")}
-                icon={<Baby className="w-6 h-6" />}
-                title="산모·산후관리 요청"
-                desc="본인(산모)을 위한 산후관리 돌봄을 직접 요청해요"
-              />
-              <RoleCard
-                active={kind === "childcare"}
-                onClick={() => setKind("childcare")}
-                icon={<Blocks className="w-6 h-6" />}
-                title="아이돌봄 요청"
-                desc="아이 등하원·놀이돌봄을 직접 요청해요"
-              />
-              <RoleCard
-                active={kind === "mental_care"}
-                onClick={() => setKind("mental_care")}
-                icon={<Brain className="w-6 h-6" />}
-                title="마음돌봄 요청"
-                desc="정서지원·상담동행 돌봄을 직접 요청해요"
-              />
-              <RoleCard
-                active={kind === "housekeeping"}
-                onClick={() => setKind("housekeeping")}
-                icon={<Sparkles className="w-6 h-6" />}
-                title="생활지원서비스"
-                desc="청소 · 정리수납 · 수리 · 동행 도우미를 찾아요"
-              />
-              <RoleCard
-                active={kind === "caregiver"}
-                onClick={() => setKind("caregiver")}
+                active={group === "caregiver"}
+                onClick={() => setGroup("caregiver")}
                 icon={<Stethoscope className="w-6 h-6" />}
                 title="돌봄전문가"
                 desc="요양보호사 · 간병인 · 생활지원 · 산후 · 아이돌봄 · 상담으로 활동해요"
               />
               <RoleCard
-                active={kind === "organization"}
-                onClick={() => setKind("organization")}
+                active={group === "organization"}
+                onClick={() => setGroup("organization")}
                 icon={<Building2 className="w-6 h-6" />}
                 title="기관"
                 desc="요양·간병 기관으로 간병인 매칭을 요청해요"
@@ -528,8 +563,8 @@ export default function SignupPage() {
               </Field>
               </>)}
 
-              {kind === "guardian" && (
-                <Field label="돌봄 대상과의 관계 (선택)">
+              {needsRelation && (
+                <Field label="어르신 돌봄 대상과의 관계">
                   <div className="flex flex-wrap gap-2">
                     {RELATIONS.map((r) => (
                       <Chip key={r} active={relation === r} onClick={() => setRelation(r)}>

@@ -24,6 +24,8 @@ export interface SignupPayload {
   intent?: "care" | "housekeeping" | "postpartum" | "childcare" | "mental_care";
   /** 보호자 전용: 돌봄대상과의 관계 (백엔드 required_if: care 보호자) */
   relation?: string;
+  /** 요청자 전용: 주로 이용할 서비스(복수, 선택 순서) — senior|living_support|postpartum|childcare|mental_care */
+  services?: string[];
   agree_terms: boolean;
   agree_privacy: boolean;
 }

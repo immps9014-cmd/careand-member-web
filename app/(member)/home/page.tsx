@@ -12,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
-import { careTargetNoun } from "@/lib/careTarget";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile, type MyMatch } from "@/lib/api/member";
 import { organizationApi } from "@/lib/api/organization";
@@ -417,7 +416,11 @@ function GServices({ go }: { go: GNav }) {
     const idx = domains.findIndex((d) => d.token === preferredToken);
     if (idx > 0) ordered = [domains[idx], ...domains.slice(0, idx), ...domains.slice(idx + 1)];
   }
-  const [featured, ...rest] = ordered;
+  // 가입 때 고른 「주로 이용할 서비스」를 featured 다음에 선택 순서대로 — 나머지는 기존 순서.
+  const picked = user?.guardian?.preferences?.services ?? [];
+  const rank = (t: string) => (picked.includes(t) ? picked.indexOf(t) : picked.length);
+  const [featured, ...restRaw] = ordered;
+  const rest = [...restRaw].sort((x, y) => rank(x.token) - rank(y.token));
   const CornerBadge = ({ b }: { b?: { label: string; variant: "new" | "hot" | "beta" | "info" } }) =>
     b ? (
       <Badge variant={b.variant} style={{ position: "absolute", top: 10, right: 10 }}>
@@ -481,60 +484,6 @@ function GServices({ go }: { go: GNav }) {
   );
 }
 
-/* 온보딩 — 어르신돌봄 보호자가 돌봄대상 미등록 시 홈 최상단에서 먼저 등록을 유도.
-   호칭은 가입 때 고른 관계로 정한다(형제 → 형제·자매분, 관계 미상 → 돌봄받으실 분).
-   등록 입구를 요청폼(request/new) 안이 아니라 홈에 두고 returnTo=/home 로 복귀시켜,
-   "가입→부모 등록→다시 매칭요청폼" 루프에 갇히지 않게 한다. 등록되면 CTA는 사라진다. */
-function GOnboardSenior({ go }: { go: GNav }) {
-  const user = useAuth((s) => s.user);
-  const isCareGuardian = (user?.guardian?.intent ?? "care") === "care";
-  const seniors = useQuery({
-    queryKey: ["member", "seniors"],
-    queryFn: () => memberApi.seniors(),
-    retry: false,
-    staleTime: 60_000,
-    enabled: isCareGuardian,
-  });
-  if (!isCareGuardian || !seniors.isSuccess || seniors.data.length > 0) return null;
-  const target = careTargetNoun(user?.guardian?.relation);
-  const self = target === "본인";
-  return (
-    <div style={{ padding: "16px 16px 0" }}>
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#FFE9E1,#FFD9CE 60%,#FFC9BB)", padding: "22px 20px" }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: "#C2410C" }}>돌봄 시작 준비</div>
-        <div style={{ fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.02em", lineHeight: 1.35, marginTop: 6 }}>{self ? <>먼저 돌봄받으실 본인 정보를<br />등록해 주세요</> : <>먼저 {target}(돌봄대상)을<br />등록해 주세요</>}</div>
-        <div style={{ fontSize: 12.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>돌봄대상 정보를 등록하면 맞춤 돌봄전문가를 추천받고 필요할 때 바로 매칭을 요청할 수 있어요.</div>
-        <button
-          onClick={() => go(`/seniors/new?returnTo=${encodeURIComponent("/home")}`)}
-          style={{ marginTop: 15, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(224,72,78,.24)" }}
-        >
-          {self ? "본인 정보 등록하기" : `${target} 등록하기`} <ChevronRight size={17} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* 홈 최상단 마스트헤드 배너 — careand 실제 차별점(AI 산출 적정 간병비)을 노출하는 홍보 슬롯.
-   케어네이션 홈 최상단 프로모 배너 구조 참고, 광고 대신 자사 기능 홍보로 채움. */
-function GHeroBanner({ go }: { go: GNav }) {
-  return (
-    <div style={{ padding: "16px 16px 0" }}>
-      <button
-        onClick={() => go("/request/new")}
-        style={{ position: "relative", width: "100%", borderRadius: 20, overflow: "hidden", background: `linear-gradient(120deg,${ACCENT_SOFT},${ACCENT})`, padding: "22px 20px", textAlign: "left", cursor: "pointer", border: "none", display: "block" }}
-      >
-        <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(255,255,255,.85)", letterSpacing: ".01em" }}>AI 매칭 · 적정 간병비</div>
-        <div style={{ fontSize: 19, fontWeight: 900, color: "#fff", letterSpacing: "-.02em", lineHeight: 1.35, marginTop: 6 }}>AI가 산출한 적정 간병비로<br />투명하게 매칭받으세요</div>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: "#fff", color: ACCENT, fontSize: 13, fontWeight: 800 }}>
-          지금 시작하기 <ChevronRight size={15} />
-        </span>
-        <Sparkles size={72} color="#fff" strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.22 }} />
-      </button>
-    </div>
-  );
-}
-
 /* 상시 AI 상담 진입점(FAB) — 케어네이션 홈 우하단 AI챗봇 버튼 참고.
    실제 챗봇 백엔드는 아직 없어 준비중 안내로 처리(기관전용 도메인 게이팅과 동일한 toast 패턴). */
 function GAiFab() {
@@ -564,8 +513,6 @@ function GuardianHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
-      <GHeroBanner go={go} />
-      <GOnboardSenior go={go} />
       <GServices go={go} />
       <GQuick go={go} />
       <GMyRequests go={go} />

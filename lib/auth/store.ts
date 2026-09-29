@@ -32,6 +32,8 @@ export interface User {
     id: number;
     intent?: "care" | "housekeeping" | "postpartum" | "childcare" | "mental_care";
     relation?: string | null;
+    /** 가입 때 고른 주로 이용할 서비스(선택 순서) */
+    preferences?: { services?: string[] } | null;
   } | null;
   admin?: {
     permission_level: "super" | "operator" | "cs" | "analyst";
