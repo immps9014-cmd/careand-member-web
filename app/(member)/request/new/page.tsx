@@ -25,6 +25,7 @@ import { serviceGuide } from "@/lib/serviceGuides";
 import { memberApi, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
+import { careTargetNoun } from "@/lib/careTarget";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 
 const MODES = [
@@ -474,6 +475,7 @@ export default function NewRequestPage() {
     create.mutate();
   }
 
+  const seniorTarget = careTargetNoun(user?.guardian?.relation);
   const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
@@ -672,10 +674,10 @@ export default function NewRequestPage() {
               <label className={SECTION_LABEL}>돌봄 대상</label>
               {noSeniors ? (
                 <div className="rounded-xl bg-warm-50 p-3.5 text-center">
-                  <p className="text-xs text-warm-500 mb-2.5">매칭을 위해 돌봄받으실 어르신을 먼저 등록해주세요. (회원가입이 아닌, 매칭 대상 등록이에요.)</p>
+                  <p className="text-xs text-warm-500 mb-2.5">매칭을 위해 {seniorTarget === "본인" ? "돌봄받으실 본인 정보를" : `${seniorTarget}을`} 먼저 등록해주세요. (회원가입이 아닌, 매칭 대상 등록이에요.)</p>
                   <Link href={`/seniors/new?returnTo=${encodeURIComponent("/request/new?domain=senior")}`}>
                     <Button variant="brand" size="sm" className="w-full">
-                      <Plus className="w-4 h-4" /> 어르신(돌봄대상) 등록하기
+                      <Plus className="w-4 h-4" /> {seniorTarget === "본인" ? "본인" : seniorTarget}(돌봄대상) 등록하기
                     </Button>
                   </Link>
                 </div>
@@ -731,7 +733,7 @@ export default function NewRequestPage() {
               {noAddresses ? (
                 <div className="rounded-xl bg-warm-50 p-3.5 text-center">
                   <p className="text-xs text-warm-500 mb-2.5">등록된 주소가 없습니다. 먼저 주소를 등록해주세요.</p>
-                  <Link href="/addresses/new">
+                  <Link href={`/addresses/new?returnTo=${encodeURIComponent("/request/new?domain=living_support")}`}>
                     <Button variant="outline" size="sm" className="w-full">
                       <Plus className="w-4 h-4" /> 주소 등록하러 가기
                     </Button>

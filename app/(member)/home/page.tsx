@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/store";
+import { careTargetNoun } from "@/lib/careTarget";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 import { memberApi, getCurrentCoords, type RecommendedCaregiver, type CaregiverProfile, type MyMatch } from "@/lib/api/member";
 import { organizationApi } from "@/lib/api/organization";
@@ -480,7 +481,8 @@ function GServices({ go }: { go: GNav }) {
   );
 }
 
-/* 온보딩 — 어르신돌봄 보호자가 돌봄대상(부모님) 미등록 시 홈 최상단에서 먼저 등록을 유도.
+/* 온보딩 — 어르신돌봄 보호자가 돌봄대상 미등록 시 홈 최상단에서 먼저 등록을 유도.
+   호칭은 가입 때 고른 관계로 정한다(형제 → 형제·자매분, 관계 미상 → 돌봄받으실 분).
    등록 입구를 요청폼(request/new) 안이 아니라 홈에 두고 returnTo=/home 로 복귀시켜,
    "가입→부모 등록→다시 매칭요청폼" 루프에 갇히지 않게 한다. 등록되면 CTA는 사라진다. */
 function GOnboardSenior({ go }: { go: GNav }) {
@@ -494,17 +496,19 @@ function GOnboardSenior({ go }: { go: GNav }) {
     enabled: isCareGuardian,
   });
   if (!isCareGuardian || !seniors.isSuccess || seniors.data.length > 0) return null;
+  const target = careTargetNoun(user?.guardian?.relation);
+  const self = target === "본인";
   return (
     <div style={{ padding: "16px 16px 0" }}>
       <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#FFE9E1,#FFD9CE 60%,#FFC9BB)", padding: "22px 20px" }}>
         <div style={{ fontSize: 13, fontWeight: 800, color: "#C2410C" }}>돌봄 시작 준비</div>
-        <div style={{ fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.02em", lineHeight: 1.35, marginTop: 6 }}>먼저 부모님(돌봄대상)을<br />등록해 주세요</div>
-        <div style={{ fontSize: 12.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>어르신 정보를 등록하면 맞춤 돌봄전문가를 추천받고 필요할 때 바로 매칭을 요청할 수 있어요.</div>
+        <div style={{ fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.02em", lineHeight: 1.35, marginTop: 6 }}>{self ? <>먼저 돌봄받으실 본인 정보를<br />등록해 주세요</> : <>먼저 {target}(돌봄대상)을<br />등록해 주세요</>}</div>
+        <div style={{ fontSize: 12.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>돌봄대상 정보를 등록하면 맞춤 돌봄전문가를 추천받고 필요할 때 바로 매칭을 요청할 수 있어요.</div>
         <button
           onClick={() => go(`/seniors/new?returnTo=${encodeURIComponent("/home")}`)}
           style={{ marginTop: 15, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 6px 16px rgba(224,72,78,.24)" }}
         >
-          부모님 등록하기 <ChevronRight size={17} />
+          {self ? "본인 정보 등록하기" : `${target} 등록하기`} <ChevronRight size={17} />
         </button>
       </div>
     </div>

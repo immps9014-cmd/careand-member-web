@@ -15,6 +15,7 @@ import { organizationApi } from "@/lib/api/organization";
 import { useAuth } from "@/lib/auth/store";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { careTargetNoun } from "@/lib/careTarget";
 
 type Role = "guardian" | "caregiver" | "organization";
 /** 가입 화면에서 사용자가 고르는 카드. 가사요청자(housekeeping)는 백엔드상 guardian으로 가입한다. */
@@ -798,7 +799,7 @@ export default function SignupPage() {
               ) : (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 부모님(돌봄대상)을 등록하고 돌봄을 시작해보세요.
+                  이제 {careTargetNoun(relation) === "본인" ? "돌봄받으실 본인 정보를" : `${careTargetNoun(relation)}(돌봄대상)을`} 등록하고 돌봄을 시작해보세요.
                 </>
               )}
             </p>
@@ -822,7 +823,7 @@ export default function SignupPage() {
                         ? "/request/new?domain=childcare"
                         : kind === "mental_care"
                         ? "/request/new?domain=mental_care"
-                        : "/home") // 어르신 돌봄 보호자 → 홈에서 부모님(돌봄대상) 등록 온보딩(요청 퍼널에 가두지 않음)
+                        : "/home") // 어르신 돌봄 보호자 → 홈에서 돌봄대상 등록 온보딩(요청 퍼널에 가두지 않음)
                   );
                 }}
               >
