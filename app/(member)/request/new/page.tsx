@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import { BirthDateSelect } from "@/components/ui/birth-date-select";
 import { serviceGuide } from "@/lib/serviceGuides";
 import { memberApi, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { CARE_GRADES } from "@/lib/care";
 import { useAuth } from "@/lib/auth/store";
 import { careTargetNoun } from "@/lib/careTarget";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
@@ -73,6 +74,7 @@ export default function NewRequestPage() {
   // 홈 서비스카드에서 ?domain= 으로 진입한 경우, 서비스 재선택 그리드를 접어 곧바로 대상·일정 입력으로 진행.
   // '변경'을 누르면 다시 펼쳐 전체 서비스 중 다시 고를 수 있다.
   const [domainPickerOpen, setDomainPickerOpen] = useState(true);
+  const qc = useQueryClient();
   const role = useAuth((s) => s.user?.role);
   const user = useAuth((s) => s.user);
   // 도메인 카탈로그/가시성을 레지스트리(SSOT)에서 가져옴. API는 역할별로 서버측 필터됨.
@@ -121,8 +123,19 @@ export default function NewRequestPage() {
   const [addressId, setAddressId] = useState<number | "">("");
   const [photoRequired, setPhotoRequired] = useState(true);
 
+  // 요양보호: 등록된 대상은 칩으로 선택, 처음이거나 「새 대상」이면 이 화면에서 입력 — 「다음」 때 등록하고 일정으로.
+  const [snNew, setSnNew] = useState(false);
+  const [snName, setSnName] = useState("");
+  const [snBirth, setSnBirth] = useState(""); // "YYYY-MM-DD" (BirthDateSelect)
+  const [snGender, setSnGender] = useState<"M" | "F">("F");
+  const [snGrade, setSnGrade] = useState<number | "">("");
+  const [snAddress, setSnAddress] = useState("");
+  const [snDiseases, setSnDiseases] = useState("");
+  // 1단계 「다음」에서 대상 등록 중(요양·아이·마음돌봄 인라인 입력)
+  const [registering, setRegistering] = useState(false);
+
   // 아이돌봄: 등록된 아이는 칩으로 바로 선택, 처음이거나 「새 아이」면 이 화면에서 아이 정보를 입력(별도 등록 화면 없음).
-  // 제출 때 아이 레코드를 자동 생성한 뒤 요청한다.
+  // 「다음」 때 아이를 등록하고 일정으로 넘어간다.
   const [ccNew, setCcNew] = useState(false);
   const [ccName, setCcName] = useState("");
   const [ccBirth, setCcBirth] = useState(""); // "YYYY-MM-DD" (BirthDateSelect)
@@ -130,7 +143,7 @@ export default function NewRequestPage() {
   const [ccAddress, setCcAddress] = useState("");
 
   // 마음돌봄 '본인이 받아요' self — 별도 대상 등록 화면 없이 가입 정보(이름) + 방문 주소만 여기서 입력.
-  // 이미 본인(relation=본인)으로 등록된 대상이 있으면 그걸 그대로 쓴다. 제출 때 없으면 대상 레코드를 자동 생성.
+  // 이미 본인(relation=본인)으로 등록된 대상이 있으면 그걸 그대로 쓴다. 없으면 「다음」 때 대상을 등록.
   const [mcSelf, setMcSelf] = useState(true);
   const [mcAddress, setMcAddress] = useState("");
   const [mcGender, setMcGender] = useState<"" | "M" | "F">("");
@@ -385,15 +398,9 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "childcare") {
-        let ccId = Number(childId);
-        if (ccAdding) {
-          const res = await memberApi.createChild({ name: ccName.trim(), birth_date: ccBirth, gender: ccGender, home_address: ccAddress });
-          ccId = res?.data?.data?.id;
-          if (!ccId) throw new Error("아이 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
-        }
         return memberApi.createRequest({
           service_domain: "childcare",
-          childcare_child_id: Number(ccId),
+          childcare_child_id: Number(childId),
           category_id: Number(categoryId),
           mode: "normal",
           scheduled_start: scheduled,
@@ -404,20 +411,9 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "mental_care") {
-        let mcId = mcSelf ? mcSelfClient?.id ?? 0 : Number(mentalClientId);
-        if (mcSelf && !mcId) {
-          const res = await memberApi.createMentalCareClient({
-            name: user?.name ?? "",
-            relation: "본인",
-            ...(mcGender ? { gender: mcGender } : {}),
-            home_address: mcAddress,
-          });
-          mcId = res?.data?.data?.id;
-          if (!mcId) throw new Error("대상 정보 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
-        }
         return memberApi.createRequest({
           service_domain: "mental_care",
-          mental_care_client_id: Number(mcId),
+          mental_care_client_id: Number(mcSelf ? mcSelfClient?.id : mentalClientId),
           category_id: Number(categoryId),
           mode: "normal",
           scheduled_start: scheduled,
@@ -449,6 +445,10 @@ export default function NewRequestPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  // 요양보호: 등록된 대상이 없으면 곧바로 입력 모드
+  const snAdding = snNew || (seniors.isSuccess && seniors.data.length === 0);
+  const snRecipientReady = snAdding ? !!(snName.trim() && snBirth && snGrade !== "" && snAddress) : !!seniorId;
+
   // 아이돌봄: 등록된 아이가 없으면 곧바로 입력 모드
   const ccAdding = ccNew || (childrenQ.isSuccess && childrenQ.data.length === 0);
   const ccRecipientReady = ccAdding ? !!(ccName.trim() && ccBirth && ccAddress) : !!childId;
@@ -476,7 +476,7 @@ export default function NewRequestPage() {
             ? ccRecipientReady && categoryId && start && duration >= 60 && duration <= 720
             : domain === "mental_care"
               ? mcRecipientReady && categoryId && start && duration >= 60 && duration <= 720
-              : seniorId && categoryId && start && duration >= 60 && (mode !== "recurring" || weekdays.length >= 1);
+              : snRecipientReady && categoryId && start && duration >= 60 && (mode !== "recurring" || weekdays.length >= 1);
 
   // 스텝별 진행 가능 여부
   const recipientId =
@@ -492,7 +492,7 @@ export default function NewRequestPage() {
               ? mentalClientId
               : seniorId;
   const step1Valid =
-    (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : !!recipientId) &&
+    (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId) &&
     !!categoryId &&
     screeningOk;
   const step2Valid =
@@ -520,7 +520,52 @@ export default function NewRequestPage() {
   }
 
   const seniorTarget = careTargetNoun(user?.guardian?.relation);
-  const noSeniors = domain === "senior" && seniors.isSuccess && seniors.data.length === 0;
+
+  // 1단계 → 2단계: 이 화면에서 입력한 대상이 있으면 먼저 등록하고(선택 상태로 바꾼 뒤) 일정으로 넘어간다.
+  // 등록 후엔 목록에서 선택된 상태가 되므로, 2단계에서 되돌아와도 중복 등록되지 않는다.
+  async function goSchedule() {
+    setRegistering(true);
+    try {
+      if (domain === "senior" && snAdding) {
+        const res = await memberApi.createSenior({
+          name: snName.trim(),
+          birth_date: snBirth,
+          gender: snGender,
+          care_grade: Number(snGrade),
+          diseases: snDiseases.split(",").map((d) => d.trim()).filter(Boolean),
+          home_address: snAddress,
+        });
+        const id = (res as any)?.data?.data?.id ?? (res as any)?.data?.id;
+        if (!id) throw new Error("돌봄대상 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        await qc.invalidateQueries({ queryKey: ["member", "seniors"] });
+        setSeniorId(Number(id));
+        setSnNew(false);
+      }
+      if (domain === "childcare" && ccAdding) {
+        const res = await memberApi.createChild({ name: ccName.trim(), birth_date: ccBirth, gender: ccGender, home_address: ccAddress });
+        const id = res?.data?.data?.id;
+        if (!id) throw new Error("아이 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        await qc.invalidateQueries({ queryKey: ["member", "children"] });
+        setChildId(Number(id));
+        setCcNew(false);
+      }
+      if (domain === "mental_care" && mcSelf && !mcSelfClient) {
+        const res = await memberApi.createMentalCareClient({
+          name: user?.name ?? "",
+          relation: "본인",
+          ...(mcGender ? { gender: mcGender } : {}),
+          home_address: mcAddress,
+        });
+        if (!res?.data?.data?.id) throw new Error("대상 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        await qc.invalidateQueries({ queryKey: ["member", "mental-care-clients"] });
+      }
+      setStep(2);
+    } catch (e) {
+      toast.error(getApiErrorMessage(e));
+    } finally {
+      setRegistering(false);
+    }
+  }
   const noPatients = domain === "nursing" && patients.isSuccess && patients.data.length === 0;
   const noAddresses = domain === "living_support" && addresses.isSuccess && addresses.data.length === 0;
   const noPostpartum = domain === "postpartum" && postpartumClients.isSuccess && postpartumClients.data.length === 0;
@@ -566,7 +611,9 @@ export default function NewRequestPage() {
               ? mcSelf
                 ? `${user?.name ?? "본인"} (본인)`
                 : mentalClients.data?.find((m) => m.id === mentalClientId)?.name
-              : seniors.data?.find((s) => s.id === seniorId)?.name;
+              : snAdding
+                ? snName
+                : seniors.data?.find((s) => s.id === seniorId)?.name;
   const genderLabel = sameGenderForced
     ? "동성 배정"
     : effectiveGender === "F"
@@ -719,28 +766,95 @@ export default function NewRequestPage() {
           {domain === "senior" && (
             <div>
               <label className={SECTION_LABEL}>돌봄 대상</label>
-              {noSeniors ? (
-                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
-                  <p className="text-xs text-warm-500 mb-2.5">매칭을 위해 {seniorTarget === "본인" ? "돌봄받으실 본인 정보를" : `${seniorTarget}을`} 먼저 등록해주세요. (회원가입이 아닌, 매칭 대상 등록이에요.)</p>
-                  <Link href={`/seniors/new?returnTo=${encodeURIComponent("/request/new?domain=senior")}`}>
-                    <Button variant="brand" size="sm" className="w-full">
-                      <Plus className="w-4 h-4" /> {seniorTarget === "본인" ? "본인" : seniorTarget}(돌봄대상) 등록하기
-                    </Button>
-                  </Link>
+              {/* 등록된 대상은 칩으로 바로 선택, 「새 대상」은 아래에서 바로 입력(「다음」 때 등록) */}
+              {(seniors.data?.length ?? 0) > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {seniors.data!.map((sn) => {
+                    const on = !snNew && seniorId === sn.id;
+                    return (
+                      <button
+                        key={sn.id}
+                        type="button"
+                        onClick={() => { setSeniorId(sn.id); setSnNew(false); }}
+                        className={
+                          "h-10 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        }
+                      >
+                        {sn.name}
+                        {sn.age ? <span className={on ? "text-white/80" : "text-warm-500"}> · {sn.age}세</span> : null}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => { setSnNew(true); setSeniorId(""); }}
+                    className={
+                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                      (snNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
+                    }
+                  >
+                    <Plus className="h-4 w-4" /> 새 대상
+                  </button>
                 </div>
-              ) : (
-                <select
-                  value={seniorId}
-                  onChange={(e) => setSeniorId(e.target.value ? Number(e.target.value) : "")}
-                  className={SELECT_CLASS}
-                >
-                  <option value="">대상자를 선택하세요</option>
-                  {seniors.data?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} {s.age ? `(${s.age}세)` : ""}
-                    </option>
-                  ))}
-                </select>
+              )}
+
+              {snAdding && (
+                <div className={((seniors.data?.length ?? 0) > 0 ? "mt-3 " : "") + "space-y-3.5"}>
+                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warm-600">
+                    {seniorTarget === "본인" ? "돌봄받으실 본인 정보" : `${seniorTarget} 정보`}를 입력하면 「다음」을 누를 때 등록되고 바로 일정 입력으로 넘어가요. (회원가입이 아닌, 매칭 대상 등록이에요.)
+                  </p>
+                  <div>
+                    <label className={SECTION_LABEL}>성함</label>
+                    <Input value={snName} onChange={(e) => setSnName(e.target.value)} placeholder="홍길동" maxLength={50} className="h-12 rounded-xl text-[14.5px]" />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>생년월일</label>
+                    <BirthDateSelect value={snBirth} onChange={setSnBirth} minYear={1920} />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>성별</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
+                        const on = snGender === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setSnGender(v)}
+                            className={
+                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                            }
+                          >
+                            {l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>장기요양 등급</label>
+                    <select
+                      value={snGrade}
+                      onChange={(e) => setSnGrade(e.target.value === "" ? "" : Number(e.target.value))}
+                      className={SELECT_CLASS}
+                    >
+                      <option value="">등급을 선택하세요</option>
+                      {CARE_GRADES.map((g) => (
+                        <option key={g.value} value={g.value}>{g.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>돌봄 주소</label>
+                    <AddressSearch onChange={setSnAddress} />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>질환 (선택, 쉼표로 구분)</label>
+                    <Input value={snDiseases} onChange={(e) => setSnDiseases(e.target.value)} placeholder="고혈압, 당뇨, 치매" className="h-12 rounded-xl text-[14.5px]" />
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1651,10 +1765,10 @@ export default function NewRequestPage() {
               variant="brand"
               size="lg"
               className="flex-1 rounded-2xl shadow-md"
-              disabled={!step1Valid}
-              onClick={() => setStep(2)}
+              disabled={!step1Valid || registering}
+              onClick={goSchedule}
             >
-              다음
+              {registering ? "등록 중…" : "다음"}
             </Button>
           )}
           {step === 2 && (
