@@ -121,6 +121,12 @@ export default function NewRequestPage() {
   const [addressId, setAddressId] = useState<number | "">("");
   const [photoRequired, setPhotoRequired] = useState(true);
 
+  // 마음돌봄 '본인이 받아요' self — 별도 대상 등록 화면 없이 가입 정보(이름) + 방문 주소만 여기서 입력.
+  // 이미 본인(relation=본인)으로 등록된 대상이 있으면 그걸 그대로 쓴다. 제출 때 없으면 대상 레코드를 자동 생성.
+  const [mcSelf, setMcSelf] = useState(true);
+  const [mcAddress, setMcAddress] = useState("");
+  const [mcGender, setMcGender] = useState<"" | "M" | "F">("");
+
   // 산후 플로우 상태
   const [postpartumClientId, setPostpartumClientId] = useState<number | "">("");
   // 산후 '본인이 산모' self 등록 — 별도 산모 등록 없이 회원 프로필(이름·연락처) 프리필 + 나머지 필수값 인라인 입력.
@@ -277,7 +283,10 @@ export default function NewRequestPage() {
     const cid = num("childcare_child_id");
     if (cid) setChildId(cid);
     const mid = num("mental_care_client_id");
-    if (mid) setMentalClientId(mid);
+    if (mid) {
+      setMentalClientId(mid);
+      setMcSelf(false); // 특정 대상을 지정해 돌아온 경우 그 대상으로
+    }
     // 관심 돌봄전문가 목록에서 '매칭 요청'으로 진입 시 해당 전문가를 직접 지정으로 선택
     const pref = num("preferred");
     if (pref) setPreferredCgId(pref);
@@ -381,9 +390,20 @@ export default function NewRequestPage() {
         });
       }
       if (domain === "mental_care") {
+        let mcId = mcSelf ? mcSelfClient?.id ?? 0 : Number(mentalClientId);
+        if (mcSelf && !mcId) {
+          const res = await memberApi.createMentalCareClient({
+            name: user?.name ?? "",
+            relation: "본인",
+            ...(mcGender ? { gender: mcGender } : {}),
+            home_address: mcAddress,
+          });
+          mcId = res?.data?.data?.id;
+          if (!mcId) throw new Error("대상 정보 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
         return memberApi.createRequest({
           service_domain: "mental_care",
-          mental_care_client_id: Number(mentalClientId),
+          mental_care_client_id: Number(mcId),
           category_id: Number(categoryId),
           mode: "normal",
           scheduled_start: scheduled,
@@ -415,6 +435,10 @@ export default function NewRequestPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  // 마음돌봄 self: 본인으로 등록된 대상이 있으면 그것, 없으면 이름(가입 정보)+방문 주소가 있어야 진행
+  const mcSelfClient = mentalClients.data?.find((m) => m.relation === "본인");
+  const mcRecipientReady = mcSelf ? !!mcSelfClient || !!(user?.name && mcAddress) : !!mentalClientId;
+
   // 산후 self: 프로필(이름·연락처) + 인라인 필수값이 모두 채워졌는지
   const ppSelfComplete = !!(
     user?.name && user?.phone && ppBirth && ppAddress && ppRegion && ppDeliveryDate && ppDeliveryType
@@ -433,7 +457,7 @@ export default function NewRequestPage() {
           : domain === "childcare"
             ? childId && categoryId && start && duration >= 60 && duration <= 720
             : domain === "mental_care"
-              ? mentalClientId && categoryId && start && duration >= 60 && duration <= 720
+              ? mcRecipientReady && categoryId && start && duration >= 60 && duration <= 720
               : seniorId && categoryId && start && duration >= 60 && (mode !== "recurring" || weekdays.length >= 1);
 
   // 스텝별 진행 가능 여부
@@ -450,7 +474,9 @@ export default function NewRequestPage() {
               ? mentalClientId
               : seniorId;
   const step1Valid =
-    (domain === "postpartum" ? ppRecipientReady : !!recipientId) && !!categoryId && screeningOk;
+    (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : !!recipientId) &&
+    !!categoryId &&
+    screeningOk;
   const step2Valid =
     !!start &&
     duration >= 60 &&
@@ -518,7 +544,9 @@ export default function NewRequestPage() {
           : domain === "childcare"
             ? childrenQ.data?.find((c) => c.id === childId)?.name
             : domain === "mental_care"
-              ? mentalClients.data?.find((m) => m.id === mentalClientId)?.name
+              ? mcSelf
+                ? `${user?.name ?? "본인"} (본인)`
+                : mentalClients.data?.find((m) => m.id === mentalClientId)?.name
               : seniors.data?.find((s) => s.id === seniorId)?.name;
   const genderLabel = sameGenderForced
     ? "동성 배정"
@@ -917,8 +945,69 @@ export default function NewRequestPage() {
           {domain === "mental_care" && (
             <div>
               <label className={SECTION_LABEL}>돌봄 대상</label>
-              {noMental ? (
-                <div className="rounded-xl bg-warm-50 p-3.5 text-center">
+              {/* 본인 / 다른 분(대리) 전환 — 본인이면 별도 대상 등록 없이 이 화면에서 바로 진행 */}
+              <div className="grid grid-cols-2 gap-2">
+                {([[true, "본인이 받아요"], [false, "다른 분"]] as const).map(([v, l]) => {
+                  const on = mcSelf === v;
+                  return (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setMcSelf(v)}
+                      className={
+                        "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      }
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {mcSelf ? (
+                <div className="mt-3 space-y-3.5">
+                  <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
+                    <p className="text-[13px] font-bold text-brand-700">{user?.name ?? "회원"}님 (본인) 으로 신청해요</p>
+                    <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+                      {mcSelfClient
+                        ? `등록된 본인 정보(방문 주소 ${mcSelfClient.home_address ?? "-"})를 그대로 사용해요.`
+                        : "가입 정보를 그대로 사용하며, 별도 대상 등록은 필요 없어요. 방문 주소만 알려주세요."}
+                    </p>
+                  </div>
+                  {!mcSelfClient && (
+                    <>
+                      <div>
+                        <label className={SECTION_LABEL}>방문 주소</label>
+                        <AddressSearch onChange={setMcAddress} />
+                        <p className="mt-1.5 text-[11px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
+                      </div>
+                      <div>
+                        <label className={SECTION_LABEL}>성별 (선택)</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {([["", "선택안함"], ["F", "여성"], ["M", "남성"]] as const).map(([v, l]) => {
+                            const on = mcGender === v;
+                            return (
+                              <button
+                                key={l}
+                                type="button"
+                                onClick={() => setMcGender(v)}
+                                className={
+                                  "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                                  (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                                }
+                              >
+                                {l}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : noMental ? (
+                <div className="mt-3 rounded-xl bg-warm-50 p-3.5 text-center">
                   <p className="text-xs text-warm-500 mb-2.5">등록된 대상이 없습니다. 먼저 대상을 등록해주세요.</p>
                   <Link href="/mental-care-clients/new">
                     <Button variant="outline" size="sm" className="w-full">
@@ -930,7 +1019,7 @@ export default function NewRequestPage() {
                 <select
                   value={mentalClientId}
                   onChange={(e) => setMentalClientId(e.target.value ? Number(e.target.value) : "")}
-                  className={SELECT_CLASS}
+                  className={SELECT_CLASS + " mt-3"}
                 >
                   <option value="">대상을 선택하세요</option>
                   {mentalClients.data?.map((m) => (

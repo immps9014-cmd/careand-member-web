@@ -243,6 +243,7 @@ export interface MentalCareClient {
   name: string;
   relation: string | null;
   gender: "M" | "F" | null;
+  home_address?: string | null;
 }
 
 export interface CreateMentalCareClientPayload {
