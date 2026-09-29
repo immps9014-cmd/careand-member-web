@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -9,7 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { caregiverDomainLabels } from "@/lib/caregiverType";
+import { caregiverDomainLabels, domainLabel } from "@/lib/caregiverType";
+import { formatDateTime } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/store";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const stripTag = (s: string | null | undefined) => (s ?? "").replace(/^\[.*?\]\s*/, "");
@@ -46,6 +49,31 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
+
+  // 「매칭 요청하기」 — 이 전문가가 맡을 수 있는 진행 중(open) 요청이 있으면 새 요청 대신 그 요청의 후보로 추가하도록 고르게 한다.
+  // (칠칠칠칠 사례: 요청이 이미 있는데 상세에서 누르면 늘 새 요청 화면으로 가 「매칭했는데 새 요청으로 돌아온다」)
+  const isGuardian = useAuth((s) => s.user?.role) === "guardian";
+  const [pickOpen, setPickOpen] = useState(false);
+  const openReqQ = useQuery({
+    queryKey: ["member", "guardian", "requests"],
+    queryFn: () => memberApi.guardianRequests(),
+    enabled: isGuardian,
+    staleTime: 30_000,
+  });
+  const cgDomains = (q.data?.service_domains ?? "").split(",").filter(Boolean);
+  const openReqs = (openReqQ.data ?? []).filter(
+    (r) => r.status === "open" && (!r.service_domain || cgDomains.length === 0 || cgDomains.includes(r.service_domain)),
+  );
+  const invite = useMutation({
+    mutationFn: (requestId: number) => memberApi.inviteToRequest(requestId, id).then(() => requestId),
+    onSuccess: (requestId) => {
+      toast.success("진행 중인 요청의 후보로 추가했어요. 전문가가 응답하면 알려드릴게요.");
+      qc.invalidateQueries({ queryKey: ["member", "candidates", requestId] });
+      router.push(`/request/${requestId}`);
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const startRequest = () => (openReqs.length > 0 ? setPickOpen(true) : router.push(`/request/new?preferred=${id}`));
 
   return (
     <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-3xl">
@@ -122,10 +150,41 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
               >
                 <Heart className={"w-4 h-4 " + (isFav ? "fill-current" : "")} /> {isFav ? "찜함" : "찜하기"}
               </Button>
-              <Button variant="brand" size="lg" className="flex-[2]" onClick={() => router.push(`/request/new?preferred=${id}`)}>
+              <Button variant="brand" size="lg" className="flex-[2]" onClick={startRequest}>
                 매칭 요청하기
               </Button>
             </div>
+
+            {pickOpen && (
+              <Card className="mt-3 p-4">
+                <div className="text-sm font-bold text-warm-800">진행 중인 요청이 있어요</div>
+                <p className="mt-0.5 text-xs text-warm-500">이 전문가를 기존 요청의 후보로 추가하거나, 새로 요청할 수 있어요.</p>
+                <div className="mt-3 space-y-2">
+                  {openReqs.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      disabled={invite.isPending}
+                      onClick={() => invite.mutate(r.id)}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/60 px-3.5 py-3 text-left disabled:opacity-60"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[13.5px] font-bold text-warm-800">
+                          {domainLabel(r.service_domain)}{r.senior?.name ? ` · ${r.senior.name}` : ""}
+                        </span>
+                        <span className="block text-[11.5px] text-warm-500">
+                          {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"} · 후보 추천 중
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-xs font-bold text-brand-600">이 요청에 추가</span>
+                    </button>
+                  ))}
+                </div>
+                <Button variant="outline" size="lg" className="mt-3 w-full" onClick={() => router.push(`/request/new?preferred=${id}`)}>
+                  새 요청으로 신청
+                </Button>
+              </Card>
+            )}
           </>
         );
       })()}

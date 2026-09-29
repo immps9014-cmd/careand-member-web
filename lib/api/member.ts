@@ -606,6 +606,9 @@ export interface MemberNotification {
 
 export const memberApi = {
   // 보호자 — 매칭
+  /** 진행 중(open) 요청에 돌봄전문가를 「직접 지정」 후보로 추가 */
+  inviteToRequest: (requestId: number, caregiverId: number) =>
+    api.post(`/v1/matching/requests/${requestId}/invite`, { caregiver_id: caregiverId }),
   async guardianRequests(status?: string): Promise<GuardianRequest[]> {
     const { data } = await api.get("/v1/matching/requests", { params: status ? { status } : {} });
     return data.data ?? [];
