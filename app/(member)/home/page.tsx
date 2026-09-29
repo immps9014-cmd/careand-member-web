@@ -1025,12 +1025,22 @@ function CaregiverHome() {
                   <Sparkles className="w-3.5 h-3.5" /> {ui.actionNoun} 진행 중입니다
                 </div>
               )}
-              {s.status === "scheduled" && (
-                <Button size="lg" variant="brand" className="w-full shadow-md" disabled={checkin.isPending}
-                  onClick={() => checkin.mutate(s.id)}>
-                  <LogIn className="w-4 h-4" /> 출근 체크
-                </Button>
-              )}
+              {s.status === "scheduled" && (() => {
+                // 출근은 방문 1시간 전부터(서버 matching_rules.checkin_early_minutes 와 같은 값)
+                const opensAt = s.scheduled_start ? new Date(new Date(s.scheduled_start).getTime() - 60 * 60_000) : null;
+                const tooEarly = !!opensAt && Date.now() < opensAt.getTime();
+                return (
+                  <>
+                    <Button size="lg" variant="brand" className="w-full shadow-md" disabled={checkin.isPending || tooEarly}
+                      onClick={() => checkin.mutate(s.id)}>
+                      <LogIn className="w-4 h-4" /> 출근 체크
+                    </Button>
+                    {tooEarly && opensAt && (
+                      <p className="mt-1.5 text-center text-[11.5px] text-warm-500">{formatDateTime(opensAt.toISOString())}부터 출근할 수 있어요 (방문 1시간 전)</p>
+                    )}
+                  </>
+                );
+              })()}
               {s.status === "in_progress" && (
                 <div className="space-y-2">
                   {s.photo_required && (
