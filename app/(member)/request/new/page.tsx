@@ -40,6 +40,16 @@ type Domain = string;
 
 const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
+/** 한국시각 기준 datetime-local 값("2026-09-30T10:00") — 모든 시각은 한국시각으로 계산(운영 규칙) */
+function kstLocalInput(d: Date): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
 const SELECT_CLASS =
   "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
@@ -559,8 +569,14 @@ export default function NewRequestPage() {
     (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId) &&
     !!categoryId &&
     screeningOk;
+  // 최소 신청 시각 — 서버 config/matching_rules.php min_lead_minutes(120)·_emergency(60) 과 같은 값.
+  // 비교는 한국시각 "YYYY-MM-DDTHH:mm" 문자열로(시작 일시는 +09:00 으로 전송) — 브라우저 시간대와 무관하게.
+  const leadMin = mode === "emergency" ? 60 : 120;
+  const minStart = kstLocalInput(new Date(Date.now() + leadMin * 60_000));
+  const startTooSoon = !!start && start < minStart;
   const step2Valid =
     !!start &&
+    !startTooSoon &&
     duration >= 60 &&
     duration <= maxDuration &&
     (domain !== "nursing" || (days >= 1 && days <= 30)) &&
@@ -1387,9 +1403,15 @@ export default function NewRequestPage() {
             <Input
               type="datetime-local"
               value={start}
+              min={minStart}
               onChange={(e) => setStart(e.target.value)}
               className="h-12 rounded-xl text-[14.5px]"
             />
+            <p className={"mt-1.5 text-[11px] " + (startTooSoon ? "font-semibold text-danger" : "text-warm-500")}>
+              {startTooSoon
+                ? `지금부터 ${leadMin / 60}시간 뒤부터 고를 수 있어요. 돌봄전문가가 수락하고 이동할 시간이 필요해요.`
+                : `${mode === "emergency" ? "긴급은 1시간" : "지금부터 2시간"} 뒤부터 신청할 수 있어요 (한국시각).`}
+            </p>
           </div>
 
           {/* 소요 시간 — 스테퍼 + 빠른선택 칩 (duration 상태 그대로) */}
