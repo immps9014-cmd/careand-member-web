@@ -208,6 +208,8 @@ export interface PostpartumClient {
   delivery_date: string | null;
   delivery_type: DeliveryType | null;
   status: string;
+  /** 산모 연락처 = 회원 본인 연락처(「본인이 산모」 레코드) */
+  is_self?: boolean;
 }
 
 export interface CreatePostpartumClientPayload {
