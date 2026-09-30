@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { detachPushFromServer } from "../push";
 import { User } from "@/lib/auth/store";
 
 interface LoginResponse {
@@ -137,6 +138,7 @@ export const authApi = {
    * 로그아웃
    */
   async logout(): Promise<void> {
+    await detachPushFromServer();   // 토큰이 살아 있을 때 이 기기 푸시 등록부터 푼다
     await api.post("/v1/auth/logout").catch(() => {
       // 서버 오류 시에도 클라이언트 토큰은 삭제
     });

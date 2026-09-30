@@ -20,6 +20,7 @@ import { formatDateTime, formatKRW } from "@/lib/utils";
 import { ProgressPipeline } from "@/components/ProgressPipeline";
 import { DirectionsLink } from "@/components/care/directions-link";
 import { SUPPORT } from "@/lib/support";
+import { PushPrompt } from "@/components/push-prompt";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -532,6 +533,7 @@ function GuardianHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
+      <PushPrompt />
       <GServices go={go} />
       <GQuick go={go} />
       <GMyRequests go={go} />
@@ -597,6 +599,7 @@ function OrgHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} />
+      <PushPrompt />
       <OrgStatusBanner status={status} name={org.data?.name} />
       <div style={{ background: "#fff", marginTop: 14, paddingBottom: 2 }}><OrgCta go={go} enabled={status === "active"} /></div>
       <OrgRecipientsCard go={go} />
@@ -813,6 +816,7 @@ function CaregiverHome() {
   return (
     <div style={{ background: BG }}>
       <GTopBar go={go} unread={unread} searchTo="/open-requests" searchPlaceholder={ui.searchPlaceholder} />
+      <PushPrompt />
       <div className="p-5">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">{ui.homeTitle}</h1>
         <p className="text-sm text-warm-500 mt-1 mb-5">수락 대기 {pending.length}건 · {ui.actionNoun} 플로우</p>

@@ -7,6 +7,7 @@ import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type Luc
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI, brand } from "@/lib/theme";
+import { syncPush } from "@/lib/push";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
 // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동 (Link 대신 plain <a>)
@@ -156,6 +157,12 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
       router.replace(`/login?redirect=${encodeURIComponent(back)}`);
     }
   }, [hasHydrated, isAuthenticated, router, pathname]);
+
+  // 이미 알림을 허용한 기기면 지금 로그인한 계정으로 구독을 다시 알린다(계정 전환·서버 만료 복구)
+  const uid = user?.id;
+  useEffect(() => {
+    if (hasHydrated && isAuthenticated && uid) syncPush();
+  }, [hasHydrated, isAuthenticated, uid]);
 
   if (!hasHydrated || !isAuthenticated || !user) {
     return (

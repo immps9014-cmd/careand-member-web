@@ -17,6 +17,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { caregiverRoleLabel } from "@/lib/caregiverType";
 import { roleLabel } from "@/lib/role";
 import { useSeniorMode } from "@/lib/senior-mode";
+import { PushSettingsCard } from "@/components/push-settings";
 
 export default function MyPage() {
   const router = useRouter();
@@ -384,6 +385,9 @@ export default function MyPage() {
           )}
         </Card>
       )}
+
+      {/* 웹 푸시 알림(PWA 1단계) */}
+      <PushSettingsCard />
 
       {/* 바로가기 — 돌봄 받는 분(보호자) · 고객센터 */}
       <Card className="mb-4 divide-y divide-warm-100 p-0">
