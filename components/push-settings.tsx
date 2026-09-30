@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { BellRing, BellOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -10,10 +11,15 @@ import { getApiErrorMessage } from "@/lib/api/client";
 
 /** 상태별 안내 — 고령 사용자가 다음에 무엇을 하면 되는지 한 문장으로 */
 export const PUSH_HELP: Record<Exclude<PushState, "on" | "off">, string> = {
-  "ios-install": "아이폰은 Safari 아래쪽 공유 버튼(□↑) → 「홈 화면에 추가」 후, 홈 화면의 케어앤 아이콘으로 열면 알림을 받을 수 있어요.",
-  denied: "이 브라우저에서 알림이 막혀 있어요. 주소창 왼쪽 자물쇠(또는 설정 › 사이트 설정 › 알림)에서 케어앤 알림을 「허용」으로 바꿔 주세요.",
+  "ios-install": "아이폰은 케어앤을 홈 화면에 추가한 뒤 그 아이콘으로 열어야 알림을 받을 수 있어요.",
+  "ios-update": "알림은 iOS 16.4 이상에서 받을 수 있어요. 설정 › 일반 › 소프트웨어 업데이트 후 다시 열어 주세요.",
+  inapp: "카카오톡 같은 앱 안에서 연 화면이라 알림을 켤 수 없어요. 사파리나 크롬으로 열어 주세요.",
+  denied: "이 브라우저에서 알림이 막혀 있어요. 주소창 왼쪽 자물쇠(또는 설정 › 사이트 설정 › 알림)에서 케어앤 알림을 「허용」으로 바꿔 주세요. 아이폰은 설정 › 알림 › 케어앤에서 켜요.",
   unsupported: "이 브라우저는 알림을 지원하지 않아요. 크롬이나 삼성 인터넷으로 열어 주세요.",
 };
+
+/** 설치 안내 화면으로 풀 수 있는 상태 */
+export const NEEDS_INSTALL: PushState[] = ["ios-install", "inapp"];
 
 export function usePushState() {
   const [state, setState] = useState<PushState | null>(null);
@@ -70,6 +76,9 @@ export function PushSettingsCard() {
       )}
       {state && state !== "on" && state !== "off" && (
         <p className="mt-3 rounded-lg bg-warm-50 p-3 text-sm leading-relaxed text-warm-700">{PUSH_HELP[state]}</p>
+      )}
+      {state && NEEDS_INSTALL.includes(state) && (
+        <Button asChild className="mt-2 w-full" size="lg"><Link href="/install">설치 방법 보기</Link></Button>
       )}
     </Card>
   );

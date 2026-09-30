@@ -3,7 +3,7 @@ import { DOMAIN_LABEL as DOMAIN, caregiverUi, caregiverPrimaryDomain } from "@/l
 import { roleLabel } from "@/lib/role";
 import { UI } from "@/lib/theme";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import { ProgressPipeline } from "@/components/ProgressPipeline";
 import { DirectionsLink } from "@/components/care/directions-link";
 import { SUPPORT } from "@/lib/support";
 import { PushPrompt } from "@/components/push-prompt";
+import { setAppBadge } from "@/lib/platform";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -529,6 +530,8 @@ function GuardianHome() {
     staleTime: 30_000,
   });
   const unread = notif.data?.unread ?? 0;
+  // 홈 화면 아이콘 배지를 앱 안의 안 읽은 수와 맞춘다
+  useEffect(() => { if (notif.data) setAppBadge(unread); }, [notif.data, unread]);
 
   return (
     <div style={{ background: BG }}>
@@ -594,6 +597,8 @@ function OrgHome() {
   const notif = useQuery({ queryKey: ["member", "org", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
   const org = useQuery({ queryKey: ["member", "org", "me"], queryFn: organizationApi.me, retry: false, staleTime: 30_000 });
   const unread = notif.data?.unread ?? 0;
+  // 홈 화면 아이콘 배지를 앱 안의 안 읽은 수와 맞춘다
+  useEffect(() => { if (notif.data) setAppBadge(unread); }, [notif.data, unread]);
   const status = org.data?.status;
 
   return (
@@ -705,6 +710,8 @@ function CaregiverHome() {
   const settlements = useQuery({ queryKey: ["member", "cg", "settlements"], queryFn: memberApi.settlements, enabled: isActive });
   const notif = useQuery({ queryKey: ["member", "cg", "notif"], queryFn: memberApi.notifications, retry: false, staleTime: 30_000 });
   const unread = notif.data?.unread ?? 0;
+  // 홈 화면 아이콘 배지를 앱 안의 안 읽은 수와 맞춘다
+  useEffect(() => { if (notif.data) setAppBadge(unread); }, [notif.data, unread]);
 
   // 세션별 이번 진행 중 업로드한 완료 사진 수(클라이언트 측 추적)
   const [photoCount, setPhotoCount] = useState<Record<number, number>>({});

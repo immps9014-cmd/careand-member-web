@@ -193,7 +193,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           className="mx-auto flex w-full max-w-[480px] flex-col shadow-[0_0_60px_rgba(28,32,48,.08)] lg:max-w-5xl lg:shadow-none"
           style={{ minHeight: "100vh", background: UI.bg }}
         >
-          <main className="flex-1 pb-[78px] lg:pb-12">{children}</main>
+          <main className="flex-1 pb-[calc(78px+var(--safe-bot,0px))] lg:pb-12">{children}</main>
         </div>
       </div>
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { setAppBadge } from "@/lib/platform";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -47,6 +49,9 @@ export default function NotificationsPage() {
   const role = useAuth((s) => s.user?.role);
   const qc = useQueryClient();
   const query = useQuery({ queryKey: ["member", "notifications"], queryFn: memberApi.notifications });
+  // 읽음 처리 후 홈 화면 아이콘 배지도 같이 줄인다
+  const unreadNow = query.data?.unread;
+  useEffect(() => { if (unreadNow != null) setAppBadge(unreadNow); }, [unreadNow]);
 
   const read = useMutation({
     mutationFn: (id: number) => memberApi.markRead(id),

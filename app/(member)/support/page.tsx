@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Phone, MessageCircle, BookOpen, Bell, ChevronRight, KeyRound } from "lucide-react";
+import { ChevronLeft, Phone, MessageCircle, BookOpen, Bell, ChevronRight, KeyRound, Smartphone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
@@ -42,6 +42,7 @@ export default function SupportPage() {
 
       <div className="mt-4 space-y-2">
         {!isCaregiver && <Row href="/chat" icon={<MessageCircle className="h-5 w-5" />} title="AI 상담" desc="24시간 바로 답해 드려요" />}
+        <Row href="/install" icon={<Smartphone className="h-5 w-5" />} title="홈 화면에 설치하기" desc="앱처럼 열고 알림을 받아요" />
         <Row href="/guide" icon={<BookOpen className="h-5 w-5" />} title="이용 가이드" desc="신청부터 결제·일지까지 한눈에" />
         <Row href="/notifications" icon={<Bell className="h-5 w-5" />} title="알림" desc="매칭·결제·돌봄 소식" />
         <Row href="/mypage" icon={<KeyRound className="h-5 w-5" />} title="내 정보" desc="연락처·비밀번호·글자 크기" />

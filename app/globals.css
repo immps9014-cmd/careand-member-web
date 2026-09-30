@@ -20,6 +20,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* 아이폰 홈 화면 앱(standalone) — viewport-fit=cover 로 화면 끝까지 쓰고, 하단 탭바 등은 홈 인디케이터만큼 띄운다.
+     하단 고정 요소는 var(--safe-bot) 를 더해 쓴다(레이아웃 탭바·챗봇 입력칸). 사파리 탭/안드로이드는 0. */
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
   html, body {
     font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;

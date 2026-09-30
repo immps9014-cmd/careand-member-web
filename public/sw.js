@@ -57,6 +57,10 @@ self.addEventListener("push", (event) => {
     msg = { body: event.data ? event.data.text() : "" };
   }
   const title = msg.title || "케어앤 알림";
+  // 홈 화면 아이콘 숫자 배지(아이폰 16.4+ 설치 앱·안드로이드 일부) — 서버가 안 읽은 알림 수를 실어 보낸다
+  if (typeof msg.badge === "number" && self.navigator && "setAppBadge" in self.navigator) {
+    (msg.badge > 0 ? self.navigator.setAppBadge(msg.badge) : self.navigator.clearAppBadge()).catch(() => {});
+  }
   event.waitUntil(
     self.registration.showNotification(title, {
       body: msg.body || "",
@@ -83,9 +87,13 @@ self.addEventListener("notificationclick", (event) => {
       const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const w of wins) {
         if (new URL(w.url).pathname.startsWith("/app")) {
-          await w.focus();
-          if ("navigate" in w) return w.navigate(target.href);
-          return;
+          try {
+            await w.focus();
+            if ("navigate" in w) return await w.navigate(target.href);
+            return;
+          } catch (e) {
+            break;   // 일부 브라우저(구형 iOS)는 navigate 가 막혀 있다 — 새 창으로 연다
+          }
         }
       }
       return self.clients.openWindow(target.href);

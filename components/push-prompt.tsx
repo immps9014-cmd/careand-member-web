@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { BellRing, X } from "lucide-react";
 import { enablePush } from "@/lib/push";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { usePushState, PUSH_HELP } from "@/components/push-settings";
+import Link from "next/link";
+import { usePushState, PUSH_HELP, NEEDS_INSTALL } from "@/components/push-settings";
 
 const KEY = "careand-push-prompt-dismissed";
 const AGAIN_AFTER_MS = 7 * 24 * 3600 * 1000;   // 닫으면 일주일 뒤 다시
@@ -25,7 +26,7 @@ export function PushPrompt() {
     }
   }, []);
 
-  if (hidden || !(state === "off" || state === "ios-install")) return null;
+  if (hidden || !state || !(state === "off" || NEEDS_INSTALL.includes(state))) return null;
 
   const dismiss = () => {
     setHidden(true);
@@ -62,7 +63,12 @@ export function PushPrompt() {
             </button>
           </>
         ) : (
-          <p className="mt-0.5 text-sm leading-relaxed text-warm-600">{PUSH_HELP["ios-install"]}</p>
+          <>
+            <p className="mt-0.5 text-sm leading-relaxed text-warm-600">{PUSH_HELP[state as "ios-install" | "inapp"]}</p>
+            <Link href="/install" className="mt-2 inline-flex h-11 items-center rounded-lg bg-brand-500 px-4 text-[15px] font-bold text-white">
+              설치 방법 보기
+            </Link>
+          </>
         )}
       </div>
       <button type="button" onClick={dismiss} aria-label="닫기" className="-mr-1 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-warm-500">

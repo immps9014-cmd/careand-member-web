@@ -10,7 +10,7 @@ import type { NextRequest } from "next/server";
  * redirect의 pathname에는 Next가 basePath를 자동으로 다시 붙인다.
  */
 // /auth/callback = 카카오·구글 로그인 복귀(비로그인 상태로 도착, S4)
-const PUBLIC_PATHS = ["/login", "/signup", "/find-account", "/auth/callback", "/shared"];   // /shared = 가족 공유 일지(기능 5, 토큰으로만)
+const PUBLIC_PATHS = ["/login", "/signup", "/find-account", "/install", "/auth/callback", "/shared"];   // /shared = 가족 공유 일지(기능 5, 토큰으로만)
 
 export function middleware(req: NextRequest) {
   let pathname = req.nextUrl.pathname;

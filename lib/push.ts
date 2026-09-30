@@ -1,28 +1,30 @@
 import { api } from "./api/client";
+import { isIos, isStandalone, iosSupportsPush, inAppBrowser } from "./platform";
 
 /**
  * 웹 푸시(PWA 1단계, CAREN-PWA-01) — 브라우저 구독과 서버 등록을 한 곳에서 다룬다.
  *
  * 상태
  *  - unsupported : 이 브라우저는 푸시가 안 됨
+ *  - inapp       : 카카오톡 등 앱 안 브라우저 — 사파리/크롬으로 열어야 함
+ *  - ios-update  : iOS 16.4 미만 — 업데이트해야 알림 가능
  *  - ios-install : 아이폰·아이패드 사파리 — 홈 화면에 추가한 앱에서만 푸시가 된다(iOS 16.4+)
  *  - denied      : 사용자가 브라우저에서 알림을 막음(브라우저 설정에서 풀어야 함)
  *  - off         : 가능하지만 아직 안 켬
  *  - on          : 이 기기에서 받는 중
  */
-export type PushState = "unsupported" | "ios-install" | "denied" | "off" | "on";
+export type PushState = "unsupported" | "ios-install" | "ios-update" | "inapp" | "denied" | "off" | "on";
+
+export { isIos, isStandalone } from "./platform";
 
 const SW_URL = "/app/sw.js";
 const SCOPE = "/app/";
 
-export function isIos(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-}
-
-export function isStandalone(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia?.("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+/** 푸시가 안 되는 이유를 사용자가 할 수 있는 조치 단위로 */
+function blockedReason(): PushState {
+  if (inAppBrowser()) return "inapp";
+  if (isIos()) return !iosSupportsPush() ? "ios-update" : !isStandalone() ? "ios-install" : "unsupported";
+  return "unsupported";
 }
 
 function supported(): boolean {
@@ -34,7 +36,7 @@ async function registration(): Promise<ServiceWorkerRegistration> {
 }
 
 export async function getPushState(): Promise<PushState> {
-  if (!supported()) return isIos() && !isStandalone() ? "ios-install" : "unsupported";
+  if (!supported()) return blockedReason();
   if (Notification.permission === "denied") return "denied";
   const reg = await navigator.serviceWorker.getRegistration(SCOPE);
   const sub = await reg?.pushManager.getSubscription();
@@ -54,7 +56,7 @@ async function sendToServer(sub: PushSubscription) {
 
 /** 켜기 — 반드시 버튼 클릭 안에서 불러야 한다(브라우저가 사용자 동작 없는 권한 요청을 막음). */
 export async function enablePush(): Promise<PushState> {
-  if (!supported()) return isIos() && !isStandalone() ? "ios-install" : "unsupported";
+  if (!supported()) return blockedReason();
   const perm = await Notification.requestPermission();
   if (perm !== "granted") return perm === "denied" ? "denied" : "off";
 
