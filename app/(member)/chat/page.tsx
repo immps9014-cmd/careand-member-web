@@ -66,7 +66,7 @@ export default function ChatPage() {
   const onlyWelcome = list.length <= 1 && !pending;
 
   return (
-    <div className="flex min-h-[calc(100vh-78px)] flex-col lg:min-h-screen">
+    <div className="flex min-h-[calc(100vh-78px)] flex-col pb-5 lg:min-h-screen lg:pb-0">
       <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-warm-100 bg-white px-3 py-2">
         <button onClick={() => router.back()} className="flex h-11 w-11 items-center justify-center rounded-full text-warm-600" aria-label="뒤로">
           <ChevronLeft className="h-6 w-6" />
@@ -114,7 +114,7 @@ export default function ChatPage() {
 
       <form
         onSubmit={(e) => { e.preventDefault(); send(text); }}
-        className="sticky bottom-[78px] flex gap-2 border-t border-warm-100 bg-white px-3 py-3 lg:bottom-0"
+        className="sticky bottom-[calc(96px+var(--safe-bot,0px))] flex gap-2 rounded-t-xl border-t border-warm-100 bg-white px-3 py-3 lg:bottom-0"
       >
         <label htmlFor="chat-input" className="sr-only">질문 입력</label>
         <textarea

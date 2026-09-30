@@ -24,7 +24,7 @@ export function ProgressPipeline({
   if (ended) {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: size === "md" ? "10px 0" : "2px 0" }}>
-        <span style={{ fontSize: size === "md" ? 12 : 10.5, fontWeight: 800, color: INK3, background: LINE, borderRadius: 6, padding: "3px 9px" }}>
+        <span style={{ fontSize: size === "md" ? 13 : 12, fontWeight: 800, color: INK3, background: LINE, borderRadius: 6, padding: "3px 9px" }}>
           {ended}
         </span>
       </div>
@@ -33,7 +33,7 @@ export function ProgressPipeline({
 
   const current = matchStageIndex({ requestStatus, paymentStatus, matchStatus });
   const dot = size === "md" ? 22 : 16;
-  const labelSize = size === "md" ? 11 : 9.2;
+  const labelSize = size === "md" ? 13 : 12;   // 고령 사용자 최소 12px(09-30)
   const connectTop = dot / 2 - 1;
 
   return (

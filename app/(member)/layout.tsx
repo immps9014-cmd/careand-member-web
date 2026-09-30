@@ -115,7 +115,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
             <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT }}>매칭요청</span>
           </Link>
         </div>
-        <GuardianTab href="/caregivers/favorites" label="관심 돌봄전문가" active={is("/caregivers/favorites")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg>} />
+        <GuardianTab href="/caregivers/favorites" label="관심 전문가" active={is("/caregivers/favorites")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg>} />
         <GuardianTab href="/mypage" label="내 정보" active={is("/mypage")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c.7-3.6 3.4-5.6 7-5.6s6.3 2 7 5.6" /></svg>} />
       </div>
     </nav>

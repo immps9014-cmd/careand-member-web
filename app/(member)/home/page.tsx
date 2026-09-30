@@ -329,7 +329,9 @@ function GMyRequests({ go }: { go: GNav }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {list.map((r) => {
           const st = REQ_ST[r.status];
-          const name = r.recipient_name ?? r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자";
+          // 대상이 삭제됐으면 이름이 없다 — 도메인별 호칭으로 대신한다
+          const FALLBACK: Record<string, string> = { senior: "어르신", postpartum: "산모", childcare: "아이", mental_care: "마음돌봄 대상", living_support: "방문 주소", nursing: "환자" };
+          const name = r.recipient_name ?? r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? FALLBACK[r.service_domain ?? ""] ?? "대상자";
           // 확정됐는데 아직 결제 전 — 카드에서 바로 결제로 보낸다(요청 상세를 거치지 않게)
           const needsPay = r.status === "matched" && !!r.match?.id && r.match.payment_status !== "paid" && r.match.status !== "cancelled";
           const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "living_support" ? "생활지원" : null;
