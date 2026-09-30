@@ -27,7 +27,7 @@ export interface BirthDateSelectProps {
 }
 
 const DEFAULT_SELECT_CLASS =
-  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
+  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[15.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
 function parse(v: string): [number | "", number | "", number | ""] {
   const [y, m, d] = (v || "").split("-");

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check, Baby, Blocks, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SeniorModeToggle } from "@/components/senior-mode-toggle";
 import { authApi } from "@/lib/api/auth";
 import { SOCIAL_SIGNUP_KEY, type SocialSignup } from "@/lib/auth/social";
 import { caregiverApi } from "@/lib/api/caregiver";
@@ -44,7 +45,7 @@ const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병",
 
 /** 돌봄전문가 활동 도메인(공급자 직군) 선택지 — service_domains 전송용 */
 const CAREGIVER_DOMAINS: { token: string; label: string }[] = [
-  { token: "senior", label: "시니어돌봄" },
+  { token: "senior", label: "요양보호" },   // 보호자 화면·서비스 레지스트리와 같은 이름
   { token: "living_support", label: "생활지원서비스" },
   { token: "nursing", label: "병원간병" },
   { token: "postpartum", label: "산모·산후관리" },
@@ -350,6 +351,7 @@ export default function SignupPage() {
               ))}
             </div>
           )}
+          <SeniorModeToggle className="ml-auto shrink-0 !h-9 !px-3" />
         </div>
 
         {/* ===== STEP: 역할 선택 ===== */}
@@ -396,8 +398,8 @@ export default function SignupPage() {
                             <Icon className="h-4 w-4" />
                           </span>
                           <span className="min-w-0">
-                            <span className="block text-[13px] font-bold text-warm-800">{o.label}</span>
-                            <span className="block truncate text-[10.5px] text-warm-500">{o.desc}</span>
+                            <span className="block text-[14px] font-bold text-warm-800">{o.label}</span>
+                            <span className="block truncate text-[12px] text-warm-500">{o.desc}</span>
                           </span>
                           {on && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-brand-500" strokeWidth={3} />}
                         </button>
@@ -518,7 +520,7 @@ export default function SignupPage() {
                       {verifyOtpM.isPending ? "확인중" : "확인"}
                     </Button>
                   </div>
-                  <p className="text-[11px] text-warm-500 mt-1.5">
+                  <p className="text-[12px] text-warm-500 mt-1.5">
                     개발 테스트 중에는 인증번호 <b className="text-warm-600">123456</b> 을 입력하세요.
                   </p>
                 </Field>
@@ -543,7 +545,7 @@ export default function SignupPage() {
                 />
               </Field>
               {social ? (
-                <p className="rounded-lg bg-brand-50 px-3 py-2.5 text-[13px] text-brand-700">
+                <p className="rounded-lg bg-brand-50 px-3 py-2.5 text-[14px] text-brand-700">
                   {social.profile.provider === "google" ? "구글" : "카카오"} 계정으로 가입해요 — 비밀번호 없이 {social.profile.provider === "google" ? "구글" : "카카오"}로 로그인합니다.
                 </p>
               ) : (<>
@@ -656,7 +658,7 @@ export default function SignupPage() {
                   <select
                     value={licenseType}
                     onChange={(e) => setLicenseType(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-warm-200 bg-white px-3 text-[15px] text-warm-800 outline-none focus:border-brand-400"
+                    className="h-11 w-full rounded-xl border border-warm-200 bg-white px-3 text-[16px] text-warm-800 outline-none focus:border-brand-400"
                   >
                     <option value="">자격증 종류 선택</option>
                     {cgTypeOptions.map((t) => (

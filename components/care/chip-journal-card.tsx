@@ -78,7 +78,7 @@ export function ChipJournalCard({ sessionId, status }: { sessionId: number; stat
       <div className="space-y-3">
         {groups.map((g) => (
           <div key={g.label}>
-            <div className="mb-1.5 text-[12px] font-bold text-warm-600">{g.label}</div>
+            <div className="mb-1.5 text-[13px] font-bold text-warm-600">{g.label}</div>
             <div className="flex flex-wrap gap-1.5">
               {g.chips.map((c) => {
                 const on = picked.includes(c.code);

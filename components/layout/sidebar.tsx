@@ -64,7 +64,7 @@ export function Sidebar() {
           <div className="font-en font-extrabold text-white text-base tracking-tight leading-none">
             Care&
           </div>
-          <div className="text-[11px] font-medium text-white/50 mt-0.5">
+          <div className="text-[12px] font-medium text-white/50 mt-0.5">
             관리자 콘솔
           </div>
         </div>
@@ -88,7 +88,7 @@ export function Sidebar() {
           <div className="text-sm font-semibold text-white truncate">
             {user?.name || "관리자"}
           </div>
-          <div className="text-[11px] text-white/50 truncate">
+          <div className="text-[12px] text-white/50 truncate">
             {user?.admin?.permission_level === "super"
               ? "Super Admin"
               : user?.admin?.permission_level === "operator"
@@ -116,7 +116,7 @@ function NavSection({
 }) {
   return (
     <div className="pt-4 pb-2">
-      <div className="px-6 pb-2 text-[10px] font-bold text-white/35 uppercase tracking-widest">
+      <div className="px-6 pb-2 text-[12px] font-bold text-white/35 uppercase tracking-widest">
         {title}
       </div>
       <nav>
@@ -142,7 +142,7 @@ function NavSection({
               />
               <span className="flex-1">{item.label}</span>
               {item.badge !== undefined && (
-                <span className="px-2 py-0.5 bg-danger text-white text-[10px] font-bold rounded-full font-en">
+                <span className="px-2 py-0.5 bg-danger text-white text-[12px] font-bold rounded-full font-en">
                   {item.badge}
                 </span>
               )}

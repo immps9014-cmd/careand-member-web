@@ -13,6 +13,7 @@ import { useAuth, setAuthCookie } from "@/lib/auth/store";
 import { canUseMemberApp } from "@/lib/role";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
+import { SeniorModeToggle } from "@/components/senior-mode-toggle";
 
 // 로그인 후에는 역할과 무관하게 항상 앱 홈(/home)으로 진입시킨다.
 // (홈이 역할별 화면을 렌더 — 보호자/돌봄전문가/기관 모두 /home 진입)
@@ -27,9 +28,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   // 로그인→회원가입 이동 시에도 복귀 URL(redirect)을 이어받는다.
   const [signupHref, setSignupHref] = useState("/signup");
+  // 로그인 후 돌아갈 곳 — 미들웨어/레이아웃이 보존한 ?redirect=(앱 내부 경로만 허용)
+  const [afterLogin, setAfterLogin] = useState(HOME_PATH);
   useEffect(() => {
     const r = new URLSearchParams(window.location.search).get("redirect");
-    if (r && /^\/(?![/\\])/.test(r)) setSignupHref(`/signup?redirect=${encodeURIComponent(r)}`);
+    if (r && /^\/(?![/\\])/.test(r)) {
+      setSignupHref(`/signup?redirect=${encodeURIComponent(r)}`);
+      if (!/^\/(login|signup)(\/|\?|$)/.test(r)) setAfterLogin(r);
+    }
   }, []);
 
   // 기존 세션 자가복구: localStorage엔 로그인돼 있으나 게이트 쿠키가 없어
@@ -37,9 +43,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (hasHydrated && isAuthenticated) {
       setAuthCookie();
-      router.replace(HOME_PATH);
+      router.replace(afterLogin);
     }
-  }, [hasHydrated, isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router, afterLogin]);
 
   const loginMutation = useMutation({
     mutationFn: async () => authApi.login(email, password),
@@ -57,13 +63,14 @@ export default function LoginPage() {
       setTokens(data.access_token, data.refresh_token);
       setUser(data.user);
       toast.success(`${data.user.name} 님 환영합니다`);
-      router.push(HOME_PATH);
+      router.push(afterLogin);
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
   return (
-    <div className="relative h-screen overflow-hidden bg-gradient-to-br from-brand-50 to-warm-100 flex items-center justify-center p-4">
+    // min-h-screen: 키보드가 올라오거나 글자를 키워도 카드가 잘리지 않고 스크롤된다
+    <div className="relative min-h-screen bg-gradient-to-br from-brand-50 to-warm-100 flex items-center justify-center px-4 pt-20 pb-10">
       {/* 공개 웹(/www)으로 돌아가기 — basePath(/app) 바깥이라 일반 a 태그 */}
       <a
         href="/www"
@@ -72,6 +79,7 @@ export default function LoginPage() {
       >
         ← 홈으로
       </a>
+      <SeniorModeToggle className="absolute top-3 right-4" />
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex flex-col items-center gap-3">
@@ -132,6 +140,11 @@ export default function LoginPage() {
                 {loginMutation.isPending ? "로그인 중..." : "로그인"}
               </Button>
             </form>
+            <div className="mt-4 flex items-center justify-center gap-3 text-sm">
+              <Link href="/find-account?tab=id" className="font-semibold text-warm-600 hover:text-brand-600">아이디 찾기</Link>
+              <span aria-hidden className="text-warm-300">|</span>
+              <Link href="/find-account?tab=pw" className="font-semibold text-warm-600 hover:text-brand-600">비밀번호 재설정</Link>
+            </div>
             <SocialLoginButtons />
           </CardContent>
         </Card>

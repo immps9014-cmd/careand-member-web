@@ -13,9 +13,9 @@ import { BirthDateSelect } from "@/components/ui/birth-date-select";
 import { memberApi, type CreatePostpartumClientPayload, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 
-const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
+const SECTION_LABEL = "block text-[13.5px] font-bold text-warm-600 mb-2";
 const SELECT_CLASS =
-  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
+  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[15.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
 // 시/도 — region_code 로 그대로 저장(가격 지역지수 매칭에 사용)
 const REGIONS = ["서울", "경기", "인천", "부산", "대구", "대전", "광주", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"];
@@ -63,11 +63,11 @@ export default function NewPostpartumClientPage() {
         <Card className="rounded-2xl p-5 space-y-4">
           <div>
             <label className={SECTION_LABEL}>산모 성함</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="성함" className="h-12 rounded-xl text-[14.5px]" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="성함" className="h-12 rounded-xl text-[15.5px]" />
           </div>
           <div>
             <label className={SECTION_LABEL}>연락처</label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" inputMode="tel" className="h-12 rounded-xl text-[14.5px]" />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" inputMode="tel" className="h-12 rounded-xl text-[15.5px]" />
           </div>
           <div>
             <label className={SECTION_LABEL}>생년월일</label>
@@ -88,7 +88,7 @@ export default function NewPostpartumClientPage() {
           </div>
           <div>
             <label className={SECTION_LABEL}>출산(예정)일</label>
-            <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[14.5px]" />
+            <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[15.5px]" />
           </div>
           <div>
             <label className={SECTION_LABEL}>출산 유형</label>
@@ -101,7 +101,7 @@ export default function NewPostpartumClientPage() {
                     type="button"
                     onClick={() => setDeliveryType(d.v)}
                     className={
-                      "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                      "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                       (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >
@@ -122,7 +122,7 @@ export default function NewPostpartumClientPage() {
                     type="button"
                     onClick={() => setIsFirstBaby(v)}
                     className={
-                      "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                      "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                       (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >

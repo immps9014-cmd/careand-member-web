@@ -226,13 +226,13 @@ export default function SessionActivityPage({ params }: { params: { id: string }
               <li key={i} className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brand-500 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-brand-600">{stop.tag}</div>
-                  <div className="text-[13.5px] font-semibold text-warm-800 break-keep">{stop.addr ?? "-"}</div>
+                  <div className="text-[12px] font-bold text-brand-600">{stop.tag}</div>
+                  <div className="text-[14.5px] font-semibold text-warm-800 break-keep">{stop.addr ?? "-"}</div>
                 </div>
               </li>
             ))}
           </ol>
-          <p className="mt-3 text-[11px] text-warm-500">자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.</p>
+          <p className="mt-3 text-[12px] text-warm-500">자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.</p>
         </Card>
       )}
 
@@ -253,7 +253,7 @@ export default function SessionActivityPage({ params }: { params: { id: string }
         <div className="flex items-center gap-2 mb-3">
           <Mic className="w-4 h-4 text-brand-600" />
           <span className="text-sm font-bold text-warm-800">음성으로 기록</span>
-          <span className="text-[11px] text-warm-500">말로 남기면 AI가 일지로 정리해요</span>
+          <span className="text-[12px] text-warm-500">말로 남기면 AI가 일지로 정리해요</span>
         </div>
 
         {!recording && (
@@ -324,7 +324,7 @@ export default function SessionActivityPage({ params }: { params: { id: string }
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[11px] font-semibold">{c.label}</span>
+              <span className="text-[12px] font-semibold">{c.label}</span>
             </button>
           );
         })}
@@ -339,7 +339,7 @@ export default function SessionActivityPage({ params }: { params: { id: string }
         placeholder={`${CAT_LABEL[category]} 관련 메모 (예: 점심 죽 한 그릇 모두 드심)`}
         className="w-full rounded-lg border border-warm-200 p-3 text-sm resize-none focus:outline-none focus:border-brand-400 disabled:bg-warm-50 disabled:text-warm-500"
       />
-      <div className="text-right text-[11px] text-warm-500 mb-3">{memo.length}/500</div>
+      <div className="text-right text-[12px] text-warm-500 mb-3">{memo.length}/500</div>
 
       <Button
         size="lg"
@@ -364,7 +364,7 @@ export default function SessionActivityPage({ params }: { params: { id: string }
           <Card key={a.id} className="p-3">
             <div className="flex items-center justify-between mb-1">
               <Badge variant="outline">{CAT_LABEL[a.category] ?? a.category}</Badge>
-              <span className="text-[11px] text-warm-500">{a.performed_at ? formatDateTime(a.performed_at) : ""}</span>
+              <span className="text-[12px] text-warm-500">{a.performed_at ? formatDateTime(a.performed_at) : ""}</span>
             </div>
             <p className="text-sm text-warm-700 whitespace-pre-wrap">{activityText(a)}</p>
           </Card>

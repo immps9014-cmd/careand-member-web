@@ -102,10 +102,10 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
                     <span className="font-bold text-warm-800">{a.risk_type_ko}</span>
                     <Badge variant={severityVariant(a.severity)}>{a.severity_ko}</Badge>
                   </div>
-                  <span className="text-[11px] text-warm-500">{a.detected_ago}</span>
+                  <span className="text-[12px] text-warm-500">{a.detected_ago}</span>
                 </div>
                 {a.recommendation && <p className="text-xs text-warm-500 leading-relaxed">{a.recommendation}</p>}
-                <div className="mt-1.5 text-[11px] text-warm-500">
+                <div className="mt-1.5 text-[12px] text-warm-500">
                   위험도 {(a.risk_score * 100).toFixed(0)}% · {a.status_ko}
                 </div>
               </Card>
@@ -143,7 +143,7 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
             </div>
             <div className="flex items-baseline justify-between mb-2">
               <span className="text-sm font-bold text-warm-700">{metric.label}</span>
-              <span className="text-[11px] text-warm-500">최근 14일 · {metric.unit}</span>
+              <span className="text-[12px] text-warm-500">최근 14일 · {metric.unit}</span>
             </div>
             {series.isLoading ? (
               <p className="text-center text-warm-500 py-12 text-sm">불러오는 중…</p>
@@ -153,10 +153,10 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F4EFE6" vertical={false} />
-                  <XAxis dataKey="t" tick={{ fontSize: 10, fill: "#9A917F" }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "#9A917F" }} tickLine={false} axisLine={false} width={40} />
+                  <XAxis dataKey="t" tick={{ fontSize: 12, fill: "#9A917F" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: "#9A917F" }} tickLine={false} axisLine={false} width={40} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #E8E0D2" }}
+                    contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #E8E0D2" }}
                     labelStyle={{ color: "#6E6757" }}
                     formatter={(v: number) => [`${v} ${metric.unit}`, metric.label]}
                   />
@@ -206,8 +206,8 @@ function VitalStat({ icon, label, value, unit }: { icon: React.ReactNode; label:
     <Card className="p-3 text-center">
       <div className="flex justify-center text-brand-400 mb-1">{icon}</div>
       <div className="text-base font-extrabold text-warm-800 font-en leading-none">{value}</div>
-      <div className="text-[10px] text-warm-500 mt-1">{label}</div>
-      <div className="text-[9px] text-warm-500">{unit}</div>
+      <div className="text-[12px] text-warm-500 mt-1">{label}</div>
+      <div className="text-[12px] text-warm-500">{unit}</div>
     </Card>
   );
 }

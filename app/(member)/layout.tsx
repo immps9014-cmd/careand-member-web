@@ -7,7 +7,6 @@ import { Home, Wallet, Bell, User, CalendarClock, FileText, Plus, Star, type Luc
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI, brand } from "@/lib/theme";
-import { SeniorModeEffect } from "@/components/senior-mode-effect";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
 // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동 (Link 대신 plain <a>)
@@ -36,7 +35,7 @@ function DesktopSidebar({ items, pathname, isGuardian, userName }: { items: NavI
     >
       {/* Care& 로고 → 웹 홈(/www) 전체 이동 */}
       <a href={WEB_HOME} className="flex items-center gap-2 px-2">
-        <span className="grid h-9 w-9 place-items-center rounded-lg text-[15px] font-extrabold italic text-white" style={{ background: UI.accent }}>
+        <span className="grid h-9 w-9 place-items-center rounded-lg text-[16px] font-extrabold italic text-white" style={{ background: UI.accent }}>
           C&amp;
         </span>
         <span className="text-lg font-extrabold" style={{ color: UI.ink }}>Care&amp;</span>
@@ -90,7 +89,7 @@ function GuardianTab({ href, label, icon, active, external }: { href: string; la
   const inner = (
     <>
       <div style={{ width: 24, height: 24 }}>{icon}</div>
-      <span style={{ fontSize: 10.5, fontWeight: active ? 800 : 600 }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: active ? 800 : 600 }}>{label}</span>
     </>
   );
   // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동
@@ -113,7 +112,7 @@ function GuardianTabBar({ pathname }: { pathname: string }) {
             <div style={{ width: 58, height: 58, borderRadius: "50%", background: `linear-gradient(140deg,${ACCENT_SOFT},${ACCENT})`, boxShadow: "0 8px 20px rgba(213,96,62,.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M12 5v14M5 12h14" /></svg>
             </div>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: ACCENT }}>매칭요청</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT }}>매칭요청</span>
           </Link>
         </div>
         <GuardianTab href="/caregivers/favorites" label="관심 돌봄전문가" active={is("/caregivers/favorites")} icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z" /></svg>} />
@@ -173,7 +172,6 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   const isCaregiver = usesCaregiverShell(user.role);
   return (
     <div className="min-h-screen" style={{ background: UI.bg }}>
-      <SeniorModeEffect />
       {/* 데스크톱: 사이드바 */}
       <DesktopSidebar
         items={isCaregiver ? CAREGIVER_NAV : GUARDIAN_NAV}

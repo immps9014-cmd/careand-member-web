@@ -157,13 +157,13 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
               <Button variant="outline" className="w-full" disabled={share.isPending} onClick={() => share.mutate()}>
                 <Share2 className="w-4 h-4" /> {share.isPending ? "링크 만드는 중…" : "가족에게 일지 공유"}
               </Button>
-              <p className="mt-2 text-[11px] leading-relaxed text-warm-500">
+              <p className="mt-2 text-[12px] leading-relaxed text-warm-500">
                 7일 동안 로그인 없이 볼 수 있는 링크예요. 대상자 이름은 가려지고 사진은 포함되지 않아요.
               </p>
               {(shares.data?.length ?? 0) > 0 && (
                 <ul className="mt-2 space-y-1">
                   {shares.data!.map((s) => (
-                    <li key={s.id} className="flex items-center justify-between text-[12px] text-warm-600">
+                    <li key={s.id} className="flex items-center justify-between text-[13px] text-warm-600">
                       <span>공유 중 · {s.expires_at.slice(0, 10)}까지 · 열람 {s.view_count}회</span>
                       <button type="button" className="inline-flex items-center gap-1 text-danger" onClick={() => revoke.mutate(s.id)}>
                         <Link2Off className="w-3.5 h-3.5" /> 끄기

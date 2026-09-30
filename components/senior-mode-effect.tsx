@@ -13,7 +13,7 @@ export function SeniorModeEffect() {
     const el = document.documentElement;
     if (on) {
       el.dataset.tone = "senior";
-      el.style.zoom = "1.12";
+      el.style.zoom = "1.2";
     } else {
       delete el.dataset.tone;
       el.style.zoom = "";

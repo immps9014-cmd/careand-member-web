@@ -38,7 +38,7 @@ const MODES = [
 // 도메인 토큰은 레지스트리(SSOT)에서 옴 — \App\Support\ServiceDomains / lib/serviceDomains.ts
 type Domain = string;
 
-const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
+const SECTION_LABEL = "block text-[13.5px] font-bold text-warm-600 mb-2";
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 /** 한국시각 기준 datetime-local 값("2026-09-30T10:00") — 모든 시각은 한국시각으로 계산(운영 규칙) */
 function kstLocalInput(d: Date): string {
@@ -51,7 +51,7 @@ function kstLocalInput(d: Date): string {
 }
 
 const SELECT_CLASS =
-  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[14.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
+  "w-full h-12 rounded-xl border border-warm-200 bg-white px-3.5 text-[15.5px] text-warm-800 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20";
 
 // 3스텝 위저드
 const STEPS = ["대상·서비스", "일정·상세", "확인·동의"];
@@ -306,6 +306,9 @@ export default function NewRequestPage() {
     };
     const sid = num("senior_id");
     if (sid) setSeniorId(sid);
+    // 홈 「긴급요청」(?mode=urgent) — 긴급 유형(시작 1시간 뒤부터)으로 미리 골라 둔다
+    const m = sp.get("mode");
+    if (m === "urgent" || m === "emergency") setMode("emergency");
     const pid = num("nursing_patient_id");
     if (pid) setPatientId(pid);
     const aid = num("service_address_id");
@@ -491,7 +494,7 @@ export default function NewRequestPage() {
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>출산(예정)일</label>
-                    <Input type="date" value={ppDeliveryDate} onChange={(e) => setPpDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[14.5px]" />
+                    <Input type="date" value={ppDeliveryDate} onChange={(e) => setPpDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[15.5px]" />
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>출산 유형</label>
@@ -504,7 +507,7 @@ export default function NewRequestPage() {
                             type="button"
                             onClick={() => setPpDeliveryType(d.v)}
                             className={
-                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                               (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
@@ -525,7 +528,7 @@ export default function NewRequestPage() {
                             type="button"
                             onClick={() => setPpFirstBaby(v)}
                             className={
-                              "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                              "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                               (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
@@ -571,9 +574,22 @@ export default function NewRequestPage() {
     screeningOk;
   // 최소 신청 시각 — 서버 config/matching_rules.php min_lead_minutes(120)·_emergency(60) 과 같은 값.
   // 비교는 한국시각 "YYYY-MM-DDTHH:mm" 문자열로(시작 일시는 +09:00 으로 전송) — 브라우저 시간대와 무관하게.
-  const leadMin = mode === "emergency" ? 60 : 120;
+  const leadMin = domain === "senior" && mode === "emergency" ? 60 : 120;   // 긴급 유형은 시니어 돌봄에만 있다
   const minStart = kstLocalInput(new Date(Date.now() + leadMin * 60_000));
   const startTooSoon = !!start && start < minStart;
+  // 「다음」이 비활성일 때 무엇이 빠졌는지 버튼 위에 알려준다(침묵하는 비활성 버튼 방지)
+  const step1Missing: string[] = [];
+  if (!(domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId))
+    step1Missing.push(domain === "living_support" ? "방문 주소" : "돌봄 받는 분 정보");
+  if (!categoryId) step1Missing.push("서비스 종류");
+  if (!screeningOk) step1Missing.push("이용 안내 확인 체크");
+  const step2Missing: string[] = [];
+  if (!start) step2Missing.push("시작 일시");
+  else if (startTooSoon) step2Missing.push(`시작 시각(지금부터 ${leadMin / 60}시간 뒤부터 가능)`);
+  if (!(duration >= 60 && duration <= maxDuration)) step2Missing.push("이용 시간");
+  if (domain === "nursing" && !(days >= 1 && days <= 30)) step2Missing.push("간병 일수(1~30일)");
+  if (recurringNeedsWeekdays && weekdays.length < 1) step2Missing.push("반복 요일");
+  if (!companionValid) step2Missing.push("동행 목적지·이동 수단");
   const step2Valid =
     !!start &&
     !startTooSoon &&
@@ -746,10 +762,10 @@ export default function NewRequestPage() {
 
         {favCount > 0 && step === 1 && (
           <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/50 p-3">
-            <div className="flex items-center gap-1.5 text-[13px] font-bold text-warm-700">
+            <div className="flex items-center gap-1.5 text-[14px] font-bold text-warm-700">
               <Sparkle className="h-4 w-4 text-brand-500" /> 찜한 돌봄전문가에게 직접 요청 (선택)
             </div>
-            <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+            <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">
               선택하면 해당 전문가에게 직접 요청해요. AI 추천 후보도 함께 받아 비교할 수 있어요.
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -795,8 +811,8 @@ export default function NewRequestPage() {
                   <CurIcon className="h-[18px] w-[18px]" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-bold text-brand-700">{cur?.label ?? domainLabel}</div>
-                  <div className="text-[11px] text-warm-500 truncate">{cur?.desc}</div>
+                  <div className="text-[14.5px] font-bold text-brand-700">{cur?.label ?? domainLabel}</div>
+                  <div className="text-[12px] text-warm-500 truncate">{cur?.desc}</div>
                 </div>
                 <button
                   type="button"
@@ -830,7 +846,7 @@ export default function NewRequestPage() {
                 )}
                 {DOMAIN_BADGE[d.token] && !active && (
                   <span className="absolute top-1.5 left-1.5">
-                    <Badge variant={DOMAIN_BADGE[d.token].variant} className="px-1.5 py-0 text-[9px] leading-4">
+                    <Badge variant={DOMAIN_BADGE[d.token].variant} className="px-1.5 py-0 text-[12px] leading-4">
                       {DOMAIN_BADGE[d.token].label}
                     </Badge>
                   </span>
@@ -843,10 +859,10 @@ export default function NewRequestPage() {
                 >
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
-                <div className={"text-[12.5px] font-bold " + (active ? "text-brand-700" : "text-warm-800")}>
+                <div className={"text-[13.5px] font-bold " + (active ? "text-brand-700" : "text-warm-800")}>
                   {d.label}
                 </div>
-                <div className="text-[10px] text-warm-500 mt-0.5">{d.desc}</div>
+                <div className="text-[12px] text-warm-500 mt-0.5">{d.desc}</div>
               </button>
             );
           })}
@@ -877,7 +893,7 @@ export default function NewRequestPage() {
                         type="button"
                         onClick={() => { setSeniorId(sn.id); setSnNew(false); }}
                         className={
-                          "h-10 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                          "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                           (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                         }
                       >
@@ -890,7 +906,7 @@ export default function NewRequestPage() {
                     type="button"
                     onClick={() => { setSnNew(true); setSeniorId(""); }}
                     className={
-                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                       (snNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                     }
                   >
@@ -901,12 +917,12 @@ export default function NewRequestPage() {
 
               {snAdding && (
                 <div className={((seniors.data?.length ?? 0) > 0 ? "mt-3 " : "") + "space-y-3.5"}>
-                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warm-600">
+                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-warm-600">
                     {seniorTarget === "본인" ? "돌봄받으실 본인 정보" : `${seniorTarget} 정보`}를 입력하면 「다음」을 누를 때 등록되고 바로 일정 입력으로 넘어가요. (회원가입이 아닌, 매칭 대상 등록이에요.)
                   </p>
                   <div>
                     <label className={SECTION_LABEL}>성함</label>
-                    <Input value={snName} onChange={(e) => setSnName(e.target.value)} placeholder="홍길동" maxLength={50} className="h-12 rounded-xl text-[14.5px]" />
+                    <Input value={snName} onChange={(e) => setSnName(e.target.value)} placeholder="홍길동" maxLength={50} className="h-12 rounded-xl text-[15.5px]" />
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>생년월일</label>
@@ -923,7 +939,7 @@ export default function NewRequestPage() {
                             type="button"
                             onClick={() => setSnGender(v)}
                             className={
-                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                               (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
@@ -952,7 +968,7 @@ export default function NewRequestPage() {
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>질환 (선택, 쉼표로 구분)</label>
-                    <Input value={snDiseases} onChange={(e) => setSnDiseases(e.target.value)} placeholder="고혈압, 당뇨, 치매" className="h-12 rounded-xl text-[14.5px]" />
+                    <Input value={snDiseases} onChange={(e) => setSnDiseases(e.target.value)} placeholder="고혈압, 당뇨, 치매" className="h-12 rounded-xl text-[15.5px]" />
                   </div>
                 </div>
               )}
@@ -1030,7 +1046,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setPpSelf(v)}
                       className={
-                        "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1044,17 +1060,17 @@ export default function NewRequestPage() {
                 /* 본인 산모: 회원 프로필(이름·연락처) 자동 사용. 등록된 본인 산모 정보가 있으면 그대로, 없으면 필수정보만 입력 */
                 <div className="mt-3 space-y-3.5">
                   <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
-                    <p className="text-[13px] font-bold text-brand-700">
+                    <p className="text-[14px] font-bold text-brand-700">
                       {user?.name ?? "회원"}님 (본인) 으로 신청해요
                     </p>
-                    <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+                    <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">
                       {ppSelfClient
                         ? `등록된 본인 산모 정보${ppSelfClient.delivery_date ? `(출산(예정)일 ${ppSelfClient.delivery_date})` : ""}를 그대로 사용해요.`
                         : `가입 정보(${user?.name ?? "-"} · ${user?.phone ?? "연락처 미등록"})를 그대로 사용해요. 아래 정보를 입력하면 「다음」을 누를 때 등록되고 바로 일정 입력으로 넘어가요.`}
                     </p>
                   </div>
                   {!ppSelfClient && !user?.phone && (
-                    <p className="rounded-lg bg-danger/10 px-3 py-2 text-[11.5px] font-semibold text-danger">
+                    <p className="rounded-lg bg-danger/10 px-3 py-2 text-[12.5px] font-semibold text-danger">
                       가입 연락처가 없어 본인 신청이 어려워요. 마이페이지에서 연락처를 먼저 등록해주세요.
                     </p>
                   )}
@@ -1073,7 +1089,7 @@ export default function NewRequestPage() {
                             type="button"
                             onClick={() => { setPostpartumClientId(c.id); setPpNew(false); }}
                             className={
-                              "h-10 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                              "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                               (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
@@ -1086,7 +1102,7 @@ export default function NewRequestPage() {
                         type="button"
                         onClick={() => { setPpNew(true); setPostpartumClientId(""); }}
                         className={
-                          "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                          "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                           (ppNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                         }
                       >
@@ -1096,12 +1112,12 @@ export default function NewRequestPage() {
                   )}
                   {ppOtherAdding && (
                     <div className={(ppOthers.length > 0 ? "mt-3 " : "") + "space-y-3.5"}>
-                      <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warm-600">
+                      <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-warm-600">
                         산모 정보를 입력하면 「다음」을 누를 때 등록되고 바로 일정 입력으로 넘어가요.
                       </p>
                       <div>
                         <label className={SECTION_LABEL}>산모 이름</label>
-                        <Input value={ppName} onChange={(e) => setPpName(e.target.value)} placeholder="이름" maxLength={50} className="h-12 rounded-xl text-[14.5px]" />
+                        <Input value={ppName} onChange={(e) => setPpName(e.target.value)} placeholder="이름" maxLength={50} className="h-12 rounded-xl text-[15.5px]" />
                       </div>
                       <div>
                         <label className={SECTION_LABEL}>산모 연락처</label>
@@ -1110,7 +1126,7 @@ export default function NewRequestPage() {
                           value={ppPhone}
                           onChange={(e) => setPpPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                           placeholder="01012345678"
-                          className="h-12 rounded-xl text-[14.5px]"
+                          className="h-12 rounded-xl text-[15.5px]"
                         />
                       </div>
                       {ppFields}
@@ -1135,7 +1151,7 @@ export default function NewRequestPage() {
                         type="button"
                         onClick={() => { setChildId(c.id); setCcNew(false); }}
                         className={
-                          "h-10 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                          "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                           (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                         }
                       >
@@ -1148,7 +1164,7 @@ export default function NewRequestPage() {
                     type="button"
                     onClick={() => { setCcNew(true); setChildId(""); }}
                     className={
-                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[13px] font-bold transition-colors " +
+                      "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
                       (ccNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                     }
                   >
@@ -1159,12 +1175,12 @@ export default function NewRequestPage() {
 
               {ccAdding && (
                 <div className={((childrenQ.data?.length ?? 0) > 0 ? "mt-3 " : "") + "space-y-3.5"}>
-                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warm-600">
+                  <p className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-warm-600">
                     아이 정보를 여기서 입력하면 신청할 때 함께 등록돼요. 별도 등록 화면은 필요 없어요.
                   </p>
                   <div>
                     <label className={SECTION_LABEL}>아이 이름</label>
-                    <Input value={ccName} onChange={(e) => setCcName(e.target.value)} placeholder="이름" maxLength={50} className="h-12 rounded-xl text-[14.5px]" />
+                    <Input value={ccName} onChange={(e) => setCcName(e.target.value)} placeholder="이름" maxLength={50} className="h-12 rounded-xl text-[15.5px]" />
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>생년월일</label>
@@ -1181,7 +1197,7 @@ export default function NewRequestPage() {
                             type="button"
                             onClick={() => setCcGender(v)}
                             className={
-                              "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                              "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                               (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
@@ -1194,7 +1210,7 @@ export default function NewRequestPage() {
                   <div>
                     <label className={SECTION_LABEL}>돌봄 주소</label>
                     <AddressSearch onChange={setCcAddress} />
-                    <p className="mt-1.5 text-[11px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
+                    <p className="mt-1.5 text-[12px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
                   </div>
                 </div>
               )}
@@ -1214,7 +1230,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setMcSelf(v)}
                       className={
-                        "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1227,8 +1243,8 @@ export default function NewRequestPage() {
               {mcSelf ? (
                 <div className="mt-3 space-y-3.5">
                   <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
-                    <p className="text-[13px] font-bold text-brand-700">{user?.name ?? "회원"}님 (본인) 으로 신청해요</p>
-                    <p className="mt-1 text-[11.5px] leading-relaxed text-warm-500">
+                    <p className="text-[14px] font-bold text-brand-700">{user?.name ?? "회원"}님 (본인) 으로 신청해요</p>
+                    <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">
                       {mcSelfClient
                         ? `등록된 본인 정보(방문 주소 ${mcSelfClient.home_address ?? "-"})를 그대로 사용해요.`
                         : "가입 정보를 그대로 사용하며, 별도 대상 등록은 필요 없어요. 방문 주소만 알려주세요."}
@@ -1239,7 +1255,7 @@ export default function NewRequestPage() {
                       <div>
                         <label className={SECTION_LABEL}>방문 주소</label>
                         <AddressSearch onChange={setMcAddress} />
-                        <p className="mt-1.5 text-[11px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
+                        <p className="mt-1.5 text-[12px] text-warm-500">입력한 주소 기준으로 가까운 돌봄전문가를 추천합니다.</p>
                       </div>
                       <div>
                         <label className={SECTION_LABEL}>성별 (선택)</label>
@@ -1252,7 +1268,7 @@ export default function NewRequestPage() {
                                 type="button"
                                 onClick={() => setMcGender(v)}
                                 className={
-                                  "h-11 rounded-xl border text-[13px] font-bold transition-colors " +
+                                  "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
                                   (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                                 }
                               >
@@ -1331,7 +1347,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setMode(m.key)}
                       className={
-                        "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                         (on
                           ? "border-brand-500 bg-brand-500 text-white"
                           : "border-warm-200 bg-white text-warm-600")
@@ -1360,7 +1376,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => toggleWeekday(d)}
                       className={
-                        "h-10 rounded-xl border text-[13px] font-bold transition-colors " +
+                        "h-10 rounded-xl border text-[14px] font-bold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1370,7 +1386,7 @@ export default function NewRequestPage() {
                 })}
               </div>
               <div className="mt-3 flex items-center gap-3">
-                <span className="text-[12.5px] font-semibold text-warm-600">반복 주수</span>
+                <span className="text-[13.5px] font-semibold text-warm-600">반복 주수</span>
                 <button
                   type="button"
                   onClick={() => setWeeks((w) => Math.max(1, w - 1))}
@@ -1389,7 +1405,7 @@ export default function NewRequestPage() {
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-2 text-[11px] text-warm-500">
+              <p className="mt-2 text-[12px] text-warm-500">
                 {weekdays.length
                   ? `선택한 요일마다 ${weeks}주간 반복 방문해요. (매칭 확정 후 회차별 일정이 생성돼요)`
                   : "반복할 요일을 선택해 주세요."}
@@ -1405,9 +1421,9 @@ export default function NewRequestPage() {
               value={start}
               min={minStart}
               onChange={(e) => setStart(e.target.value)}
-              className="h-12 rounded-xl text-[14.5px]"
+              className="h-12 rounded-xl text-[15.5px]"
             />
-            <p className={"mt-1.5 text-[11px] " + (startTooSoon ? "font-semibold text-danger" : "text-warm-500")}>
+            <p className={"mt-1.5 text-[12px] " + (startTooSoon ? "font-semibold text-danger" : "text-warm-500")}>
               {startTooSoon
                 ? `지금부터 ${leadMin / 60}시간 뒤부터 고를 수 있어요. 돌봄전문가가 수락하고 이동할 시간이 필요해요.`
                 : `${mode === "emergency" ? "긴급은 1시간" : "지금부터 2시간"} 뒤부터 신청할 수 있어요 (한국시각).`}
@@ -1428,7 +1444,7 @@ export default function NewRequestPage() {
               </button>
               <div className="flex-1 text-center">
                 <span className="text-[22px] font-extrabold text-warm-800">{duration}</span>
-                <span className="text-[13px] font-semibold text-warm-500"> 분 · {durHours}시간</span>
+                <span className="text-[14px] font-semibold text-warm-500"> 분 · {durHours}시간</span>
               </div>
               <button
                 type="button"
@@ -1459,11 +1475,11 @@ export default function NewRequestPage() {
             </div>
             {/* 시작+소요 → 종료시각 실시간 안내 */}
             {start && (
-              <p className="mt-2 rounded-lg bg-brand-50 px-3 py-2 text-[12px] font-semibold text-brand-700">
+              <p className="mt-2 rounded-lg bg-brand-50 px-3 py-2 text-[13px] font-semibold text-brand-700">
                 {start.slice(11, 16)}부터 {durHours}시간 진행 예정이에요.
               </p>
             )}
-            <p className="text-[11px] text-warm-500 mt-2">
+            <p className="text-[12px] text-warm-500 mt-2">
               60분~{maxDuration}분{domain === "nursing" ? " · 최대 24시간" : ""} · 30분 단위로 조절돼요
             </p>
           </div>
@@ -1483,7 +1499,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => toggleItem(it)}
                       className={
-                        "rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition-colors " +
+                        "rounded-full border px-3 py-1.5 text-[13.5px] font-semibold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1492,7 +1508,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-warm-500 mt-1.5">
+              <p className="text-[12px] text-warm-500 mt-1.5">
                 필요한 항목을 선택하면 돌봄전문가에게 전달돼 매칭이 더 정확해져요.
               </p>
             </div>
@@ -1509,9 +1525,9 @@ export default function NewRequestPage() {
                 step={1}
                 value={days}
                 onChange={(e) => setDays(Number(e.target.value))}
-                className="h-12 rounded-xl text-[14.5px]"
+                className="h-12 rounded-xl text-[15.5px]"
               />
-              <p className="text-[11px] text-warm-500 mt-1.5">
+              <p className="text-[12px] text-warm-500 mt-1.5">
                 {days >= 2 ? `매일 같은 시간에 ${days}일간 반복되는 정기 간병으로 요청됩니다.` : "하루 단위 간병으로 요청됩니다."}
               </p>
             </div>
@@ -1521,13 +1537,13 @@ export default function NewRequestPage() {
           {isCompanion && (
             <div className="mt-4 rounded-2xl border border-warm-200 bg-warm-50/60 p-4">
               <label className={SECTION_LABEL}>동행 경로</label>
-              <p className="-mt-1 mb-2 text-[11px] text-warm-500">
+              <p className="-mt-1 mb-2 text-[12px] text-warm-500">
                 만남 장소는 앞서 선택한 서비스 주소예요. 방문 장소와 이동 수단을 알려주세요.
               </p>
-              <div className="text-[12px] font-bold text-warm-600 mb-1">방문 장소</div>
+              <div className="text-[13px] font-bold text-warm-600 mb-1">방문 장소</div>
               <AddressSearch onChange={setDestination} />
 
-              <div className="mt-3.5 text-[12px] font-bold text-warm-600 mb-1.5">복귀 장소</div>
+              <div className="mt-3.5 text-[13px] font-bold text-warm-600 mb-1.5">복귀 장소</div>
               <div className="grid grid-cols-2 gap-2">
                 {([[true, "만남 장소와 동일"], [false, "다른 장소"]] as const).map(([v, l]) => {
                   const on = returnToOrigin === v;
@@ -1537,7 +1553,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setReturnToOrigin(v)}
                       className={
-                        "h-11 rounded-xl border text-[12.5px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1549,9 +1565,9 @@ export default function NewRequestPage() {
               {!returnToOrigin && <div className="mt-2"><AddressSearch onChange={setReturnAddress} /></div>}
 
               <div className="mt-3.5 flex items-center justify-between">
-                <span className="text-[12px] font-bold text-warm-600">경유지 (선택)</span>
+                <span className="text-[13px] font-bold text-warm-600">경유지 (선택)</span>
                 {waypoints.length < 5 && (
-                  <button type="button" onClick={() => setWaypoints((w) => [...w, ""])} className="text-[12px] font-bold text-brand-600">
+                  <button type="button" onClick={() => setWaypoints((w) => [...w, ""])} className="text-[13px] font-bold text-brand-600">
                     + 추가
                   </button>
                 )}
@@ -1563,7 +1579,7 @@ export default function NewRequestPage() {
                     onChange={(e) => setWaypoints((w) => w.map((x, j) => (j === i ? e.target.value : x)))}
                     placeholder={`경유지 ${i + 1} 주소`}
                     aria-label={`경유지 ${i + 1} 주소`}
-                    className="h-11 flex-1 rounded-xl text-[13.5px]"
+                    className="h-11 flex-1 rounded-xl text-[14.5px]"
                   />
                   <button
                     type="button"
@@ -1576,7 +1592,7 @@ export default function NewRequestPage() {
                 </div>
               ))}
 
-              <div className="mt-3.5 text-[12px] font-bold text-warm-600 mb-1.5">이동 수단</div>
+              <div className="mt-3.5 text-[13px] font-bold text-warm-600 mb-1.5">이동 수단</div>
               <div className="grid grid-cols-2 gap-2">
                 {([["taxi", "택시"], ["transit", "대중교통"]] as const).map(([v, l]) => {
                   const on = transport === v;
@@ -1586,7 +1602,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setTransport(v)}
                       className={
-                        "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                         (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1595,7 +1611,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-warm-500">
+              <p className="mt-2 text-[12px] leading-relaxed text-warm-500">
                 자가용 이용은 불가하며, 교통비 등 실비는 보호자가 부담해요.
               </p>
             </div>
@@ -1614,7 +1630,7 @@ export default function NewRequestPage() {
                       type="button"
                       onClick={() => setPhotoRequired(v)}
                       className={
-                        "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                        "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                         (on
                           ? "border-brand-500 bg-brand-500 text-white"
                           : "border-warm-200 bg-white text-warm-600")
@@ -1625,7 +1641,7 @@ export default function NewRequestPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-warm-500 mt-1.5">
+              <p className="text-[12px] text-warm-500 mt-1.5">
                 {photoRequired
                   ? "작업자가 완료사진을 등록해야 작업을 종료할 수 있습니다."
                   : "완료사진 없이 작업을 종료할 수 있습니다."}
@@ -1638,8 +1654,8 @@ export default function NewRequestPage() {
             <label className={SECTION_LABEL}>선호 성별 (선택)</label>
             {sameGenderForced ? (
               <div className="rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-3">
-                <p className="text-[13px] font-bold text-brand-700">동성 돌봄전문가만 배정돼요</p>
-                <p className="text-[11.5px] text-warm-500 mt-1 leading-relaxed">
+                <p className="text-[14px] font-bold text-brand-700">동성 돌봄전문가만 배정돼요</p>
+                <p className="text-[12.5px] text-warm-500 mt-1 leading-relaxed">
                   방문목욕은 신체 노출을 동반하므로 돌봄대상과 같은 성별의 돌봄전문가만 매칭됩니다.
                 </p>
               </div>
@@ -1657,7 +1673,7 @@ export default function NewRequestPage() {
                           setGenderTouched(true);
                         }}
                         className={
-                          "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
+                          "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                           (on
                             ? "border-brand-500 bg-brand-500 text-white"
                             : "border-warm-200 bg-white text-warm-600")
@@ -1668,7 +1684,7 @@ export default function NewRequestPage() {
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-warm-500 mt-1.5">
+                <p className="text-[12px] text-warm-500 mt-1.5">
                   {genderRecommended && !genderTouched && recipientGender
                     ? "이 서비스는 신체 케어가 포함돼 동성 돌봄을 권장합니다. 대상자와 같은 성별로 기본 선택했어요. (변경 가능)"
                     : "선택하시면 해당 성별 돌봄전문가를 우선 추천합니다. (절대 조건은 아니에요)"}
@@ -1687,7 +1703,7 @@ export default function NewRequestPage() {
               rows={3}
               maxLength={1000}
               placeholder="특이사항이나 요청사항을 입력하세요"
-              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[14px] placeholder:text-warm-500 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
+              className="w-full rounded-xl border border-warm-200 bg-white px-3.5 py-3 text-[15px] placeholder:text-warm-500 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 resize-none"
             />
           </div>
         </Card>
@@ -1725,20 +1741,20 @@ export default function NewRequestPage() {
               ...(memo ? [["요청사항", memo] as [string, string]] : []),
             ].map(([k, v]) => (
               <div key={k} className="flex items-start justify-between gap-3 px-3.5 py-2.5">
-                <dt className="shrink-0 text-[12.5px] font-semibold text-warm-500">{k}</dt>
-                <dd className="text-right text-[13px] font-bold text-warm-800 break-keep">{v}</dd>
+                <dt className="shrink-0 text-[13.5px] font-semibold text-warm-500">{k}</dt>
+                <dd className="text-right text-[14px] font-bold text-warm-800 break-keep">{v}</dd>
               </div>
             ))}
           </dl>
 
           {/* 컴플라이언스 고지 (P0-2) */}
           <div className="mt-4 rounded-xl border border-warm-200 bg-warm-50 p-4">
-            <div className="flex items-center gap-1.5 text-[13px] font-bold text-warm-700">
+            <div className="flex items-center gap-1.5 text-[14px] font-bold text-warm-700">
               <ShieldCheck className="h-4 w-4 text-brand-500" /> 신청 전 확인해 주세요
             </div>
             <ul className="mt-2.5 space-y-2">
               {COMPLIANCE_NOTES.map((note) => (
-                <li key={note} className="flex gap-1.5 text-[11.5px] leading-relaxed text-warm-500">
+                <li key={note} className="flex gap-1.5 text-[12.5px] leading-relaxed text-warm-500">
                   <span className="mt-0.5 text-brand-500">•</span>
                   <span>{note}</span>
                 </li>
@@ -1763,7 +1779,7 @@ export default function NewRequestPage() {
               }}
               className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand-500"
             />
-            <span className="text-[12.5px] leading-relaxed text-warm-700">
+            <span className="text-[13.5px] leading-relaxed text-warm-700">
               <b className="text-warm-800">(필수)</b> 위 안내 사항과, 매칭된 돌봄전문가에게 돌봄대상 정보가 제공되는 것(개인정보 제3자 제공)에 동의합니다.
             </span>
           </label>
@@ -1772,7 +1788,7 @@ export default function NewRequestPage() {
 
         {/* 스텝 1·2 하단 반복 고지(간략) */}
         {step !== 3 && (
-          <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-warm-500">
+          <div className="mt-3.5 flex items-center gap-1.5 text-[12px] text-warm-500">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-warm-500" />
             <span>안전을 위해 돌봄전문가와의 직거래·외부 연락처 교환은 금지돼요.</span>
           </div>
@@ -1786,23 +1802,23 @@ export default function NewRequestPage() {
         <Card className="mt-3.5 p-4 lg:mt-0">
           <label className={SECTION_LABEL}>적정 간병비</label>
           {!estimateEnabled ? (
-            <p className="text-[12.5px] text-warm-500 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
+            <p className="text-[13.5px] text-warm-500 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
           ) : priceEstimate.isLoading ? (
-            <p className="text-[12.5px] text-warm-500 mt-1">권장 시급 계산 중…</p>
+            <p className="text-[13.5px] text-warm-500 mt-1">권장 시급 계산 중…</p>
           ) : priceEstimate.data ? (
             <div className="mt-1.5">
               <div className="flex items-baseline gap-2">
                 <span className="text-[22px] font-extrabold text-brand-700 tabular-nums">{won(priceEstimate.data.suggested)}</span>
-                <span className="text-[12px] text-warm-500">권장 시급</span>
+                <span className="text-[13px] text-warm-500">권장 시급</span>
               </div>
-              <div className="text-[12px] text-warm-500 mt-0.5 tabular-nums">
+              <div className="text-[13px] text-warm-500 mt-0.5 tabular-nums">
                 권장 범위 {won(priceEstimate.data.floor)} ~ {won(priceEstimate.data.ceil)}
                 {" · 예상 총액 "}
                 {won(priceEstimate.data.suggested * (duration / 60) * (domain === "nursing" ? days : 1))}
               </div>
             </div>
           ) : (
-            <p className="text-[12.5px] text-warm-500 mt-1">권장 시급을 불러오지 못했습니다.</p>
+            <p className="text-[13.5px] text-warm-500 mt-1">권장 시급을 불러오지 못했습니다.</p>
           )}
 
           <label className={SECTION_LABEL + " mt-4"}>희망 상한 시급 (선택)</label>
@@ -1815,13 +1831,13 @@ export default function NewRequestPage() {
             placeholder={priceEstimate.data ? String(priceEstimate.data.suggested) : "예) 20000"}
             className="tabular-nums"
           />
-          <p className="text-[11px] text-warm-500 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
+          <p className="text-[12px] text-warm-500 mt-1.5">돌봄전문가가 이 금액을 참고해 입찰합니다. 비워두면 권장가 기준으로 진행돼요.</p>
         </Card>
         )}
 
         {/* 요청 전 안내 (확인 스텝) */}
         {step === 3 && (
-        <div className="mt-3.5 flex items-center gap-2 text-[11.5px] text-warm-500">
+        <div className="mt-3.5 flex items-center gap-2 text-[12.5px] text-warm-500">
           <Sparkle className="h-3.5 w-3.5 text-brand-500 shrink-0" />
           <span>
             요청을 보내면 AI가 잘 맞는 후보 <b className="text-warm-600">3~5명</b>을 빠르게 추천해 드려요.
@@ -1830,7 +1846,7 @@ export default function NewRequestPage() {
         )}
 
         {/* 네비게이션 — 스텝별 이전/다음/제출 */}
-        <div className="mt-5 flex gap-2.5">
+        <div className="mt-5 flex flex-wrap gap-2.5">
           {step > 1 && (
             <Button
               variant="outline"
@@ -1840,6 +1856,11 @@ export default function NewRequestPage() {
             >
               이전
             </Button>
+          )}
+          {((step === 1 && !step1Valid && !registering) || (step === 2 && !step2Valid)) && (
+            <p role="status" className="w-full basis-full text-center text-sm font-semibold text-brand-700">
+              {(step === 1 ? step1Missing : step2Missing).join(", ")}을(를) 입력해 주세요
+            </p>
           )}
           {step === 1 && (
             <Button

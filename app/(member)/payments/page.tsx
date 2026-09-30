@@ -79,17 +79,17 @@ export default function PaymentsPage() {
                 <Badge variant={st.variant}>{st.label}</Badge>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-[12px] text-warm-500">
+                <span className="text-[13px] text-warm-500">
                   {METHOD_LABEL[p.method] ?? p.method}
                   {p.paid_at ? ` · ${p.paid_at.slice(0, 10)}` : p.created_at ? ` · ${p.created_at.slice(0, 10)}` : ""}
                 </span>
                 <span className="text-[17px] font-extrabold text-warm-800 tabular-nums">{won(p.amount_self_pay)}</span>
               </div>
               {pending && p.match?.id && (
-                <p className="mt-2 text-[12px] font-bold text-brand-600">결제를 완료해 주세요 →</p>
+                <p className="mt-2 text-[13px] font-bold text-brand-600">결제를 완료해 주세요 →</p>
               )}
               {(p.status === "paid" || p.status === "cancelled") && (
-                <Link href={`/receipt/${p.id}`} className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-brand-600">
+                <Link href={`/receipt/${p.id}`} className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-brand-600">
                   <Receipt className="h-3.5 w-3.5" /> 영수증 보기
                 </Link>
               )}

@@ -13,7 +13,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { openTossPayment } from "@/lib/toss";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
-const SECTION_LABEL = "block text-[12.5px] font-bold text-warm-600 mb-2";
+const SECTION_LABEL = "block text-[13.5px] font-bold text-warm-600 mb-2";
 
 const METHODS: { key: PaymentMethod; label: string; desc: string; icon: typeof CreditCard }[] = [
   { key: "card", label: "카드 결제", desc: "신용·체크카드", icon: CreditCard },
@@ -108,7 +108,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
               <label className={SECTION_LABEL}>결제 금액</label>
               <div className="flex items-baseline justify-between">
                 <span className="text-sm text-warm-500">총 서비스 금액</span>
-                <span className="text-[15px] font-bold text-warm-700 tabular-nums">{won(calc.data.total_amount)}</span>
+                <span className="text-[16px] font-bold text-warm-700 tabular-nums">{won(calc.data.total_amount)}</span>
               </div>
               {calc.data.ltc_pay > 0 && (
                 <div className="mt-1.5 flex items-baseline justify-between">
@@ -118,15 +118,15 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                       <span className="text-warm-500"> · 본인부담 {Math.round(calc.data.copay_rate * 100)}%</span>
                     )}
                   </span>
-                  <span className="text-[14px] font-semibold text-warm-500 tabular-nums">- {won(calc.data.ltc_pay)}</span>
+                  <span className="text-[15px] font-semibold text-warm-500 tabular-nums">- {won(calc.data.ltc_pay)}</span>
                 </div>
               )}
               <div className="mt-3 flex items-baseline justify-between border-t border-warm-100 pt-3">
-                <span className="text-[13px] font-bold text-warm-700">본인부담 결제금액</span>
+                <span className="text-[14px] font-bold text-warm-700">본인부담 결제금액</span>
                 <span className="text-[22px] font-extrabold text-brand-700 tabular-nums">{won(calc.data.self_pay)}</span>
               </div>
               {calc.data.voucher_remaining != null && (
-                <p className="mt-2 text-[11.5px] text-warm-500 tabular-nums">
+                <p className="mt-2 text-[12.5px] text-warm-500 tabular-nums">
                   장기요양 바우처 잔액 {won(calc.data.voucher_remaining)}
                   {calc.data.voucher_after_payment != null && ` → 결제 후 ${won(calc.data.voucher_after_payment)}`}
                 </p>
@@ -153,21 +153,21 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                       }
                     >
                       <Icon className={"h-5 w-5 " + (on ? "text-brand-600" : "text-warm-500")} />
-                      <span className={"text-[12.5px] font-bold " + (on ? "text-brand-700" : "text-warm-700")}>{m.label}</span>
-                      <span className="text-[10px] text-warm-500">{m.desc}</span>
+                      <span className={"text-[13.5px] font-bold " + (on ? "text-brand-700" : "text-warm-700")}>{m.label}</span>
+                      <span className="text-[12px] text-warm-500">{m.desc}</span>
                     </button>
                   );
                 })}
               </div>
               {method === "card" && (
-                <p className="mt-2.5 text-[11px] leading-relaxed text-warm-500">
+                <p className="mt-2.5 text-[12px] leading-relaxed text-warm-500">
                   ‘결제하기’를 누르면 토스페이먼츠 결제창이 열립니다. 지금은 테스트 결제라 실제로 청구되지 않아요.
                 </p>
               )}
             </Card>
 
             {/* 컴플라이언스 + 동의 */}
-            <div className="mt-3.5 flex items-start gap-1.5 rounded-xl border border-warm-200 bg-warm-50 p-3.5 text-[11.5px] leading-relaxed text-warm-500">
+            <div className="mt-3.5 flex items-start gap-1.5 rounded-xl border border-warm-200 bg-warm-50 p-3.5 text-[12.5px] leading-relaxed text-warm-500">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
               <span>결제·정산은 케어앤드 플랫폼을 통해 안전하게 처리돼요. 돌봄전문가와의 직접 거래는 보호되지 않습니다.</span>
             </div>
@@ -178,7 +178,7 @@ export default function PaymentCheckoutPage({ params }: { params: { matchId: str
                 onChange={(e) => setAgree(e.target.checked)}
                 className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand-500"
               />
-              <span className="text-[12.5px] leading-relaxed text-warm-700">
+              <span className="text-[13.5px] leading-relaxed text-warm-700">
                 <b className="text-warm-800">(필수)</b> 결제 금액과 결제 진행에 동의합니다.
               </span>
             </label>

@@ -92,7 +92,7 @@ export default function NotificationsPage() {
                   <span className={cn("text-sm font-semibold truncate", n.is_read ? "text-warm-600" : "text-warm-800")}>
                     {n.title}
                   </span>
-                  <span className="text-[11px] text-warm-500 flex-shrink-0">{n.created_ago}</span>
+                  <span className="text-[12px] text-warm-500 flex-shrink-0">{n.created_ago}</span>
                 </div>
                 <p className="text-xs text-warm-500 mt-0.5 line-clamp-2">{n.body}</p>
               </div>

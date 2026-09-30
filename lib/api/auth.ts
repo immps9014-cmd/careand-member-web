@@ -58,6 +58,20 @@ export const authApi = {
     return data;
   },
 
+  /** 아이디 찾기 — 휴대폰 인증 토큰으로 가려진 아이디(이메일)를 받는다. 토큰은 소모되지 않는다. */
+  async findId(phone: string, phoneVerifyToken: string): Promise<{ masked_email: string; has_password: boolean; created_at: string | null }> {
+    const { data } = await api.post("/v1/auth/find-id", { phone, phone_verify_token: phoneVerifyToken });
+    return data;
+  },
+
+  /** 비밀번호 재설정 — 휴대폰 인증 토큰(1회용) + 새 비밀번호 */
+  async resetPassword(phone: string, phoneVerifyToken: string, password: string, passwordConfirmation: string): Promise<{ message: string; masked_email: string }> {
+    const { data } = await api.post("/v1/auth/reset-password", {
+      phone, phone_verify_token: phoneVerifyToken, password, password_confirmation: passwordConfirmation,
+    });
+    return data;
+  },
+
   /**
    * 회원가입 (보호자 / 돌봄전문가)
    * - 돌봄전문가(caregiver)은 가입 후 별도 자격정보 등록(caregiverApi.register)이 필요

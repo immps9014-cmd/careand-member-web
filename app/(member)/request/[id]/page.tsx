@@ -36,6 +36,9 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
   const router = useRouter();
   const qc = useQueryClient();
   const [sort, setSort] = useState<SortKey>("recommended");
+  // 선택은 즉시 확정될 수 있어 한 번 더 확인받는다(후보 id)
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [askCancel, setAskCancel] = useState(false);
 
   const query = useQuery({
     queryKey: ["member", "candidates", requestId],
@@ -57,17 +60,36 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
   const select = useMutation({
     mutationFn: (candidateId: number) => memberApi.selectCandidate(requestId, candidateId),
     onSuccess: (res) => {
-      const msg = (res?.data as { message?: string } | undefined)?.message;
-      toast.success(msg ?? "돌봄전문가를 선택했습니다.");
+      const body = res?.data as { message?: string; match?: { id: number } } | undefined;
+      setConfirmId(null);
+      qc.invalidateQueries({ queryKey: ["member"] });
+      if (body?.match?.id) {
+        // 입찰가 선택 = 즉시 확정 → 곧장 결제로(홈으로 돌려보내면 결제 버튼을 다시 찾아야 했다)
+        toast.success("매칭이 확정됐어요. 결제를 진행해 주세요.");
+        router.push(`/payments/${body.match.id}`);
+        return;
+      }
+      // 돌봄전문가 수락 대기 — 이 화면에 남아 진행 상태를 보여준다
+      toast.success(body?.message ?? "돌봄전문가에게 요청을 보냈어요. 수락하면 알려 드릴게요.");
+    },
+    onError: (e) => { setConfirmId(null); toast.error(getApiErrorMessage(e)); },
+  });
+
+  const cancelReq = useMutation({
+    mutationFn: () => memberApi.cancelRequest(requestId),
+    onSuccess: () => {
+      toast.success("요청을 취소했어요.");
       qc.invalidateQueries({ queryKey: ["member"] });
       router.push("/home");
     },
-    onError: (e) => toast.error(getApiErrorMessage(e)),
+    onError: (e) => { setAskCancel(false); toast.error(getApiErrorMessage(e)); },
   });
 
   const data = query.data;
   const est = data?.price_estimate ?? null;
   const matched = data?.request_status === "matched";
+  const cancellable = data?.request_status === "open" || data?.request_status === "matching";
+  const closed = data?.request_status === "cancelled" || data?.request_status === "expired";
 
   const sorted: Candidate[] = [...(data?.candidates ?? [])].sort((a, b) => {
     if (sort === "price") {
@@ -87,8 +109,8 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="p-5 lg:mx-auto lg:max-w-5xl">
-      <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-warm-500 mb-4">
-        <ChevronLeft className="w-4 h-4" /> 뒤로
+      <button onClick={() => router.push("/home")} className="flex h-10 items-center gap-1 text-sm text-warm-600 mb-2">
+        <ChevronLeft className="w-4 h-4" /> 홈으로
       </button>
 
       <h1 className="text-xl font-extrabold text-warm-800 mb-1">AI 추천 돌봄전문가</h1>
@@ -114,12 +136,19 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         <Link href={`/payments/${data.match_id}`}>
           <Card className="mb-4 flex items-center justify-between border-brand-200 bg-brand-50 p-4">
             <div>
-              <div className="text-[13px] font-bold text-brand-700">매칭이 확정되었어요</div>
-              <div className="mt-0.5 text-[11.5px] text-warm-500">결제를 완료하면 돌봄 일정이 시작돼요.</div>
+              <div className="text-[14px] font-bold text-brand-700">매칭이 확정되었어요</div>
+              <div className="mt-0.5 text-[12.5px] text-warm-500">결제를 완료하면 돌봄 일정이 시작돼요.</div>
             </div>
-            <span className="rounded-full bg-brand-500 px-3.5 py-2 text-[12.5px] font-bold text-white">결제하기</span>
+            <span className="rounded-full bg-brand-500 px-3.5 py-2 text-[13.5px] font-bold text-white">결제하기</span>
           </Card>
         </Link>
+      )}
+
+      {closed && (
+        <Card className="mb-4 p-4 text-center text-sm text-warm-600">
+          {data?.request_status === "cancelled" ? "취소된 요청이에요." : "기간이 지나 마감된 요청이에요."}{" "}
+          <Link href="/request/new" className="font-bold text-brand-600 underline">새로 신청하기</Link>
+        </Card>
       )}
 
       {/* 적정 간병비 권장 가격대 */}
@@ -227,24 +256,65 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                 </Link>
               )}
 
-              <Button
-                size="sm"
-                variant="brand"
-                className="w-full"
-                disabled={select.isPending || matched}
-                onClick={() => select.mutate(c.id)}
-              >
-                <Check className="w-4 h-4" />
-                {matched
-                  ? "매칭 완료됨"
-                  : c.bid_hourly != null
-                    ? `${won(c.bid_hourly)}에 선택 (즉시 확정)`
-                    : "이 돌봄전문가 선택"}
-              </Button>
+              {confirmId === c.id ? (
+                <div className="rounded-lg border border-brand-200 bg-brand-50 p-3">
+                  <p className="text-sm font-semibold text-warm-800">
+                    {c.bid_hourly != null
+                      ? `${c.caregiver?.name ?? "이 돌봄전문가"} 님을 시급 ${won(c.bid_hourly)}에 확정할까요? 확정하면 바로 결제 화면으로 가요.`
+                      : `${c.caregiver?.name ?? "이 돌봄전문가"} 님에게 요청을 보낼까요? 수락하면 확정돼요.`}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setConfirmId(null)}>다시 볼게요</Button>
+                    <Button variant="brand" className="flex-1" disabled={select.isPending} onClick={() => select.mutate(c.id)}>
+                      {select.isPending ? "처리 중…" : c.bid_hourly != null ? "확정하기" : "요청 보내기"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="brand"
+                  className="w-full"
+                  disabled={select.isPending || matched || closed || c.response !== "pending"}
+                  onClick={() => setConfirmId(c.id)}
+                >
+                  <Check className="w-4 h-4" />
+                  {matched
+                    ? "매칭 완료됨"
+                    : c.bid_hourly != null
+                      ? `${won(c.bid_hourly)}에 선택`
+                      : "이 돌봄전문가 선택"}
+                </Button>
+              )}
             </Card>
           );
         })}
       </div>
+
+      {/* 확정 전 요청 취소 — 확정 뒤엔 결제·일정이 얽혀 고객센터로 */}
+      {cancellable && (
+        <div className="mt-8 border-t border-warm-100 pt-5">
+          {askCancel ? (
+            <Card className="p-4">
+              <p className="text-sm font-semibold text-warm-800">이 요청을 취소할까요? 요청을 받은 돌봄전문가에게도 알려 드려요.</p>
+              <div className="mt-3 flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setAskCancel(false)}>아니요</Button>
+                <Button variant="danger" className="flex-1" disabled={cancelReq.isPending} onClick={() => cancelReq.mutate()}>
+                  {cancelReq.isPending ? "취소 중…" : "네, 취소할게요"}
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <Button variant="outline" className="w-full text-warm-700" onClick={() => setAskCancel(true)}>
+              요청 취소
+            </Button>
+          )}
+        </div>
+      )}
+      {matched && data?.payment_status !== "paid" && (
+        <p className="mt-6 text-center text-sm text-warm-600">
+          확정된 요청의 취소·일정 변경은 <Link href="/support" className="font-bold text-brand-600 underline">고객센터</Link>로 문의해 주세요.
+        </p>
+      )}
     </div>
   );
 }

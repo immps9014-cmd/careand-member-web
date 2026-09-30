@@ -24,22 +24,22 @@ export default function MyActivityPage() {
         <>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <Card className="p-3 text-center">
-              <div className="text-[11px] font-semibold text-warm-500">평균 평점</div>
+              <div className="text-[12px] font-semibold text-warm-500">평균 평점</div>
               <div className="mt-1 flex items-center justify-center gap-1 text-lg font-extrabold text-warm-800">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />{d.rating_count ? d.rating_avg.toFixed(1) : "-"}
               </div>
-              <div className="text-[11px] text-warm-500">후기 {d.rating_count}건</div>
+              <div className="text-[12px] text-warm-500">후기 {d.rating_count}건</div>
             </Card>
             <Card className="p-3 text-center">
-              <div className="text-[11px] font-semibold text-warm-500">완료 돌봄</div>
+              <div className="text-[12px] font-semibold text-warm-500">완료 돌봄</div>
               <div className="mt-1 text-lg font-extrabold text-warm-800">{d.completed_sessions}회</div>
             </Card>
             <Card className="p-3 text-center">
-              <div className="text-[11px] font-semibold text-warm-500">경력 단계</div>
+              <div className="text-[12px] font-semibold text-warm-500">경력 단계</div>
               <div className="mt-1 text-lg font-extrabold text-warm-800">{d.career_track}</div>
             </Card>
           </div>
-          <p className="mt-2 text-[11px] text-warm-500">{d.rating_note}</p>
+          <p className="mt-2 text-[12px] text-warm-500">{d.rating_note}</p>
 
           <Card className="mt-4 p-4">
             <div className="mb-3 flex items-center gap-1.5 text-sm font-bold text-warm-800">
@@ -74,8 +74,8 @@ export default function MyActivityPage() {
                 {r.comment && <p className="mt-2 text-sm text-warm-700">{r.comment}</p>}
                 {(r.scores.length > 0 || r.tags.length > 0) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {r.scores.map((s) => <span key={s.label} className="rounded-full bg-warm-50 px-2 py-0.5 text-[11px] text-warm-600">{s.label} {s.score}</span>)}
-                    {r.tags.map((t) => <span key={t} className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] text-brand-700">{t}</span>)}
+                    {r.scores.map((s) => <span key={s.label} className="rounded-full bg-warm-50 px-2 py-0.5 text-[12px] text-warm-600">{s.label} {s.score}</span>)}
+                    {r.tags.map((t) => <span key={t} className="rounded-full bg-brand-50 px-2 py-0.5 text-[12px] text-brand-700">{t}</span>)}
                   </div>
                 )}
                 {r.reply && <p className="mt-2 rounded-lg bg-warm-50 px-3 py-2 text-xs text-warm-600">운영팀: {r.reply}</p>}

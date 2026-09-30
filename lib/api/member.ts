@@ -11,6 +11,8 @@ export interface GuardianRequest {
   matched_at: string | null;
   created_at: string;
   service_domain?: string;
+  /** 도메인 무관 대상 표시명(산후·아이·마음돌봄 포함) — 백엔드 목록 API 가 채운다 */
+  recipient_name?: string | null;
   senior?: { id: number; name: string; care_grade: string | null };
   nursing_patient?: { id: number; name: string; hospital_name: string | null };
   service_address?: { id: number; label: string; address: string };
@@ -24,6 +26,14 @@ export interface GuardianRequest {
     caregiver_name: string | null;
     payment_status: string | null;
   } | null;
+}
+
+export interface ChatMessage {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  sources?: unknown;
+  created_at: string;
 }
 
 /* ===== 보호자: 케어일지(AI) 수신·열람 — Phase 2 ===== */
@@ -671,6 +681,26 @@ export const memberApi = {
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
+  /** 확정 전(open·matching) 요청 취소 */
+  cancelRequest: (requestId: number, reason?: string) =>
+    api.post(`/v1/matching/requests/${requestId}/cancel`, { reason }),
+  // 챗봇(보호자) — 백엔드 /v1/chatbot
+  async chatbotSessions(): Promise<{ id: number; started_at: string; ended_at: string | null }[]> {
+    const { data } = await api.get("/v1/chatbot/sessions");
+    return data.data ?? [];
+  },
+  async chatbotStart(): Promise<{ session_id: number; welcome: ChatMessage }> {
+    const { data } = await api.post("/v1/chatbot/sessions", {});
+    return { session_id: data.session_id, welcome: data.welcome_message };
+  },
+  async chatbotMessages(sessionId: number): Promise<ChatMessage[]> {
+    const { data } = await api.get(`/v1/chatbot/sessions/${sessionId}/messages`);
+    return data.data ?? [];
+  },
+  async chatbotAsk(sessionId: number, question: string): Promise<ChatMessage> {
+    const { data } = await api.post(`/v1/chatbot/sessions/${sessionId}/ask`, { question }, { timeout: 60_000 });
+    return data.data;
+  },
   // 적정 간병비 미리보기 (요청 생성 전)
   async pricingEstimate(params: {
     service_domain?: string;

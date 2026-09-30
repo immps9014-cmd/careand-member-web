@@ -34,13 +34,13 @@ export function SocialLoginButtons() {
       <div className="mt-3 grid gap-2">
         {on.includes("kakao") && (
           <button type="button" onClick={() => go("kakao")} disabled={busy !== null}
-            className="h-11 w-full rounded-lg bg-[#FEE500] text-[15px] font-semibold text-[#191919] disabled:opacity-60">
+            className="h-11 w-full rounded-lg bg-[#FEE500] text-[16px] font-semibold text-[#191919] disabled:opacity-60">
             {busy === "kakao" ? "카카오로 이동 중…" : "카카오로 로그인"}
           </button>
         )}
         {on.includes("google") && (
           <button type="button" onClick={() => go("google")} disabled={busy !== null}
-            className="h-11 w-full rounded-lg border border-warm-300 bg-white text-[15px] font-semibold text-warm-800 disabled:opacity-60">
+            className="h-11 w-full rounded-lg border border-warm-300 bg-white text-[16px] font-semibold text-warm-800 disabled:opacity-60">
             {busy === "google" ? "구글로 이동 중…" : "구글로 로그인"}
           </button>
         )}

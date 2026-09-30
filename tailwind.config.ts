@@ -23,10 +23,11 @@ const config: Config = {
         ],
         mono: ["Plus Jakarta Sans", "ui-monospace", "monospace"],
       },
+      // 고령 사용자 기준 최소 12px · 본문 16px (2026-09-30 재검증 CAREN-AUD-01)
       fontSize: {
-        xs: ["11px", "16px"],
-        sm: ["13px", "20px"],
-        base: ["15px", "24px"],
+        xs: ["12px", "17px"],
+        sm: ["14px", "21px"],
+        base: ["16px", "25px"],
         lg: ["17px", "26px"],
         xl: ["20px", "28px"],
         "2xl": ["24px", "32px"],

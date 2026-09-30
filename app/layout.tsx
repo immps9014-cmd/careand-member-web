@@ -33,8 +33,7 @@ export const viewport: Viewport = {
   themeColor: "#D5603E",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // 확대 허용 — 고령 사용자가 손가락으로 키워 볼 수 있어야 한다(WCAG 1.4.4). 입력칸은 16px 라 포커스 자동확대도 없다.
 };
 
 export default function RootLayout({

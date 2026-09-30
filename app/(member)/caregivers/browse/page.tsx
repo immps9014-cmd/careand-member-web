@@ -83,7 +83,7 @@ function BrowseList() {
           {favorites.length > 0 && (
             <section>
               <div className="mb-2 flex items-baseline gap-2">
-                <h2 className="inline-flex items-center gap-1 text-[15px] font-extrabold text-brand-700">
+                <h2 className="inline-flex items-center gap-1 text-[16px] font-extrabold text-brand-700">
                   <Star className="h-4 w-4 fill-current" /> 찜한 돌봄전문가
                 </h2>
                 <span className="text-xs font-semibold text-warm-500">{favorites.length}명</span>
@@ -97,7 +97,7 @@ function BrowseList() {
             return (
               <section key={d}>
                 <div className="mb-2 flex items-baseline gap-2">
-                  <h2 className="text-[15px] font-extrabold text-warm-800">{domainLabel(d)}</h2>
+                  <h2 className="text-[16px] font-extrabold text-warm-800">{domainLabel(d)}</h2>
                   <span className="text-xs font-semibold text-warm-500">{group.length}명</span>
                 </div>
                 {group.length === 0 ? (
@@ -154,7 +154,7 @@ function GroupBody({
                     <span className="inline-flex items-center gap-1.5">
                       {name}
                       {c.tag && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600">
+                        <span className="inline-flex items-center gap-0.5 text-[12px] font-bold text-brand-600">
                           {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
                           {c.tag}
                         </span>
@@ -197,7 +197,7 @@ function GroupBody({
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-warm-800 truncate">{name}</span>
                   {c.tag && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-600 shrink-0">
+                    <span className="inline-flex items-center gap-0.5 text-[12px] font-bold text-brand-600 shrink-0">
                       {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
                       {c.tag}
                     </span>

@@ -79,8 +79,8 @@ export default function GuidePage() {
                   <Icon className="h-[22px] w-[22px]" />
                 </span>
                 <div>
-                  <div className="text-[14px] font-extrabold text-warm-800">{s.title}</div>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">{s.desc}</p>
+                  <div className="text-[15px] font-extrabold text-warm-800">{s.title}</div>
+                  <p className="mt-1 text-[13.5px] leading-relaxed text-warm-500">{s.desc}</p>
                 </div>
               </Card>
             );
@@ -90,20 +90,20 @@ export default function GuidePage() {
         {/* 안전 안내 */}
         <div className="mt-4 flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50/60 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-500" />
-          <p className="text-[12.5px] leading-relaxed text-warm-600">
+          <p className="text-[13.5px] leading-relaxed text-warm-600">
             케어앤드는 신원·자격이 검증된 돌봄전문가만 매칭하고, 결제·정산을 플랫폼이 안전하게 보호해요.
           </p>
         </div>
 
         {/* FAQ */}
-        <h2 className="mb-2.5 mt-6 flex items-center gap-1.5 text-[15px] font-extrabold text-warm-800">
+        <h2 className="mb-2.5 mt-6 flex items-center gap-1.5 text-[16px] font-extrabold text-warm-800">
           <HelpCircle className="h-4 w-4 text-brand-500" /> 자주 묻는 질문
         </h2>
         <div className="space-y-2.5">
           {FAQ.map((f) => (
             <Card key={f.q} className="rounded-2xl p-4">
-              <div className="text-[13px] font-bold text-warm-800">Q. {f.q}</div>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-warm-500">{f.a}</p>
+              <div className="text-[14px] font-bold text-warm-800">Q. {f.q}</div>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-warm-500">{f.a}</p>
             </Card>
           ))}
         </div>

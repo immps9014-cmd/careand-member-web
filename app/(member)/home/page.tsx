@@ -19,6 +19,7 @@ import { getApiErrorMessage, getApiErrorStatus } from "@/lib/api/client";
 import { formatDateTime, formatKRW } from "@/lib/utils";
 import { ProgressPipeline } from "@/components/ProgressPipeline";
 import { DirectionsLink } from "@/components/care/directions-link";
+import { SUPPORT } from "@/lib/support";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -46,7 +47,7 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
           style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2.6"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-          <span style={{ fontSize: 13, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{searchPlaceholder}</span>
+          <span style={{ fontSize: 14, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{searchPlaceholder}</span>
         </div>
         <div
           onClick={() => go("/notifications")}
@@ -58,7 +59,7 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
         >
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.9"><path d="M5 7h14l-1.2 10.5a2 2 0 01-2 1.8H8.2a2 2 0 01-2-1.8z" /><path d="M9 7a3 3 0 016 0" /></svg>
           {unread > 0 && (
-            <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: ACCENT, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
+            <span style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: ACCENT, color: "#fff", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</span>
           )}
         </div>
         <div
@@ -68,8 +69,8 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "�
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go("/mypage"); } }}
           style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}
         >
-          <span style={{ fontSize: 10, fontWeight: 700, color: INK3 }}>{roleLabel(user?.role)}</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: INK3 }}>{roleLabel(user?.role)}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
         </div>
       </div>
     </div>
@@ -86,27 +87,27 @@ function GQuick({ go }: { go: GNav }) {
     { l: "방문일정", bg: "#F2ECFF", to: "/schedule", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A5CE0" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></svg> },
     { l: "케어일지", bg: "#E7F7EF", to: "/logs", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F9D63" strokeWidth="2"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h4" /></svg> },
     { l: "결제내역", bg: "#E7F4F2", to: "/payments", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E9C8A" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></svg> },
-    { l: "긴급요청", bg: "#FFE9EC", to: "/request/new", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
+    { l: "긴급요청", bg: "#FFE9EC", to: "/request/new?mode=urgent", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
   ];
   const sub: { l: string; to: string }[] = [
     { l: "이용가이드", to: "/guide" },
-    { l: "공지사항", to: "/notifications" },
-    { l: "고객센터", to: "/mypage" },
+    { l: "알림", to: "/notifications" },
+    { l: "고객센터", to: "/support" },
   ];
   return (
     <div style={{ padding: "18px 12px 16px", background: "#fff", margin: "14px 0 0" }}>
-      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
+      <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "20px 4px" }}>
         {items.map((it) => (
-          <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <button key={it.l} type="button" onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", background: "none", border: 0, padding: 0 }}>
             <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
-          </div>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
+          </button>
         ))}
       </div>
       <div style={{ display: "flex", gap: 22, marginTop: 18, paddingTop: 15, borderTop: `1px solid ${LINE}`, justifyContent: "center" }}>
         {sub.map((it) => (
-          <button key={it.l} onClick={() => go(it.to)} style={{ background: "none", border: 0, padding: 0, fontSize: 12.5, fontWeight: 600, color: INK2, cursor: "pointer" }}>{it.l}</button>
+          <button key={it.l} onClick={() => go(it.to)} style={{ background: "none", border: 0, padding: "10px 4px", fontSize: 14, fontWeight: 600, color: INK2, cursor: "pointer" }}>{it.l}</button>
         ))}
       </div>
     </div>
@@ -114,7 +115,7 @@ function GQuick({ go }: { go: GNav }) {
 }
 
 function GStars({ n }: { n: string }) {
-  return <span style={{ color: "#F2A900", fontSize: 11, fontWeight: 800 }}>★ {n}</span>;
+  return <span style={{ color: "#F2A900", fontSize: 12, fontWeight: 800 }}>★ {n}</span>;
 }
 
 const FEED_PALETTE: { fg: string; bg: string }[] = [
@@ -142,16 +143,16 @@ function GCgRow({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg
       <div style={{ width: 46, height: 46, borderRadius: "50%", background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: pal.fg, flexShrink: 0 }}>{av}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 14, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span>
           <GStars n={c.rating} />
-          {c.tag && <span style={{ fontSize: 9.5, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 6, padding: "2px 6px", flexShrink: 0 }}>{c.tag}</span>}
+          {c.tag && <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 6, padding: "2px 6px", flexShrink: 0 }}>{c.tag}</span>}
         </div>
-        <div style={{ fontSize: 11.5, color: INK2, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta || "돌봄전문가"}</div>
+        <div style={{ fontSize: 12.5, color: INK2, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta || "돌봄전문가"}</div>
       </div>
       {c.base_rate != null && (
         <div style={{ textAlign: "right", flexShrink: 0, whiteSpace: "nowrap" }}>
-          <span style={{ fontSize: 15, fontWeight: 900, color: ACCENT }}>{c.base_rate.toLocaleString()}</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: INK }}>원~</span>
+          <span style={{ fontSize: 16, fontWeight: 900, color: ACCENT }}>{c.base_rate.toLocaleString()}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>원~</span>
         </div>
       )}
       <ChevronRight size={16} color={INK3} style={{ flexShrink: 0 }} />
@@ -257,14 +258,14 @@ function GFeed({ go }: { go: GNav }) {
       {/* ① AI 추천 — 접이식(기본 접음), 리스트형 */}
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", background: "none", border: 0, padding: 0, cursor: "pointer" }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>가까운 AI추천 돌봄전문가</div>
-        <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
+        <span style={{ marginLeft: "auto", fontSize: 13.5, fontWeight: 700, color: INK3 }}>{list.length}명</span>
         <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
       {open && (
         <div style={{ marginTop: 13 }}>
-          {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+          {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 14, padding: "18px 0" }}>불러오는 중…</div>}
           {!q.isLoading && list.length === 0 && (
-            <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>추천할 돌봄전문가가 아직 없습니다</div>
+            <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 14 }}>추천할 돌봄전문가가 아직 없습니다</div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {list.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
@@ -276,14 +277,14 @@ function GFeed({ go }: { go: GNav }) {
       <div style={{ marginTop: 22 }}>
         <button onClick={() => setAllOpen((v) => !v)} aria-expanded={allOpen} style={{ display: "flex", alignItems: "center", width: "100%", background: "none", border: 0, padding: 0, cursor: "pointer" }}>
           <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>{allTitle}</div>
-          {!allQ.isLoading && <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{allList.length}명</span>}
+          {!allQ.isLoading && <span style={{ marginLeft: "auto", fontSize: 13.5, fontWeight: 700, color: INK3 }}>{allList.length}명</span>}
           <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: allOpen ? "rotate(180deg)" : "none" }} />
         </button>
         {allOpen && (
           <div style={{ marginTop: 13 }}>
-            {allQ.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+            {allQ.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 14, padding: "18px 0" }}>불러오는 중…</div>}
             {!allQ.isLoading && allList.length === 0 && (
-              <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>등록된 돌봄전문가가 없습니다</div>
+              <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 14 }}>등록된 돌봄전문가가 없습니다</div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {allList.map((c, i) => <GCgRow key={c.id} c={c} pal={FEED_PALETTE[i % FEED_PALETTE.length]} go={go} />)}
@@ -316,29 +317,31 @@ function GMyRequests({ go }: { go: GNav }) {
     <div style={{ padding: "22px 16px 0", background: BG }}>
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 13, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>내 매칭 요청</div>
-        <span style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: INK3 }}>{list.length}건</span>
+        <span style={{ marginLeft: "auto", fontSize: 13.5, fontWeight: 700, color: INK3 }}>{list.length}건</span>
         <ChevronDown size={18} color={INK3} style={{ marginLeft: 8, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
       {open && (
         <>
-      {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 13, padding: "18px 0" }}>불러오는 중…</div>}
+      {q.isLoading && <div style={{ textAlign: "center", color: INK3, fontSize: 14, padding: "18px 0" }}>불러오는 중…</div>}
       {!q.isLoading && list.length === 0 && (
-        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 13 }}>진행 중인 매칭 요청이 없습니다</div>
+        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "26px 0", textAlign: "center", color: INK3, fontSize: 14 }}>진행 중인 매칭 요청이 없습니다</div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {list.map((r) => {
           const st = REQ_ST[r.status];
-          const name = r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자";
+          const name = r.recipient_name ?? r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? "대상자";
+          // 확정됐는데 아직 결제 전 — 카드에서 바로 결제로 보낸다(요청 상세를 거치지 않게)
+          const needsPay = r.status === "matched" && !!r.match?.id && r.match.payment_status !== "paid" && r.match.status !== "cancelled";
           const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "living_support" ? "생활지원" : null;
           return (
             <div key={r.id} onClick={() => go(`/request/${r.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "13px 15px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: INK }}>{name}</span>
-                  {dom && <span style={{ fontSize: 10, fontWeight: 700, color: "#3E72D6", background: "#EAF1FF", borderRadius: 6, padding: "2px 6px" }}>{dom}</span>}
-                  {st && <span style={{ fontSize: 10, fontWeight: 800, color: st.c, background: st.bg, borderRadius: 6, padding: "2px 7px" }}>{st.l}</span>}
+                  <span style={{ fontSize: 15, fontWeight: 800, color: INK }}>{name}</span>
+                  {dom && <span style={{ fontSize: 12, fontWeight: 700, color: "#3E72D6", background: "#EAF1FF", borderRadius: 6, padding: "2px 6px" }}>{dom}</span>}
+                  {st && <span style={{ fontSize: 12, fontWeight: 800, color: st.c, background: st.bg, borderRadius: 6, padding: "2px 7px" }}>{st.l}</span>}
                 </div>
-                <div style={{ fontSize: 11.5, color: INK2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 12.5, color: INK2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {(r.category?.name ?? "돌봄")} · {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"}
                 </div>
                 {/* 진행 단계 파이프라인 */}
@@ -352,17 +355,29 @@ function GMyRequests({ go }: { go: GNav }) {
                 {/* 매칭완료: 케어자 이름·케어 일정 노출 */}
                 {r.status === "matched" && r.match && (
                   <div style={{ marginTop: 7, paddingTop: 7, borderTop: `1px solid ${LINE}`, display: "flex", flexDirection: "column", gap: 3 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 }}>
                       <span style={{ color: INK3, fontWeight: 700, minWidth: 44 }}>케어자</span>
                       <span style={{ color: INK, fontWeight: 800 }}>{r.match.caregiver_name ?? "배정 중"}</span>
+                      {needsPay && (
+                        <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 800, color: "#B94C2E", background: "#FDF4F1", borderRadius: 6, padding: "2px 7px" }}>결제 필요</span>
+                      )}
                       {r.match.payment_status === "paid" && (
-                        <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, color: "#1F9D63", background: "#E7F7EF", borderRadius: 6, padding: "2px 7px" }}>결제완료</span>
+                        <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 800, color: "#1F9D63", background: "#E7F7EF", borderRadius: 6, padding: "2px 7px" }}>결제완료</span>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 }}>
                       <span style={{ color: INK3, fontWeight: 700, minWidth: 44 }}>케어 일정</span>
                       <span style={{ color: INK2, fontWeight: 600 }}>{r.match.scheduled_start ? formatDateTime(r.match.scheduled_start) : (r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 협의 중")}</span>
                     </div>
+                    {needsPay && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); go(`/payments/${r.match!.id}`); }}
+                        style={{ marginTop: 8, height: 44, borderRadius: 10, border: 0, background: ACCENT, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+                      >
+                        결제하기
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -432,7 +447,7 @@ function GServices({ go }: { go: GNav }) {
     <div style={{ padding: "18px 16px 6px", background: "#fff", marginTop: 14 }}>
       <div style={{ padding: "0 2px 12px" }}>
         <div style={{ fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.02em" }}>돌봄 서비스</div>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: INK2, marginTop: 4 }}>나에게 꼭 맞는 돌봄으로, 필요한 돌봄을 지금 바로 요청하세요</div>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: INK2, marginTop: 4 }}>나에게 꼭 맞는 돌봄으로, 필요한 돌봄을 지금 바로 요청하세요</div>
       </div>
 
       {/* Featured 타일 */}
@@ -446,8 +461,8 @@ function GServices({ go }: { go: GNav }) {
           >
             <CornerBadge b={tone.badge} />
             <div style={{ fontSize: 19, fontWeight: 900, color: tone.ink.title, letterSpacing: "-.02em", lineHeight: 1.3 }}>{featured.label}</div>
-            <div style={{ fontSize: 12.5, color: tone.ink.sub, marginTop: 5 }}>{featured.desc}</div>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: tone.ink.cta, color: "#fff", fontSize: 13, fontWeight: 800 }}>
+            <div style={{ fontSize: 13.5, color: tone.ink.sub, marginTop: 5 }}>{featured.desc}</div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 14, height: 38, padding: "0 16px", borderRadius: 19, background: tone.ink.cta, color: "#fff", fontSize: 14, fontWeight: 800 }}>
               매칭 시작하기 <ChevronRight size={15} />
             </span>
             <Icon size={72} color={tone.ink.cta} strokeWidth={1.4} style={{ position: "absolute", right: 14, bottom: 10, opacity: 0.16 }} />
@@ -467,15 +482,18 @@ function GServices({ go }: { go: GNav }) {
               key={d.token}
               onClick={() =>
                 orgOnly
-                  ? toast("병원 간병은 기관 회원 전용 서비스예요.")
+                  ? toast("병원 간병은 병원·요양기관을 통해 신청하는 서비스예요.", {
+                      description: "개인 간병이 필요하시면 고객센터에서 안내해 드려요.",
+                      action: { label: "고객센터", onClick: () => go("/support") },
+                    })
                   : go(`/request/new?domain=${d.token}`)
               }
               style={{ position: "relative", borderRadius: 16, overflow: "hidden", background: tone.grad, minHeight: 104, padding: "13px 14px", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", cursor: "pointer", border: "none", opacity: orgOnly ? 0.72 : 1 }}
             >
               <CornerBadge b={tone.badge} />
               <Icon size={46} color={tone.ink.title} strokeWidth={1.4} style={{ position: "absolute", right: 10, top: 10, opacity: 0.16 }} />
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: tone.ink.title, letterSpacing: "-.01em" }}>{d.label}</div>
-              <div style={{ fontSize: 11, color: tone.ink.sub, marginTop: 2 }}>{orgOnly ? "기관 회원 전용" : d.desc}</div>
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: tone.ink.title, letterSpacing: "-.01em" }}>{d.label}</div>
+              <div style={{ fontSize: 12, color: tone.ink.sub, marginTop: 2 }}>{orgOnly ? "기관 회원 전용" : d.desc}</div>
             </button>
           );
         })}
@@ -484,17 +502,16 @@ function GServices({ go }: { go: GNav }) {
   );
 }
 
-/* 상시 AI 상담 진입점(FAB) — 케어네이션 홈 우하단 AI챗봇 버튼 참고.
-   실제 챗봇 백엔드는 아직 없어 준비중 안내로 처리(기관전용 도메인 게이팅과 동일한 toast 패턴). */
-function GAiFab() {
+/* 상시 AI 상담 진입점(FAB) — /chat(백엔드 /v1/chatbot, 09-30 연결) */
+function GAiFab({ go }: { go: GNav }) {
   return (
     <button
-      onClick={() => toast("AI 챗봇 상담은 준비 중이에요. 빠른 시일 내 만나요.")}
+      onClick={() => go("/chat")}
       className="lg:hidden"
       style={{ position: "fixed", right: 16, bottom: "calc(90px + var(--safe-bot,0px))", zIndex: 15, display: "flex", alignItems: "center", gap: 7, height: 44, padding: "0 16px 0 14px", borderRadius: 22, background: INK, color: "#fff", border: "none", boxShadow: "0 8px 20px rgba(28,32,48,.28)", cursor: "pointer" }}
     >
       <MessageCircle size={19} />
-      <span style={{ fontSize: 12.5, fontWeight: 800 }}>AI 챗봇</span>
+      <span style={{ fontSize: 13.5, fontWeight: 800 }}>AI 챗봇</span>
     </button>
   );
 }
@@ -518,7 +535,7 @@ function GuardianHome() {
       <GMyRequests go={go} />
       <GFeed go={go} />
       <div style={{ height: 26 }} />
-      <GAiFab />
+      <GAiFab go={go} />
     </div>
   );
 }
@@ -536,10 +553,10 @@ function OrgStatusBanner({ status, name }: { status?: string; name?: string }) {
     <div style={{ padding: "16px 16px 0" }}>
       <div style={{ background: st.bg, borderRadius: 16, padding: "16px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14.5, fontWeight: 900, color: INK }}>{name || "기관"}</span>
-          <span style={{ fontSize: 10.5, fontWeight: 800, color: st.c, background: "#fff", borderRadius: 7, padding: "3px 8px" }}>{st.l}</span>
+          <span style={{ fontSize: 15.5, fontWeight: 900, color: INK }}>{name || "기관"}</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: st.c, background: "#fff", borderRadius: 7, padding: "3px 8px" }}>{st.l}</span>
         </div>
-        <div style={{ fontSize: 12.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>{st.desc}</div>
+        <div style={{ fontSize: 13.5, color: INK2, marginTop: 7, lineHeight: 1.5 }}>{st.desc}</div>
       </div>
     </div>
   );
@@ -550,11 +567,11 @@ function OrgCta({ go, enabled }: { go: GNav; enabled: boolean }) {
   return (
     <div style={{ padding: "16px 16px 4px" }}>
       <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#2E8A5E" }}>기관 매칭 서비스</div>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: "#2E8A5E" }}>기관 매칭 서비스</div>
         <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 간병인을<br />지금 바로 요청하세요</div>
         <button
           onClick={() => enabled ? go("/request/new") : toast("기관 승인 후 매칭 요청이 가능합니다.")}
-          style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: enabled ? "#0E6B43" : "#9FBBAB", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: enabled ? "0 6px 16px rgba(14,107,67,.28)" : "none" }}
+          style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: enabled ? "#0E6B43" : "#9FBBAB", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: enabled ? "0 6px 16px rgba(14,107,67,.28)" : "none" }}
         >
           간병인 매칭 요청하기
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -597,7 +614,7 @@ function OrgRecipientsCard({ go }: { go: GNav }) {
   ];
   return (
     <div style={{ padding: "12px 16px 0" }}>
-      <div style={{ fontSize: 12.5, fontWeight: 800, color: INK2, margin: "2px 2px 8px" }}>돌봄대상 관리</div>
+      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK2, margin: "2px 2px 8px" }}>돌봄대상 관리</div>
       <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 16, overflow: "hidden" }}>
         {rows.map((r, i) => (
           <div
@@ -609,8 +626,8 @@ function OrgRecipientsCard({ go }: { go: GNav }) {
               {r.ic}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: INK }}>{r.label}</div>
-              <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>{r.desc}</div>
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: INK }}>{r.label}</div>
+              <div style={{ fontSize: 12.5, color: INK2, marginTop: 2 }}>{r.desc}</div>
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
           </div>
@@ -632,8 +649,8 @@ function OrgManageCard({ go, enabled }: { go: GNav; enabled: boolean }) {
           <Users size={22} color="#3E72D6" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 800, color: INK }}>소속 간병인 관리</div>
-          <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>소속 간병인 추가·초대·해제</div>
+          <div style={{ fontSize: 15.5, fontWeight: 800, color: INK }}>소속 간병인 관리</div>
+          <div style={{ fontSize: 12.5, color: INK2, marginTop: 2 }}>소속 간병인 추가·초대·해제</div>
         </div>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK3} strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
       </div>
@@ -651,13 +668,13 @@ function OrgQuick({ go }: { go: GNav }) {
   ];
   return (
     <div style={{ padding: "18px 12px 16px", background: "#fff", margin: "14px 0 0" }}>
-      <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
+      <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, padding: "0 4px 14px", letterSpacing: "-.01em" }}>자주 쓰는 메뉴</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "20px 4px" }}>
         {items.map((it) => (
-          <div key={it.l} onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <button key={it.l} type="button" onClick={() => go(it.to)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", background: "none", border: 0, padding: 0 }}>
             <GQuickIcon bg={it.bg}>{it.ic}</GQuickIcon>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
-          </div>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: INK, letterSpacing: "-.01em", whiteSpace: "nowrap" }}>{it.l}</span>
+          </button>
         ))}
       </div>
     </div>
@@ -689,6 +706,8 @@ function CaregiverHome() {
 
   // 역경매: 후보별 입찰가 입력값
   const [bidInputs, setBidInputs] = useState<Record<number, string>>({});
+  // 거절은 되돌릴 수 없어 한 번 더 묻는다(오터치 방지)
+  const [confirmReject, setConfirmReject] = useState<number | null>(null);
 
   const submitBid = useMutation({
     mutationFn: ({ cid, amount, note }: { cid: number; amount: number; note?: string }) =>
@@ -800,7 +819,7 @@ function CaregiverHome() {
       <Card className="p-5 mb-6 border-brand-200" style={{ background: "#FBF7EC" }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-extrabold tracking-wider text-warm-500 uppercase">이번 달 요약</h2>
-          <span className="text-[11px] font-semibold text-warm-500">{now.getMonth() + 1}월</span>
+          <span className="text-[12px] font-semibold text-warm-500">{now.getMonth() + 1}월</span>
         </div>
         <div className="flex divide-x divide-warm-200">
           <div className="flex-1 pr-4">
@@ -813,7 +832,7 @@ function CaregiverHome() {
           </div>
         </div>
         {(profile.data?.completed_sessions ?? 0) > 0 && (
-          <div className="mt-3 pt-3 border-t border-warm-200/70 flex items-center justify-between text-[11px] text-warm-500">
+          <div className="mt-3 pt-3 border-t border-warm-200/70 flex items-center justify-between text-[12px] text-warm-500">
             <span>누적 {profile.data?.completed_sessions}건 완료</span>
             {(profile.data?.rating_count ?? 0) > 0 && (
               <span>⭐ {profile.data?.rating_avg?.toFixed(1)} ({profile.data?.rating_count})</span>
@@ -910,7 +929,7 @@ function CaregiverHome() {
                   <span className="text-sm font-semibold text-warm-700 tabular-nums">
                     {formatKRW(m.price_guide.suggested)}
                     {m.price_guide.floor != null && m.price_guide.ceil != null && (
-                      <span className="text-[11px] font-medium text-warm-500"> ({formatKRW(m.price_guide.floor)}~{formatKRW(m.price_guide.ceil)})</span>
+                      <span className="text-[12px] font-medium text-warm-500"> ({formatKRW(m.price_guide.floor)}~{formatKRW(m.price_guide.ceil)})</span>
                     )}
                   </span>
                 </div>
@@ -951,9 +970,21 @@ function CaregiverHome() {
               </div>
             </div>
 
+            {confirmReject === m.candidate_id && (
+              <div className="mb-2 rounded-lg bg-warm-50 p-3 text-sm text-warm-700">
+                이 요청을 거절할까요? 거절하면 다시 받을 수 없어요.
+                <div className="mt-2 flex gap-2">
+                  <Button size="md" variant="outline" className="flex-1" onClick={() => setConfirmReject(null)}>아니요</Button>
+                  <Button size="md" variant="danger" className="flex-1" disabled={reject.isPending}
+                    onClick={() => { reject.mutate(m.candidate_id); setConfirmReject(null); }}>
+                    네, 거절할게요
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button size="lg" variant="outline" className="flex-1" disabled={reject.isPending}
-                onClick={() => reject.mutate(m.candidate_id)}>
+                onClick={() => setConfirmReject(m.candidate_id)}>
                 <X className="w-4 h-4" /> 거절
               </Button>
               <Button size="lg" variant="brand" className="flex-[2] shadow-md" disabled={accept.isPending}
@@ -1036,7 +1067,7 @@ function CaregiverHome() {
                       <LogIn className="w-4 h-4" /> 출근 체크
                     </Button>
                     {tooEarly && opensAt && (
-                      <p className="mt-1.5 text-center text-[11.5px] text-warm-500">{formatDateTime(opensAt.toISOString())}부터 출근할 수 있어요 (방문 1시간 전)</p>
+                      <p className="mt-1.5 text-center text-[12.5px] text-warm-500">{formatDateTime(opensAt.toISOString())}부터 출근할 수 있어요 (방문 1시간 전)</p>
                     )}
                   </>
                 );
@@ -1068,7 +1099,7 @@ function CaregiverHome() {
                         />
                       </label>
                       {(photoCount[s.id] ?? 0) === 0 && (
-                        <p className="text-[11px] text-warm-500 text-center">
+                        <p className="text-[12px] text-warm-500 text-center">
                           완료 사진을 1장 이상 등록해야 퇴근 체크가 완료됩니다
                         </p>
                       )}
@@ -1137,8 +1168,8 @@ function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | nu
         </Card>
         <div className="mt-6 space-y-2">
           <Button variant="brand" size="lg" className="w-full" onClick={() => router.push("/signup")}>{c.reRegister}</Button>
-          <a href="tel:16000000" className="flex items-center justify-center gap-2 w-full h-11 rounded-md border border-warm-200 text-sm font-semibold text-warm-600">
-            <Phone className="w-4 h-4" /> 고객센터 문의
+          <a href={SUPPORT.tel} className="flex items-center justify-center gap-2 w-full h-12 rounded-md border border-warm-200 text-base font-semibold text-warm-700">
+            <Phone className="w-4 h-4" /> 고객센터 {SUPPORT.phone}
           </a>
         </div>
       </div>
@@ -1178,7 +1209,7 @@ function CaregiverOnboarding({ profile, name }: { profile: CaregiverProfile | nu
       </Card>
 
       <Button variant="outline" size="lg" className="w-full mt-5" onClick={() => router.push("/mypage")}>내 정보 보기</Button>
-      <p className="text-xs text-warm-500 text-center mt-4">검수 관련 문의: 고객센터 1600-0000</p>
+      <p className="text-xs text-warm-500 text-center mt-4">검수 관련 문의: 고객센터 <a href={SUPPORT.tel} className="font-semibold underline">{SUPPORT.phone}</a> ({SUPPORT.hours})</p>
     </div>
   );
 }
@@ -1197,7 +1228,7 @@ function OnbStep({ state, label, desc, last }: { state: "done" | "active" | "tod
       <div className={last ? "" : "pb-4"}>
         <div className={`text-sm font-bold ${state === "todo" ? "text-warm-500" : "text-warm-800"}`}>
           {label}
-          {state === "active" && <span className="ml-2 text-[11px] font-bold text-brand-600">진행중</span>}
+          {state === "active" && <span className="ml-2 text-[12px] font-bold text-brand-600">진행중</span>}
         </div>
         <div className="text-xs text-warm-500 mt-0.5">{desc}</div>
       </div>

@@ -197,8 +197,8 @@ export default function MyPage() {
           className="flex w-full items-center justify-between gap-3 text-left"
         >
           <div className="min-w-0">
-            <div className="text-[14px] font-bold text-warm-800">시니어 모드</div>
-            <div className="text-[12px] text-warm-500 mt-0.5">글씨를 크게, 색을 더 진하게 보여줘요</div>
+            <div className="text-[15px] font-bold text-warm-800">시니어 모드</div>
+            <div className="text-[13px] text-warm-500 mt-0.5">글씨를 크게, 색을 더 진하게 보여줘요</div>
           </div>
           <span
             className={
@@ -237,7 +237,7 @@ export default function MyPage() {
         <button
           type="button"
           onClick={() => setPwOpen((v) => !v)}
-          className="flex items-center gap-2 w-full mt-1 mb-1 text-[13px] font-semibold text-warm-600"
+          className="flex items-center gap-2 w-full mt-1 mb-1 text-[14px] font-semibold text-warm-600"
         >
           <KeyRound className="w-4 h-4 text-warm-500" />
           비밀번호 변경
@@ -317,10 +317,10 @@ export default function MyPage() {
           <Field label="활동 지역(주소)" icon={<MapPin className="w-4 h-4 text-warm-500" />}>
             <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예) 경기 화성시 동탄대로 100" maxLength={255} />
           </Field>
-          <p className="text-[11px] text-warm-500 mt-1.5">주소를 바꾸면 매칭 거리 계산에 자동 반영됩니다.</p>
+          <p className="text-[12px] text-warm-500 mt-1.5">주소를 바꾸면 매칭 거리 계산에 자동 반영됩니다.</p>
           {cg.data.specialties && cg.data.specialties.length > 0 && (
             <div className="mt-3">
-              <div className="text-[12.5px] font-bold text-warm-600 mb-1.5">가능 서비스</div>
+              <div className="text-[13.5px] font-bold text-warm-600 mb-1.5">가능 서비스</div>
               <div className="flex flex-wrap gap-1.5">
                 {cg.data.specialties.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
               </div>
@@ -345,7 +345,7 @@ export default function MyPage() {
             <h2 className="font-bold text-warm-800">입찰 설정</h2>
           </div>
 
-          <label className="block text-[12.5px] font-bold text-warm-600 mb-2">표준 희망 시급</label>
+          <label className="block text-[13.5px] font-bold text-warm-600 mb-2">표준 희망 시급</label>
           <Input
             type="number"
             inputMode="numeric"
@@ -355,10 +355,10 @@ export default function MyPage() {
             placeholder="예) 20000"
             className="tabular-nums"
           />
-          <p className="text-[11px] text-warm-500 mt-1.5">매칭 초대 시 입찰가가 이 금액으로 미리 채워집니다.</p>
+          <p className="text-[12px] text-warm-500 mt-1.5">매칭 초대 시 입찰가가 이 금액으로 미리 채워집니다.</p>
 
           <label className="flex items-center justify-between mt-4 cursor-pointer">
-            <span className="text-[13.5px] font-semibold text-warm-700">자동 입찰</span>
+            <span className="text-[14.5px] font-semibold text-warm-700">자동 입찰</span>
             <button
               type="button"
               role="switch"
@@ -369,7 +369,7 @@ export default function MyPage() {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${autoBid ? "translate-x-5" : ""}`} />
             </button>
           </label>
-          <p className="text-[11px] text-warm-500 mt-1.5">켜면 새 매칭 초대 시 표준 시급으로 자동 입찰합니다.</p>
+          <p className="text-[12px] text-warm-500 mt-1.5">켜면 새 매칭 초대 시 표준 시급으로 자동 입찰합니다.</p>
 
           <Button
             variant="brand"
@@ -380,10 +380,22 @@ export default function MyPage() {
             {saveBid.isPending ? "저장 중…" : "입찰 설정 저장"}
           </Button>
           {autoBid && !(rate && Number(rate) > 0) && (
-            <p className="text-[11px] text-danger mt-1.5">자동 입찰을 켜려면 표준 희망 시급을 입력하세요.</p>
+            <p className="text-[12px] text-danger mt-1.5">자동 입찰을 켜려면 표준 희망 시급을 입력하세요.</p>
           )}
         </Card>
       )}
+
+      {/* 바로가기 — 돌봄 받는 분(보호자) · 고객센터 */}
+      <Card className="mb-4 divide-y divide-warm-100 p-0">
+        {!isCaregiver && (
+          <Link href="/recipients" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+            돌봄 받는 분 <ChevronRight className="h-5 w-5 text-warm-400" />
+          </Link>
+        )}
+        <Link href="/support" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+          고객센터 · 자주 묻는 질문 <ChevronRight className="h-5 w-5 text-warm-400" />
+        </Link>
+      </Card>
 
       <Button variant="outline" className="w-full" onClick={handleLogout}>
         <LogOut className="w-4 h-4" />
@@ -396,7 +408,7 @@ export default function MyPage() {
           <button
             type="button"
             onClick={() => setWOpen(true)}
-            className="mx-auto block text-[13px] font-semibold text-warm-500 underline underline-offset-2 hover:text-danger"
+            className="mx-auto block text-[14px] font-semibold text-warm-500 underline underline-offset-2 hover:text-danger"
           >
             회원 탈퇴
           </button>
@@ -406,7 +418,7 @@ export default function MyPage() {
               <AlertTriangle className="w-4 h-4 text-danger" />
               <h2 className="font-bold text-danger">회원 탈퇴</h2>
             </div>
-            <p className="text-[12.5px] leading-relaxed text-warm-600 mb-4">
+            <p className="text-[13.5px] leading-relaxed text-warm-600 mb-4">
               탈퇴하면 계정과 이용 내역에 다시 접근할 수 없으며, 진행 중인 매칭 요청은 자동 취소됩니다.
               {isCaregiver && " 활동 중인 돌봄전문가 프로필도 노출이 중단됩니다."} 이 작업은 되돌릴 수 없습니다.
             </p>
@@ -420,7 +432,7 @@ export default function MyPage() {
               />
             </Field>
             <div className="mb-4">
-              <label className="mb-1.5 block text-[12.5px] font-bold text-warm-600">탈퇴 사유 (선택)</label>
+              <label className="mb-1.5 block text-[13.5px] font-bold text-warm-600">탈퇴 사유 (선택)</label>
               <Input value={wReason} onChange={(e) => setWReason(e.target.value)} placeholder="개선에 참고할게요" maxLength={500} />
             </div>
             <div className="flex gap-2">
@@ -455,7 +467,7 @@ export default function MyPage() {
 function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="mb-3">
-      <label className="flex items-center gap-1.5 text-[12.5px] font-bold text-warm-600 mb-1.5">
+      <label className="flex items-center gap-1.5 text-[13.5px] font-bold text-warm-600 mb-1.5">
         {icon}
         {label}
       </label>

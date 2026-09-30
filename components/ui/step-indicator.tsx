@@ -41,7 +41,7 @@ export function StepIndicator({ steps, current, className, onStepClick }: StepIn
                 onClick={clickable ? () => onStepClick!(n) : undefined}
                 aria-current={active ? "step" : undefined}
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold transition-colors",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-extrabold transition-colors",
                   done
                     ? "bg-brand-500 text-white"
                     : active
@@ -62,7 +62,7 @@ export function StepIndicator({ steps, current, className, onStepClick }: StepIn
             </div>
             <span
               className={cn(
-                "mt-1.5 text-center text-[11.5px] font-bold leading-tight",
+                "mt-1.5 text-center text-[12.5px] font-bold leading-tight",
                 active ? "text-brand-700" : done ? "text-warm-600" : "text-warm-500",
               )}
             >

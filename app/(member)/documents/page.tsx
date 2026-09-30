@@ -96,11 +96,11 @@ function DocCard({ item, accept }: { item: CaregiverDocItem; accept: string[] })
           <div className="flex items-center gap-1.5 font-bold text-warm-800">
             <FileCheck2 className="h-4 w-4 text-brand-600" />
             {item.label}
-            {item.required && <span className="text-[11px] font-semibold text-red-600">필수</span>}
+            {item.required && <span className="text-[12px] font-semibold text-red-600">필수</span>}
           </div>
           {item.hint && <p className="mt-0.5 text-xs text-warm-500">{item.hint}</p>}
         </div>
-        <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold", st.cls)}>{st.label}</span>
+        <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[12px] font-bold", st.cls)}>{st.label}</span>
       </div>
 
       {item.document && (
@@ -141,7 +141,7 @@ function DocCard({ item, accept }: { item: CaregiverDocItem; accept: string[] })
             <Upload className="h-4 w-4" />
             {upload.isPending ? "올리는 중…" : item.document ? "다시 올리기" : "파일 올리기"}
           </Button>
-          {needsIssued && !issuedAt && <p className="text-[11px] text-warm-500">발급일을 먼저 입력해 주세요.</p>}
+          {needsIssued && !issuedAt && <p className="text-[12px] text-warm-500">발급일을 먼저 입력해 주세요.</p>}
         </div>
       )}
     </Card>
@@ -182,7 +182,7 @@ function PayoutCard({ payout }: { payout: { bank_name: string | null; bank_accou
         <Input placeholder="계좌번호 (숫자와 - 만)" inputMode="numeric" value={acct} onChange={(e) => setAcct(e.target.value)} maxLength={30} />
         <Input placeholder="예금주" value={holder} onChange={(e) => setHolder(e.target.value)} maxLength={40} />
       </div>
-      <p className="mt-2 text-[11px] text-warm-500">계좌를 바꾸면 통장 사본을 다시 확인해요.</p>
+      <p className="mt-2 text-[12px] text-warm-500">계좌를 바꾸면 통장 사본을 다시 확인해요.</p>
       <Button
         variant="brand"
         className="mt-3 w-full"

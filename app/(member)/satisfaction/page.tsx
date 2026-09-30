@@ -92,7 +92,7 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
           </div>
         </div>
         {care.reviewed && (
-          <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold text-brand-600">평가 완료</span>
+          <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-1 text-[12px] font-bold text-brand-600">평가 완료</span>
         )}
       </div>
 

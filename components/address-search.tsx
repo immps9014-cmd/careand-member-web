@@ -60,7 +60,7 @@ export function AddressSearch({ onChange, className }: AddressSearchProps) {
         maxLength={100}
         placeholder="상세주소 (동/호수 등)"
         disabled={!base}
-        className="h-12 rounded-xl text-[14.5px]"
+        className="h-12 rounded-xl text-[15.5px]"
       />
     </div>
   );

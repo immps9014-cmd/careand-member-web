@@ -169,10 +169,10 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
                       className="flex w-full items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/60 px-3.5 py-3 text-left disabled:opacity-60"
                     >
                       <span className="min-w-0">
-                        <span className="block text-[13.5px] font-bold text-warm-800">
+                        <span className="block text-[14.5px] font-bold text-warm-800">
                           {domainLabel(r.service_domain)}{r.senior?.name ? ` · ${r.senior.name}` : ""}
                         </span>
-                        <span className="block text-[11.5px] text-warm-500">
+                        <span className="block text-[12.5px] text-warm-500">
                           {r.scheduled_start ? formatDateTime(r.scheduled_start) : "일정 미정"} · 후보 추천 중
                         </span>
                       </span>

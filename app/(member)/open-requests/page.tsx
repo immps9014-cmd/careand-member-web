@@ -260,7 +260,7 @@ function OpenCard({
               <span>복귀 {r.companion_route.return_to_origin ? "만남 장소" : "별도 장소"}</span>
               {r.companion_route.waypoint_count > 0 && <span>경유 {r.companion_route.waypoint_count}곳</span>}
             </div>
-            <div className="text-[11px] text-warm-500">정확한 장소는 매칭 확정 후 안내돼요.</div>
+            <div className="text-[12px] text-warm-500">정확한 장소는 매칭 확정 후 안내돼요.</div>
           </div>
         </div>
       )}

@@ -55,7 +55,7 @@ export default function SharedLogPage({ params }: { params: { token: string } })
                 ))}
               </section>
             )}
-            <p className="text-center text-[11px] text-warm-500">
+            <p className="text-center text-[12px] text-warm-500">
               보호자가 공유한 읽기 전용 일지예요 · {data.expires_at.slice(0, 10)}까지 볼 수 있어요
             </p>
           </>
