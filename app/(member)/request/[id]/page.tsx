@@ -106,6 +106,11 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
     if (a.value_score != null && b.value_score != null) return b.value_score - a.value_score;
     return a.rank - b.rank;
   });
+  // 실제 매칭된 전문가(서버 matched_caregiver_id). 모르면 기존처럼 전원 표시.
+  const matchedCgId = data?.matched_caregiver_id ?? null;
+  const isMatchedCg = (c: Candidate) => matchedCgId != null && c.caregiver?.id === matchedCgId;
+  const visible = matched && matchedCgId != null ? sorted.filter(isMatchedCg) : sorted;
+  const hiddenCount = sorted.length - visible.length;
 
   return (
     <div className="p-5 lg:mx-auto lg:max-w-5xl">
@@ -188,9 +193,14 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         </Card>
       )}
 
+      {/* 매칭이 끝나면 실제 매칭된 전문가만 — 「수락」한 다른 후보까지 같이 보이면 누가 진행 중인지 헷갈린다(10-04) */}
+      {matched && hiddenCount > 0 && (
+        <p className="mb-3 text-[13px] text-warm-500">다른 후보 {hiddenCount}명은 마감됐어요.</p>
+      )}
+
       {/* 모바일: 세로 리스트 / 데스크톱: 2열 그리드 */}
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0">
-        {sorted.map((c) => {
+        {visible.map((c) => {
           const tone = bidTone(c.bid_hourly, est?.suggested ?? null);
           return (
             <Card key={c.id} className="p-4">
@@ -201,7 +211,9 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                   {isFav(c) && <Badge variant="brand">★ 찜</Badge>}
                   {c.source === "self" && <Badge variant="brand">지원함</Badge>}
                   {c.source !== "self" && c.rank === 1 && <Badge variant="success">AI 1순위</Badge>}
-                  {c.response === "accepted" && <Badge variant="success">수락됨</Badge>}
+                  {matched && isMatchedCg(c)
+                    ? <Badge variant="success">매칭된 돌봄전문가</Badge>
+                    : c.response === "accepted" && <Badge variant="success">수락됨</Badge>}
                   {c.response === "rejected" && <Badge variant="danger">거절</Badge>}
                 </div>
                 <span className="text-xs text-warm-500 font-en">

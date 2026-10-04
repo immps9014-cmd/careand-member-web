@@ -703,10 +703,10 @@ export const memberApi = {
   revokeCareLogShare: (shareId: number) => api.delete(`/v1/care-log-shares/${shareId}`),
   updateSessionLog: (sessionId: number, guardianVersion: string, reason?: string) =>
     api.put(`/v1/care-sessions/${sessionId}/log`, { guardian_version: guardianVersion, reason }),
-  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null; match_status: string | null; payment_status: string | null }> {
+  async candidates(requestId: number): Promise<{ candidates: Candidate[]; request_status: string; message: string | null; price_estimate: PriceEstimate | null; match_id: number | null; match_status: string | null; payment_status: string | null; matched_caregiver_id: number | null }> {
     const { data } = await api.get(`/v1/matching/requests/${requestId}/candidates`);
     // match_id: 매칭 확정(인력 수락) 시 백엔드가 노출하면 결제 진입에 사용 (없으면 null → CTA 미노출)
-    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null, match_id: data.match_id ?? null, match_status: data.match_status ?? null, payment_status: data.payment_status ?? null };
+    return { candidates: data.data ?? [], request_status: data.request_status, message: data.message, price_estimate: data.price_estimate ?? null, match_id: data.match_id ?? null, match_status: data.match_status ?? null, payment_status: data.payment_status ?? null, matched_caregiver_id: data.matched_caregiver_id ?? null };
   },
   selectCandidate: (requestId: number, candidateId: number) =>
     api.post(`/v1/matching/requests/${requestId}/select`, { candidate_id: candidateId }),
