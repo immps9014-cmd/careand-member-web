@@ -367,6 +367,8 @@ export interface MyMatch {
   request_status: string;
   match_status: string | null; // confirmed|in_progress|completed (본인 확정 시)
   payment_status: string | null; // 보호자 결제 상태
+  /** 수락했지만 보호자가 다른 전문가와 확정 — 진행 목록에서 뺀다 */
+  matched_other?: boolean;
   senior_name: string;
   category?: string | null;
   extra_categories?: string[];

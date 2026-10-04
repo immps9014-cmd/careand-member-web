@@ -787,7 +787,7 @@ function CaregiverHome() {
   const pending = matches.data?.filter((m) => m.response === "pending" && !isStaleProposal(m)) ?? [];
   // 내가 수락해 확정된 매칭(진행 파이프라인 표시). 케어완료/취소는 제외.
   const acceptedMatches = matches.data?.filter(
-    (m) => m.response === "accepted" && m.match_status !== "cancelled" && m.match_status !== "no_show",
+    (m) => m.response === "accepted" && !m.matched_other && m.match_status !== "cancelled" && m.match_status !== "no_show",
   ) ?? [];
 
   // 가입 직후: 자격 검수(pending)·반려(rejected)·등록 미완료(404) → 온보딩 화면
