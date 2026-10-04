@@ -17,6 +17,8 @@ export interface GuardianRequest {
   nursing_patient?: { id: number; name: string; hospital_name: string | null };
   service_address?: { id: number; label: string; address: string };
   category?: { id: number; name: string; base_rate: number };
+  /** 함께 필요한 세부 종류 이름(복수 선택, 산후 등) */
+  extra_categories?: string[];
   // 확정 매칭 정보(status=matched일 때). 케어자 이름·케어 일정·결제 상태.
   match?: {
     id: number;
@@ -220,6 +222,24 @@ export interface PostpartumClient {
   status: string;
   /** 산모 연락처 = 회원 본인 연락처(「본인이 산모」 레코드) */
   is_self?: boolean;
+  /** 이 산모의 아기(신생아) */
+  newborns?: Newborn[];
+}
+
+/** 아기(신생아) — 신청 폼 간이 등록. birth_date 는 Y-m-d(한국 날짜) */
+export interface Newborn {
+  id: number;
+  name: string;
+  gender: "M" | "F";
+  birth_date: string;
+  birth_weight_g: number;
+}
+
+export interface CreateNewbornPayload {
+  name: string;
+  gender: "M" | "F";
+  birth_date: string;
+  birth_weight_g: number;
 }
 
 export interface CreatePostpartumClientPayload {
@@ -316,6 +336,10 @@ export interface OpenRequest {
     waypoint_count: number;
     transport: "taxi" | "transit" | null;
   } | null;
+  /** 함께 필요한 세부 종류 이름 */
+  extra_categories?: string[];
+  /** 산후: 「아기 1명 · 생후 3일」 */
+  newborn_summary?: string | null;
   created_at: string | null;
 }
 
@@ -344,6 +368,9 @@ export interface MyMatch {
   match_status: string | null; // confirmed|in_progress|completed (본인 확정 시)
   payment_status: string | null; // 보호자 결제 상태
   senior_name: string;
+  category?: string | null;
+  extra_categories?: string[];
+  newborn_summary?: string | null;
   // 역경매 입찰
   bid_hourly: number | null;
   bid_note: string | null;
@@ -362,6 +389,8 @@ export interface MySession {
   actual_end: string | null;
   duration_min: number;
   photo_required: boolean;
+  extra_categories?: string[];
+  newborn_summary?: string | null;
   /** 방문 장소(길찾기, 기능 35) — 예정·진행 중 세션만 */
   place?: { name: string; lat: number; lng: number } | null;
 }
@@ -716,7 +745,7 @@ export const memberApi = {
     const { data } = await api.get("/v1/matching/pricing/estimate", { params });
     return data.data;
   },
-  async categories(domain?: string): Promise<{ id: number; code?: string; name: string }[]> {
+  async categories(domain?: string): Promise<{ id: number; code?: string; name: string; base_rate?: number | string }[]> {
     const { data } = await api.get("/v1/matching/categories", { params: domain ? { domain } : {} });
     return data.data ?? [];
   },
@@ -776,6 +805,8 @@ export const memberApi = {
   },
   createPostpartumClient: (payload: CreatePostpartumClientPayload) =>
     api.post("/v1/matching/postpartum-clients", payload),
+  createNewborn: (postpartumClientId: number, payload: CreateNewbornPayload) =>
+    api.post(`/v1/matching/postpartum-clients/${postpartumClientId}/newborns`, payload),
 
   // 보호자 — 아동(아이돌봄 대상). 통합 요청 폼 선택기용
   async children(): Promise<Child[]> {

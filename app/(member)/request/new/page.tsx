@@ -26,7 +26,7 @@ import { memberApi, type DeliveryType } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { CARE_GRADES } from "@/lib/care";
 import { useAuth } from "@/lib/auth/store";
-import { careTargetNoun } from "@/lib/careTarget";
+import { careTargetNoun, newbornLine } from "@/lib/careTarget";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 
 const MODES = [
@@ -174,6 +174,15 @@ export default function NewRequestPage() {
   const [ppDeliveryDate, setPpDeliveryDate] = useState("");
   const [ppDeliveryType, setPpDeliveryType] = useState<DeliveryType>("natural");
   const [ppFirstBaby, setPpFirstBaby] = useState(true);
+  // 산후 세부 종류 복수 선택(산모·야간·신생아 동시 케어) — categoryId 는 이 중 기본요금이 가장 높은 것(요금 기준),
+  // 나머지는 requirements.extra_category_ids 로 보낸다.
+  const [ppCats, setPpCats] = useState<number[]>([]);
+  // 아기 정보(선택) — 입력하면 「다음」 때 산모에 등록. 출산 전이면 비워 둔다.
+  const [bbAdding, setBbAdding] = useState(false);
+  const [bbName, setBbName] = useState("");
+  const [bbGender, setBbGender] = useState<"F" | "M" | "">("");
+  const [bbBirth, setBbBirth] = useState("");
+  const [bbWeight, setBbWeight] = useState("");
 
   // 아이돌봄 플로우 상태
   const [childId, setChildId] = useState<number | "">("");
@@ -285,6 +294,7 @@ export default function NewRequestPage() {
     if (d === domain) return;
     setDomain(d);
     setCategoryId(""); // 도메인별 카테고리가 다르므로 초기화
+    setPpCats([]);
     setScreeningOk(false); // 도메인별 이용 불가 대상이 다르므로 스크리닝 재확인
     setServiceItems([]); // 도메인별 세부 항목이 다르므로 초기화
   }
@@ -387,6 +397,7 @@ export default function NewRequestPage() {
       if (domain === "postpartum") {
         // 산모 레코드는 1단계 「다음」(goSchedule)에서 이미 등록됨 — 본인이면 is_self 레코드, 대리면 선택한 산모
         const ppId = ppSelf ? ppSelfClient?.id : postpartumClientId;
+        const ppReq = { ...baseReq, ...(ppExtraCats.length ? { extra_category_ids: ppExtraCats } : {}) };
         return memberApi.createRequest({
           service_domain: "postpartum",
           postpartum_client_id: Number(ppId),
@@ -394,7 +405,7 @@ export default function NewRequestPage() {
           mode: "normal",
           scheduled_start: scheduled,
           duration_min: Number(duration),
-          ...reqSpread,
+          ...(Object.keys(ppReq).length ? { requirements: ppReq } : {}),
           ...budgetReq,
           special_request: memo || undefined,
         });
@@ -471,6 +482,21 @@ export default function NewRequestPage() {
   );
   const ppRecipientReady =
     domain === "postpartum" && (ppNeedsInput ? ppInputComplete : ppSelf ? !!ppSelfClient : !!postpartumClientId);
+  // 지금 고른 산모(새로 입력 중이면 없음)와 그 아기들
+  const ppCurrentClient = ppSelf ? ppSelfClient : ppOtherAdding ? undefined : postpartumClients.data?.find((p) => p.id === postpartumClientId);
+  const ppBabies = ppCurrentClient?.newborns ?? [];
+  const bbWeightNum = Number(bbWeight);
+  const bbComplete = !!(bbName.trim() && bbGender && bbBirth && bbWeightNum >= 500 && bbWeightNum <= 7000);
+  const bbStarted = domain === "postpartum" && bbAdding && !!(bbName.trim() || bbGender || bbBirth || bbWeight);
+
+  // 산후 세부 종류 토글 — 요금 기준(categoryId)은 고른 것 중 기본요금 최고
+  function togglePpCat(id: number) {
+    const next = ppCats.includes(id) ? ppCats.filter((x) => x !== id) : [...ppCats, id];
+    setPpCats(next);
+    const rate = (cid: number) => Number(categories.data?.find((c) => c.id === cid)?.base_rate ?? 0);
+    setCategoryId(next.length ? [...next].sort((a, b) => rate(b) - rate(a))[0] : "");
+  }
+  const ppExtraCats = domain === "postpartum" ? ppCats.filter((id) => id !== categoryId) : [];
 
   // 산모 필수정보 입력 칸(본인·대리 공통) — 생년월일·주소·지역·출산(예정)일·유형·첫 출산
   const ppFields = (
@@ -571,6 +597,7 @@ export default function NewRequestPage() {
   const step1Valid =
     (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId) &&
     !!categoryId &&
+    !(bbStarted && !bbComplete) &&
     screeningOk;
   // 최소 신청 시각 — 서버 config/matching_rules.php min_lead_minutes(120)·_emergency(60) 과 같은 값.
   // 비교는 한국시각 "YYYY-MM-DDTHH:mm" 문자열로(시작 일시는 +09:00 으로 전송) — 브라우저 시간대와 무관하게.
@@ -582,6 +609,7 @@ export default function NewRequestPage() {
   if (!(domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId))
     step1Missing.push(domain === "living_support" ? "방문 주소" : "돌봄 받는 분 정보");
   if (!categoryId) step1Missing.push("서비스 종류");
+  if (bbStarted && !bbComplete) step1Missing.push("아기 정보(이름·성별·태어난 날·몸무게 500~7,000g)");
   if (!screeningOk) step1Missing.push("이용 안내 확인 체크");
   const step2Missing: string[] = [];
   if (!start) step2Missing.push("시작 일시");
@@ -621,6 +649,7 @@ export default function NewRequestPage() {
   // 등록 후엔 목록에서 선택된 상태가 되므로, 2단계에서 되돌아와도 중복 등록되지 않는다.
   async function goSchedule() {
     setRegistering(true);
+    let ppClientIdForBaby: number | undefined = ppCurrentClient?.id;
     try {
       if (domain === "senior" && snAdding) {
         const res = await memberApi.createSenior({
@@ -650,11 +679,24 @@ export default function NewRequestPage() {
         });
         const id = res?.data?.data?.id;
         if (!id) throw new Error("산모 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        ppClientIdForBaby = Number(id);
         await qc.invalidateQueries({ queryKey: ["member", "postpartum-clients"] });
         if (!ppSelf) {
           setPostpartumClientId(Number(id));
           setPpNew(false);
         }
+      }
+      // 아기 정보 — 산모가 정해진 뒤 그 산모에 등록. 등록 후 입력칸을 닫아 되돌아와도 중복 등록되지 않게 한다.
+      if (domain === "postpartum" && bbStarted && bbComplete && ppClientIdForBaby) {
+        await memberApi.createNewborn(ppClientIdForBaby, {
+          name: bbName.trim(),
+          gender: bbGender as "F" | "M",
+          birth_date: bbBirth,
+          birth_weight_g: bbWeightNum,
+        });
+        await qc.invalidateQueries({ queryKey: ["member", "postpartum-clients"] });
+        setBbAdding(false);
+        setBbName(""); setBbGender(""); setBbBirth(""); setBbWeight("");
       }
       if (domain === "childcare" && ccAdding) {
         const res = await memberApi.createChild({ name: ccName.trim(), birth_date: ccBirth, gender: ccGender, home_address: ccAddress });
@@ -1134,6 +1176,93 @@ export default function NewRequestPage() {
                   )}
                 </div>
               )}
+
+              {/* 아기 정보(선택) — 돌봄전문가가 준비하는 데 쓴다. 출산 전이면 비워 둔다. */}
+              <div className="mt-4">
+                <label className={SECTION_LABEL}>아기 정보 <span className="font-medium text-warm-500">(선택)</span></label>
+                {ppBabies.length > 0 && (
+                  <ul className="mb-2 space-y-2">
+                    {ppBabies.map((b) => (
+                      <li key={b.id} className="rounded-xl border border-warm-200 bg-white px-3.5 py-2.5">
+                        <p className="text-[14.5px] font-bold text-warm-800">{b.name}</p>
+                        <p className="text-[13px] text-warm-500">{newbornLine(b)}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {!bbAdding ? (
+                  <>
+                    {ppBabies.length === 0 && (
+                      <p className="mb-2 text-[12.5px] leading-relaxed text-warm-500">
+                        아기가 태어났다면 정보를 넣어 주세요. 돌봄전문가가 준비하는 데 도움이 돼요. 출산 전이면 비워 두셔도 돼요.
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setBbAdding(true)}
+                      className="inline-flex h-10 items-center gap-1 rounded-xl border border-dashed border-warm-300 bg-white px-3.5 text-[14px] font-bold text-warm-600"
+                    >
+                      <Plus className="h-4 w-4" /> {ppBabies.length ? "아기 더 넣기" : "아기 정보 넣기"}
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-3.5">
+                    <p className="text-[12.5px] leading-relaxed text-warm-600">「다음」을 누를 때 산모 정보와 함께 등록돼요.</p>
+                    <div>
+                      <label className={SECTION_LABEL}>이름</label>
+                      <Input value={bbName} onChange={(e) => setBbName(e.target.value)} placeholder="아직 없으면 태명도 괜찮아요" maxLength={50} className="h-12 rounded-xl text-[15.5px]" />
+                    </div>
+                    <div>
+                      <label className={SECTION_LABEL}>성별</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([["F", "여아"], ["M", "남아"]] as const).map(([v, l]) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setBbGender(v)}
+                            className={
+                              "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
+                              (bbGender === v ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                            }
+                          >
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className={SECTION_LABEL}>태어난 날</label>
+                      <Input
+                        type="date"
+                        value={bbBirth}
+                        max={kstLocalInput(new Date()).slice(0, 10)}
+                        onChange={(e) => setBbBirth(e.target.value)}
+                        className="h-12 rounded-xl text-[15.5px]"
+                      />
+                    </div>
+                    <div>
+                      <label className={SECTION_LABEL}>태어났을 때 몸무게 (g)</label>
+                      <Input
+                        inputMode="numeric"
+                        value={bbWeight}
+                        onChange={(e) => setBbWeight(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        placeholder="예) 3200"
+                        className="h-12 rounded-xl text-[15.5px]"
+                      />
+                      {bbWeight && !(bbWeightNum >= 500 && bbWeightNum <= 7000) && (
+                        <p className="mt-1 text-[12.5px] font-semibold text-danger">500g ~ 7,000g 사이로 넣어 주세요</p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setBbAdding(false); setBbName(""); setBbGender(""); setBbBirth(""); setBbWeight(""); }}
+                      className="text-[13px] font-semibold text-warm-500 underline"
+                    >
+                      아기 정보 넣지 않기
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1314,6 +1443,31 @@ export default function NewRequestPage() {
               <p className="rounded-xl bg-warm-50 p-3 text-xs text-warm-500 text-center">
                 현재 신청 가능한 서비스가 준비 중입니다. 오픈 시 알림으로 안내드릴게요.
               </p>
+            ) : domain === "postpartum" ? (
+              /* 산후는 여러 개 — 산모·야간·신생아를 한 번에 맡기는 경우 */
+              <>
+                <p className="mb-2 text-[12.5px] text-warm-500">함께 필요한 돌봄을 모두 골라 주세요.</p>
+                <div className="flex flex-wrap gap-2">
+                  {categories.data?.map((c) => {
+                    const on = ppCats.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => togglePpCat(c.id)}
+                        className={
+                          "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
+                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        }
+                      >
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                {ppCats.length > 1 && <p className="mt-2 text-[12.5px] text-warm-500">요금은 고른 것 중 가장 높은 종류로 계산해요.</p>}
+              </>
             ) : (
               <select
                 value={categoryId}
@@ -1717,7 +1871,10 @@ export default function NewRequestPage() {
             {[
               ["서비스", domainLabel],
               ["돌봄 대상", recipientName ?? "-"],
-              ["서비스 종류", selectedCategory?.name ?? "-"],
+              ["서비스 종류", [selectedCategory?.name, ...ppExtraCats.map((id) => categories.data?.find((c) => c.id === id)?.name)].filter(Boolean).join(" + ") || "-"],
+              ...(domain === "postpartum"
+                ? ppBabies.map((b) => ["아기", `${b.name} · ${newbornLine(b)}`] as [string, string])
+                : []),
               ...(serviceItems.length ? [["세부 항목", serviceItems.join(", ")] as [string, string]] : []),
               ...(isCompanion
                 ? [
