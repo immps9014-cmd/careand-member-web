@@ -14,6 +14,8 @@ export interface MatchStageInput {
  * 상위 신호(케어완료)부터 역순으로 판정해 가장 진행된 단계를 고른다.
  */
 export function matchStageIndex({ requestStatus, paymentStatus, matchStatus }: MatchStageInput): number {
+  // 결제 전엔 「매칭완료」에서 멈춘다 — 결제 없이 진행된 옛 데이터가 결제완료로 체크되던 문제(10-04, 이제 결제 전 출근 불가)
+  if (requestStatus === "matched" && paymentStatus !== "paid") return 1;
   if (matchStatus === "completed") return 4; // 케어완료
   if (matchStatus === "in_progress") return 3; // 케어시작
   if (paymentStatus === "paid") return 2; // 결제완료

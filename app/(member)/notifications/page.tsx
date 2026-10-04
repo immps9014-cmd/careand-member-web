@@ -18,6 +18,7 @@ function linkFor(n: MemberNotification, role?: string): string | null {
     case "SAFETY_ALERT":
       return d.session_id ? `/logs/${d.session_id}` : "/logs";
     case "MATCH_CONFIRMED":
+    case "PAYMENT_DUE":
       return d.match_id ? `/payments/${d.match_id}` : "/home";
     case "MATCH_REQUEST_EXPIRED":
       return "/request/new";

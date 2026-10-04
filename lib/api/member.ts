@@ -389,6 +389,8 @@ export interface MySession {
   actual_end: string | null;
   duration_min: number;
   photo_required: boolean;
+  /** 보호자 결제 완료 여부 — false 면 출근 불가(서버 PAYMENT_REQUIRED) */
+  paid?: boolean;
   extra_categories?: string[];
   newborn_summary?: string | null;
   /** 방문 장소(길찾기, 기능 35) — 예정·진행 중 세션만 */
