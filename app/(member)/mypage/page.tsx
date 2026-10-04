@@ -269,7 +269,7 @@ export default function MyPage() {
             <FileCheck2 className="h-5 w-5 flex-none text-brand-600" />
             <div className="min-w-0 flex-1">
               <div className="font-bold text-warm-800">서류 · 정산 계좌</div>
-              <div className="text-xs text-warm-500">신분증·통장 사본·범죄경력 회보서 제출과 정산 계좌 등록</div>
+              <div className="text-xs text-warm-500">신분증·통장 사본·범죄경력 회보서 등 자격 서류 제출과 정산 계좌 등록</div>
             </div>
             <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
           </Card>
@@ -389,11 +389,16 @@ export default function MyPage() {
       {/* 웹 푸시 알림(PWA 1단계) */}
       <PushSettingsCard />
 
-      {/* 바로가기 — 돌봄 받는 분(보호자) · 고객센터 */}
+      {/* 바로가기 — 돌봄 받는 분(보호자) · 산후우울 검사(산모) · 고객센터 */}
       <Card className="mb-4 divide-y divide-warm-100 p-0">
         {!isCaregiver && (
           <Link href="/recipients" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
             돌봄 받는 분 <ChevronRight className="h-5 w-5 text-warm-400" />
+          </Link>
+        )}
+        {!isCaregiver && (user?.guardian?.intent === "postpartum" || user?.guardian?.preferences?.services?.includes("postpartum")) && (
+          <Link href="/epds" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+            산후우울 자가검사 <ChevronRight className="h-5 w-5 text-warm-400" />
           </Link>
         )}
         <Link href="/support" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">

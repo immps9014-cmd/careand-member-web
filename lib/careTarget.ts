@@ -15,14 +15,16 @@ export function careTargetNoun(relation?: string | null): string {
 
 /**
  * 돌봄전문가 화면 한 줄 — 함께 필요한 세부 종류(복수 선택)·아기 요약.
- * 「함께: 산후관리·신생아 돌봄 · 아기 1명 · 생후 3일」. 둘 다 없으면 null.
+ * 「함께: 산모 건강관리·신생아 돌봄 · 아기 1명 · 생후 3일」 + 둘째 줄 「가정: 조리원 14일 후 · CCTV: 거실」. 없으면 null.
  */
-export function careNote(r: { extra_categories?: string[]; newborn_summary?: string | null }): string | null {
+export function careNote(r: { extra_categories?: string[]; newborn_summary?: string | null; household_summary?: string | null }): string | null {
   const parts = [
     ...(r.extra_categories?.length ? [`함께: ${r.extra_categories.join("·")}`] : []),
     ...(r.newborn_summary ? [r.newborn_summary] : []),
   ];
-  return parts.length ? parts.join(" · ") : null;
+  // 산모 가정 정보(조리원·가족·반려동물·CCTV)는 둘째 줄 — 호출부는 whitespace-pre-line
+  const lines = [parts.join(" · "), r.household_summary ? `가정: ${r.household_summary}` : ""].filter(Boolean);
+  return lines.length ? lines.join("\n") : null;
 }
 
 /** 「여아 · 생후 3일 · 3.2kg」 — 생후 일수는 한국 날짜 기준 */

@@ -211,7 +211,7 @@ export interface CreatePatientPayload {
   special_notes?: string;
 }
 
-/* ===== 요청자: 산모(산후관리 대상) ===== */
+/* ===== 요청자: 산모(산모신생아 건강관리 대상) ===== */
 export type DeliveryType = "natural" | "cesarean" | "vbac";
 
 export interface PostpartumClient {
@@ -224,6 +224,43 @@ export interface PostpartumClient {
   is_self?: boolean;
   /** 이 산모의 아기(신생아) */
   newborns?: Newborn[];
+  /** 가정 정보·희망사항·희망 제공인력 (산모신생아 건강관리, 2026-10-05) */
+  care_profile?: CareProfile | null;
+}
+
+/** 산모 가정 정보 — 백엔드 App\Support\PostpartumCareProfile 과 같은 모양 */
+export interface CareProfile {
+  postnatal_center?: { used: boolean | null; days?: number | null };
+  spouse?: { present: boolean | null; at_home?: boolean | null };
+  older_children?: { age: number; school?: "preschool" | "school" }[];
+  other_family?: string | null;
+  pets?: { has: boolean | null; detail?: string | null };
+  cctv?: { has: boolean | null; location?: string | null };
+  wishes?: Partial<Record<CareWishKey, string>>;
+  preferred_caregiver?: { region?: string; min_career_years?: number; age_range?: string; religion?: string; other?: string };
+}
+export type CareWishKey = "mother_care" | "newborn_care" | "family_care" | "housework" | "emotional_support" | "work_style" | "focus" | "special";
+
+/** 에딘버러 산후우울 검사(EPDS) */
+export interface EpdsQuestion { no: number; text: string; options: [string, number][] }
+export interface EpdsReport {
+  id: number;
+  date: string;
+  total: number;
+  max: number;
+  risk_level: "low" | "medium" | "high" | "critical";
+  risk_label: string;
+  message: string;
+  subscales: { key: string; label: string; score: number; max: number; flag?: boolean }[];
+  self_harm: boolean;
+  recommend_mental_care: boolean;
+}
+export interface EpdsOverview {
+  period: string;
+  questions: EpdsQuestion[];
+  crisis_contacts: { label: string; number: string }[];
+  can_take_today: boolean;
+  history: EpdsReport[];
 }
 
 /** 아기(신생아) — 신청 폼 간이 등록. birth_date 는 Y-m-d(한국 날짜) */
@@ -340,6 +377,7 @@ export interface OpenRequest {
   extra_categories?: string[];
   /** 산후: 「아기 1명 · 생후 3일」 */
   newborn_summary?: string | null;
+  household_summary?: string | null;
   created_at: string | null;
 }
 
@@ -373,6 +411,7 @@ export interface MyMatch {
   category?: string | null;
   extra_categories?: string[];
   newborn_summary?: string | null;
+  household_summary?: string | null;
   // 역경매 입찰
   bid_hourly: number | null;
   bid_note: string | null;
@@ -395,6 +434,7 @@ export interface MySession {
   paid?: boolean;
   extra_categories?: string[];
   newborn_summary?: string | null;
+  household_summary?: string | null;
   /** 방문 장소(길찾기, 기능 35) — 예정·진행 중 세션만 */
   place?: { name: string; lat: number; lng: number } | null;
 }
@@ -548,6 +588,8 @@ export interface ReviewableCare {
 
 /** 돌봄전문가 상세 프로필 — GET /v1/caregivers/{id} (CaregiverResource) */
 export interface CaregiverDetail {
+  /** 이용자 공개 서류(확인 완료분, 2026-10-05) — 파일 없이 이름·유효기간만 */
+  verified_documents?: { type: string; label: string; issued_at: string | null; expires_at: string | null }[];
   id: number;
   name: string | null;
   gender: string | null;
@@ -601,6 +643,10 @@ export interface CaregiverDocItem {
   label: string;
   required: boolean;
   hint: string | null;
+  /** 확인되면 이용자에게 「확인됨·유효기간」이 보이는 서류(산모신생아 건강관리) */
+  public?: boolean;
+  /** 발급일 입력 필요(매년 갱신 서류) */
+  needs_issued_at?: boolean;
   status: DocStatus;
   document: {
     id: number;
@@ -802,7 +848,7 @@ export const memberApi = {
     api.patch(`/v1/housekeeping/addresses/${id}`, payload),
   deleteAddress: (id: number) => api.delete(`/v1/housekeeping/addresses/${id}`),
 
-  // 요청자 — 산모(산후관리 대상). 통합 요청 폼 선택기용 (본인 user_id 스코프)
+  // 요청자 — 산모(산모신생아 건강관리 대상). 통합 요청 폼 선택기용 (본인 user_id 스코프)
   async postpartumClients(): Promise<PostpartumClient[]> {
     const { data } = await api.get("/v1/matching/postpartum-clients");
     return data.data ?? [];
@@ -811,6 +857,20 @@ export const memberApi = {
     api.post("/v1/matching/postpartum-clients", payload),
   createNewborn: (postpartumClientId: number, payload: CreateNewbornPayload) =>
     api.post(`/v1/matching/postpartum-clients/${postpartumClientId}/newborns`, payload),
+
+  // 산모 가정 정보 저장(통째로 덮어씀)
+  updateCareProfile: (postpartumClientId: number, care_profile: CareProfile) =>
+    api.put(`/v1/matching/postpartum-clients/${postpartumClientId}/care-profile`, { care_profile }),
+
+  // 에딘버러 산후우울 검사 — 문항·이력 / 응시(10개 답, 각 0~3)
+  async epds(postpartumClientId: number): Promise<EpdsOverview> {
+    const { data } = await api.get(`/v1/matching/postpartum-clients/${postpartumClientId}/epds`);
+    return data.data;
+  },
+  async submitEpds(postpartumClientId: number, answers: number[]): Promise<EpdsReport> {
+    const { data } = await api.post(`/v1/matching/postpartum-clients/${postpartumClientId}/epds`, { answers });
+    return data.data;
+  },
 
   // 보호자 — 아동(아이돌봄 대상). 통합 요청 폼 선택기용
   async children(): Promise<Child[]> {

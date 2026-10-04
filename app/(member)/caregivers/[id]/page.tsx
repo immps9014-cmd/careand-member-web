@@ -140,6 +140,25 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
               {c.organization && <Row label="소속" value={c.organization.name} />}
             </Card>
 
+            {/* 확인된 자격 서류 — 산모신생아 건강관리 구비서류 중 이용자 공개 항목. 파일은 보이지 않고 이름·유효기간만 */}
+            {!!c.verified_documents?.length && (
+              <Card className="p-5 mb-4">
+                <div className="flex items-center gap-1.5 font-bold text-warm-800">
+                  <ShieldCheck className="w-4 h-4 text-brand-600" /> 운영팀이 확인한 서류
+                </div>
+                <ul className="mt-2.5 space-y-2">
+                  {c.verified_documents.map((d) => (
+                    <li key={d.type} className="flex items-start justify-between gap-3 text-sm">
+                      <span className="text-warm-700">{d.label}</span>
+                      <span className="shrink-0 text-right text-[12.5px] tabular-nums text-warm-500">
+                        {d.expires_at ? `${d.expires_at}까지` : "확인 완료"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             <div className="flex gap-2">
               <Button
                 variant="outline"

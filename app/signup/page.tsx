@@ -29,7 +29,7 @@ const RELATIONS = ["본인", "자녀", "배우자", "부모", "형제", "기타"
 const USER_SERVICES = [
   { token: "senior", label: "요양보호", desc: "어르신 방문 돌봄", icon: HeartHandshake },
   { token: "living_support", label: "생활지원서비스", desc: "청소·정리·동행", icon: Sparkles },
-  { token: "postpartum", label: "산모·산후관리", desc: "산모·신생아", icon: Baby },
+  { token: "postpartum", label: "산모신생아 건강관리", desc: "산모·신생아", icon: Baby },
   { token: "childcare", label: "아이돌봄", desc: "등하원·놀이돌봄", icon: Blocks },
   { token: "mental_care", label: "마음돌봄", desc: "정서지원·상담동행", icon: Brain },
 ] as const;
@@ -41,14 +41,14 @@ const SERVICE_KIND: Record<string, Kind> = {
   childcare: "childcare",
   mental_care: "mental_care",
 };
-const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병", "산후관리", "아이돌봄", "마음돌봄", "방문목욕", "치매전문"];
+const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병", "산모신생아 건강관리", "아이돌봄", "마음돌봄", "방문목욕", "치매전문"];
 
 /** 돌봄전문가 활동 도메인(공급자 직군) 선택지 — service_domains 전송용 */
 const CAREGIVER_DOMAINS: { token: string; label: string }[] = [
   { token: "senior", label: "요양보호" },   // 보호자 화면·서비스 레지스트리와 같은 이름
   { token: "living_support", label: "생활지원서비스" },
   { token: "nursing", label: "병원간병" },
-  { token: "postpartum", label: "산모·산후관리" },
+  { token: "postpartum", label: "산모신생아 건강관리" },
   { token: "childcare", label: "아이돌봄" },
   { token: "mental_care", label: "마음돌봄" },
 ];
@@ -61,7 +61,7 @@ const DOMAIN_QUAL: Record<string, { required: boolean; label: string; types: str
   senior: { required: true, label: "요양보호사 자격번호", types: ["요양보호사"] },
   living_support: { required: false, label: "자격번호 (선택)", types: [] },
   nursing: { required: true, label: "간병 관련 자격번호", types: ["요양보호사", "간호조무사", "간병사", "간호사"] },
-  postpartum: { required: true, label: "산후관리 관련 자격번호", types: ["산후관리사", "간호사", "간호조무사"] },
+  postpartum: { required: true, label: "산모신생아 건강관리 관련 자격번호", types: ["산후관리사", "간호사", "간호조무사"] },
   childcare: { required: false, label: "아이돌봄 관련 자격번호 (선택)", types: ["아이돌보미", "보육교사", "유치원정교사", "베이비시터"], manual: true },
   mental_care: {
     required: true,
@@ -465,7 +465,7 @@ export default function SignupPage() {
                 : kind === "housekeeping"
                 ? "가사 서비스를 신청할 계정 정보를 입력해주세요."
                 : kind === "postpartum"
-                ? "산후관리 서비스를 신청할 계정 정보를 입력해주세요."
+                ? "산모신생아 건강관리 서비스를 신청할 계정 정보를 입력해주세요."
                 : kind === "childcare"
                 ? "아이돌봄 서비스를 신청할 계정 정보를 입력해주세요."
                 : kind === "mental_care"
@@ -821,7 +821,7 @@ export default function SignupPage() {
               ) : kind === "postpartum" ? (
                 <>
                   {name ? `${name} 님, ` : ""}환영합니다.<br />
-                  이제 산후관리 서비스를 바로 신청해보세요. (본인 정보로 별도 산모 등록 없이 신청돼요)
+                  이제 산모신생아 건강관리 서비스를 바로 신청해보세요. (본인 정보로 별도 산모 등록 없이 신청돼요)
                 </>
               ) : kind === "childcare" ? (
                 <>
@@ -869,7 +869,7 @@ export default function SignupPage() {
                   : kind === "housekeeping"
                   ? "생활지원서비스 신청하기"
                   : kind === "postpartum"
-                  ? "산후관리 신청하기"
+                  ? "산모신생아 건강관리 신청하기"
                   : kind === "childcare"
                   ? "아이돌봄 신청하기"
                   : kind === "mental_care"

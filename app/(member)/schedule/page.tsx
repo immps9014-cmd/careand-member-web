@@ -116,7 +116,7 @@ function CaregiverSchedule() {
                 {STATUS[s.status]?.label ?? s.status}
               </Badge>
             </div>
-            {careNote(s) && <p className="mb-2 text-[13px] font-semibold text-warm-600">{careNote(s)}</p>}
+            {careNote(s) && <p className="mb-2 text-[13px] font-semibold text-warm-600 whitespace-pre-line">{careNote(s)}</p>}
             <div className="flex items-center gap-1.5 text-xs text-warm-500">
               <CalendarClock className="w-3.5 h-3.5" />
               {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"}
@@ -146,7 +146,7 @@ function CaregiverSchedule() {
                   <tr key={s.id} className="border-b border-warm-50 last:border-0 hover:bg-warm-50/60">
                     <td className="whitespace-nowrap px-5 py-3.5 font-bold text-warm-800">
                       {s.senior_name}
-                      {careNote(s) && <span className="block text-[12.5px] font-semibold text-warm-500">{careNote(s)}</span>}
+                      {careNote(s) && <span className="block text-[12.5px] font-semibold text-warm-500 whitespace-pre-line">{careNote(s)}</span>}
                     </td>
                     <td className="px-5 py-3.5">
                       <Badge variant="outline">{DOMAIN[s.service_domain] ?? s.service_domain}</Badge>

@@ -58,7 +58,7 @@ export default function NewPostpartumClientPage() {
           <ChevronLeft className="w-4 h-4" /> 뒤로
         </button>
         <h1 className="text-xl font-extrabold text-warm-800 mb-1">산모 등록</h1>
-        <p className="text-sm text-warm-500 mb-5">산후관리 서비스를 받으실 산모 정보를 입력하세요</p>
+        <p className="text-sm text-warm-500 mb-5">산모신생아 건강관리 서비스를 받으실 산모 정보를 입력하세요</p>
 
         <Card className="rounded-2xl p-5 space-y-4">
           <div>

@@ -233,6 +233,7 @@ function OpenCard({
         )}
         {!!r.extra_categories?.length && <Row label="함께 필요한 돌봄" value={r.extra_categories.join(", ")} />}
         {r.newborn_summary && <Row label="아기" value={r.newborn_summary} />}
+        {r.household_summary && <Row label="가정 환경" value={r.household_summary} />}
         <div className="flex items-center justify-between py-2.5">
           <span className="flex items-center gap-1.5 text-xs text-warm-500"><Clock className="w-3.5 h-3.5" /> 일시</span>
           <span className="text-sm font-semibold text-warm-700">

@@ -27,6 +27,8 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { CARE_GRADES } from "@/lib/care";
 import { useAuth } from "@/lib/auth/store";
 import { careTargetNoun, newbornLine } from "@/lib/careTarget";
+import { CareProfileForm, careProfileFilled, careProfileSummary } from "@/components/care/care-profile-form";
+import type { CareProfile } from "@/lib/api/member";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
 
 const MODES = [
@@ -177,6 +179,11 @@ export default function NewRequestPage() {
   // 산후 세부 종류 복수 선택(산모·야간·신생아 동시 케어) — categoryId 는 이 중 기본요금이 가장 높은 것(요금 기준),
   // 나머지는 requirements.extra_category_ids 로 보낸다.
   const [ppCats, setPpCats] = useState<number[]>([]);
+  // 가정 정보·희망사항(선택, 산모신생아 건강관리 2026-10-05) — 고른 산모의 저장값을 불러와 고치고, 「다음」 때 저장
+  const [cpOpen, setCpOpen] = useState(false);
+  const [cpValue, setCpValue] = useState<CareProfile>({});
+  const [cpDirty, setCpDirty] = useState(false);
+  const [cpLoadedFor, setCpLoadedFor] = useState<number | "new" | null>(null);
   // 아기 정보(선택) — 입력하면 「다음」 때 산모에 등록. 출산 전이면 비워 둔다.
   const [bbAdding, setBbAdding] = useState(false);
   const [bbName, setBbName] = useState("");
@@ -484,6 +491,15 @@ export default function NewRequestPage() {
     domain === "postpartum" && (ppNeedsInput ? ppInputComplete : ppSelf ? !!ppSelfClient : !!postpartumClientId);
   // 지금 고른 산모(새로 입력 중이면 없음)와 그 아기들
   const ppCurrentClient = ppSelf ? ppSelfClient : ppOtherAdding ? undefined : postpartumClients.data?.find((p) => p.id === postpartumClientId);
+  // 산모가 바뀌면 그 산모의 가정 정보를 불러온다(새 산모면 빈 값). 고치던 중이면 덮어쓰지 않는다.
+  const cpKey: number | "new" | null = domain !== "postpartum" ? null : ppCurrentClient ? ppCurrentClient.id : ppNeedsInput ? "new" : null;
+  useEffect(() => {
+    if (cpKey === null || cpKey === cpLoadedFor || cpDirty) return;
+    setCpValue((ppCurrentClient?.care_profile as CareProfile | null | undefined) ?? {});
+    setCpLoadedFor(cpKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cpKey, cpLoadedFor, cpDirty]);
+  const cpSummary = careProfileSummary(cpValue);
   const ppBabies = ppCurrentClient?.newborns ?? [];
   const bbWeightNum = Number(bbWeight);
   const bbComplete = !!(bbName.trim() && bbGender && bbBirth && bbWeightNum >= 500 && bbWeightNum <= 7000);
@@ -685,6 +701,14 @@ export default function NewRequestPage() {
           setPostpartumClientId(Number(id));
           setPpNew(false);
         }
+      }
+      // 가정 정보 — 고친 게 있으면 산모에 저장(통째로 덮어씀). 저장 후엔 다시 저장하지 않는다.
+      if (domain === "postpartum" && cpDirty && ppClientIdForBaby && careProfileFilled(cpValue)) {
+        await memberApi.updateCareProfile(ppClientIdForBaby, cpValue);
+        await qc.invalidateQueries({ queryKey: ["member", "postpartum-clients"] });
+        setCpDirty(false);
+        setCpLoadedFor(ppClientIdForBaby);
+        setCpOpen(false);
       }
       // 아기 정보 — 산모가 정해진 뒤 그 산모에 등록. 등록 후 입력칸을 닫아 되돌아와도 중복 등록되지 않게 한다.
       if (domain === "postpartum" && bbStarted && bbComplete && ppClientIdForBaby) {
@@ -1259,6 +1283,33 @@ export default function NewRequestPage() {
                       className="text-[13px] font-semibold text-warm-500 underline"
                     >
                       아기 정보 넣지 않기
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 가정 정보·희망사항(선택) — 조리원·가족·반려동물·CCTV는 관리사님께 한 줄로, 희망사항은 매칭 담당자가 참고 */}
+              <div className="mt-4">
+                <label className={SECTION_LABEL}>가정 정보 · 희망사항 <span className="font-medium text-warm-500">(선택)</span></label>
+                {!cpOpen ? (
+                  <>
+                    <p className="mb-2 text-[12.5px] leading-relaxed text-warm-500">
+                      {cpSummary ?? "조리원 이용, 큰아이·반려동물, 원하는 관리사 성향을 적어 주시면 더 잘 맞는 분을 찾아 드려요."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setCpOpen(true)}
+                      className="inline-flex h-10 items-center gap-1 rounded-xl border border-dashed border-warm-300 bg-white px-3.5 text-[14px] font-bold text-warm-600"
+                    >
+                      <Plus className="h-4 w-4" /> {cpSummary ? "가정 정보 고치기" : "가정 정보 넣기"}
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-3.5">
+                    <p className="text-[12.5px] leading-relaxed text-warm-600">「다음」을 누를 때 산모 정보에 저장돼요. 다음 신청 때도 그대로 쓰여요.</p>
+                    <CareProfileForm value={cpValue} onChange={(v) => { setCpValue(v); setCpDirty(true); }} />
+                    <button type="button" onClick={() => setCpOpen(false)} className="text-[13px] font-semibold text-warm-500 underline">
+                      접기
                     </button>
                   </div>
                 )}

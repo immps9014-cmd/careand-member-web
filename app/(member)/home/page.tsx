@@ -911,7 +911,7 @@ function CaregiverHome() {
               <span className="text-base font-extrabold text-warm-800">{m.senior_name}</span>
               <Badge variant="outline">{DOMAIN[m.service_domain] ?? m.service_domain}</Badge>
             </div>
-            {careNote(m) && <p className="-mt-1 mb-3 text-[13px] font-semibold text-warm-600">{careNote(m)}</p>}
+            {careNote(m) && <p className="-mt-1 mb-3 text-[13px] font-semibold text-warm-600 whitespace-pre-line">{careNote(m)}</p>}
 
             {/* 진행 단계 파이프라인 */}
             <div className="rounded-lg bg-warm-50 px-3 py-3 mb-3">
@@ -1030,7 +1030,7 @@ function CaregiverHome() {
                     {m.scheduled_start ? formatDateTime(m.scheduled_start) : "일정 협의 중"}
                   </span>
                 </div>
-                {careNote(m) && <p className="-mt-1 mb-3 text-[13px] font-semibold text-warm-600">{careNote(m)}</p>}
+                {careNote(m) && <p className="-mt-1 mb-3 text-[13px] font-semibold text-warm-600 whitespace-pre-line">{careNote(m)}</p>}
                 <div className="rounded-lg bg-warm-50 px-3 py-3">
                   <ProgressPipeline
                     requestStatus={m.request_status}
@@ -1062,7 +1062,7 @@ function CaregiverHome() {
                 </div>
                 <Badge variant={st?.variant ?? "warn"}>{st?.label ?? s.status}</Badge>
               </div>
-              {careNote(s) && <p className="mb-2 text-[13px] font-semibold text-warm-600">{careNote(s)}</p>}
+              {careNote(s) && <p className="mb-2 text-[13px] font-semibold text-warm-600 whitespace-pre-line">{careNote(s)}</p>}
               <div className="flex items-center gap-1.5 text-xs text-warm-500 mb-3">
                 <Clock className="w-3.5 h-3.5" />
                 {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"} · {s.duration_min}분

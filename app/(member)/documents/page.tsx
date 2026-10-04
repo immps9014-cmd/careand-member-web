@@ -53,6 +53,11 @@ export default function DocumentsPage() {
         <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-brand-600" />
         올린 파일은 암호화해 보관하고, 운영팀이 확인할 때만 열람 기록을 남기고 열어 봐요. 탈퇴하면 30일 뒤 삭제돼요.
       </div>
+      {list.some((d) => d.public) && (
+        <p className="mt-2 px-1 text-xs leading-relaxed text-warm-500">
+          「이용자 공개」 서류는 확인이 끝나면 이용자에게 서류 이름과 유효기간만 보여요. 파일은 공개되지 않아요.
+        </p>
+      )}
 
       {q.isLoading && <Card className="mt-5 p-8 text-center text-sm text-warm-500">불러오는 중…</Card>}
       {q.isError && (
@@ -77,7 +82,8 @@ function DocCard({ item, accept }: { item: CaregiverDocItem; accept: string[] })
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [issuedAt, setIssuedAt] = useState("");
-  const needsIssued = item.type === "criminal_record" || item.type === "health_cert";
+  // 유효기간이 있는 서류(매년 갱신)는 발급일이 있어야 만료일을 계산한다 — 서버가 needs_issued_at 으로 알려 준다
+  const needsIssued = item.needs_issued_at ?? (item.type === "criminal_record" || item.type === "health_cert");
   const st = STATUS[item.status];
 
   const upload = useMutation({
@@ -97,6 +103,7 @@ function DocCard({ item, accept }: { item: CaregiverDocItem; accept: string[] })
             <FileCheck2 className="h-4 w-4 text-brand-600" />
             {item.label}
             {item.required && <span className="text-[12px] font-semibold text-red-600">필수</span>}
+            {item.public && <span className="text-[12px] font-semibold text-brand-600">이용자 공개</span>}
           </div>
           {item.hint && <p className="mt-0.5 text-xs text-warm-500">{item.hint}</p>}
         </div>
