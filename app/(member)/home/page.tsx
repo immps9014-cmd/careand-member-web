@@ -336,7 +336,7 @@ function GMyRequests({ go }: { go: GNav }) {
           const FALLBACK: Record<string, string> = { senior: "어르신", postpartum: "산모", childcare: "아이", mental_care: "마음돌봄 대상", living_support: "방문 주소", nursing: "환자" };
           const name = r.recipient_name ?? r.senior?.name ?? r.nursing_patient?.name ?? r.service_address?.label ?? FALLBACK[r.service_domain ?? ""] ?? "대상자";
           // 확정됐는데 아직 결제 전 — 카드에서 바로 결제로 보낸다(요청 상세를 거치지 않게)
-          const needsPay = r.status === "matched" && !!r.match?.id && r.match.payment_status !== "paid" && r.match.status !== "cancelled";
+          const needsPay = r.status === "matched" && !!r.match?.id && r.match.payment_status !== "paid" && r.match.payment_status !== "voucher" && r.match.status !== "cancelled";
           const dom = r.service_domain === "nursing" ? "간병" : r.service_domain === "living_support" ? "생활지원" : null;
           return (
             <div key={r.id} onClick={() => go(`/request/${r.id}`)} style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "13px 15px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>

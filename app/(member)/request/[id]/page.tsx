@@ -137,7 +137,19 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
       )}
 
       {/* 매칭 확정 & 미결제 시에만 결제 진입 (결제 완료 후에는 파이프라인으로 진행 표시) */}
-      {matched && data?.match_id && data?.payment_status !== "paid" && (
+      {/* 바우처 계약 매칭 — 본인부담금은 제공기관(케어앤)에 선납, 앱 결제 없음 */}
+      {matched && data?.payment_status === "voucher" && (
+        <Link href="/mnh">
+          <Card className="mb-4 flex items-center justify-between border-amber-200 bg-amber-50 p-4">
+            <div>
+              <div className="text-[14px] font-bold text-amber-800">바우처 본인부담금 납부 확인 전이에요</div>
+              <div className="mt-0.5 text-[12.5px] text-warm-500">운영팀 안내에 따라 납부하면 방문이 시작돼요.</div>
+            </div>
+            <span className="rounded-full bg-white px-3.5 py-2 text-[13.5px] font-bold text-amber-800">계약 보기</span>
+          </Card>
+        </Link>
+      )}
+      {matched && data?.match_id && data?.payment_status !== "paid" && data?.payment_status !== "voucher" && (
         <Link href={`/payments/${data.match_id}`}>
           <Card className="mb-4 flex items-center justify-between border-brand-200 bg-brand-50 p-4">
             <div>

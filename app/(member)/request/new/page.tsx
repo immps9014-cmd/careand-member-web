@@ -165,6 +165,8 @@ export default function NewRequestPage() {
   // 산후 '본인이 산모' self 등록 — 별도 산모 등록 없이 회원 프로필(이름·연락처) 프리필 + 나머지 필수값 인라인 입력.
   // 회원가입 시 relation='본인'이면 기본 ON(대리 신청이면 '다른 산모'로 전환).
   const [ppSelf, setPpSelf] = useState(true);
+  // 바우처 기간형(정부지원 5~40일) vs 시간 단위 — 바우처면 1단계에서 산모만 정하고 계약 신청 화면(/mnh/new)으로 넘어간다(2026-10-05)
+  const [ppVoucher, setPpVoucher] = useState(false);
   // 「다른 산모」 새로 입력(대리) — 산모 이름·연락처는 직접 입력. 「다음」 때 등록하고 일정으로.
   const [ppNew, setPpNew] = useState(false);
   const [ppName, setPpName] = useState("");
@@ -326,6 +328,7 @@ export default function NewRequestPage() {
     // 홈 「긴급요청」(?mode=urgent) — 긴급 유형(시작 1시간 뒤부터)으로 미리 골라 둔다
     const m = sp.get("mode");
     if (m === "urgent" || m === "emergency") setMode("emergency");
+    if (m === "voucher") setPpVoucher(true);
     const pid = num("nursing_patient_id");
     if (pid) setPatientId(pid);
     const aid = num("service_address_id");
@@ -612,7 +615,7 @@ export default function NewRequestPage() {
               : seniorId;
   const step1Valid =
     (domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId) &&
-    !!categoryId &&
+    (!!categoryId || (domain === "postpartum" && ppVoucher)) &&
     !(bbStarted && !bbComplete) &&
     screeningOk;
   // 최소 신청 시각 — 서버 config/matching_rules.php min_lead_minutes(120)·_emergency(60) 과 같은 값.
@@ -624,7 +627,7 @@ export default function NewRequestPage() {
   const step1Missing: string[] = [];
   if (!(domain === "postpartum" ? ppRecipientReady : domain === "mental_care" ? mcRecipientReady : domain === "childcare" ? ccRecipientReady : domain === "senior" ? snRecipientReady : !!recipientId))
     step1Missing.push(domain === "living_support" ? "방문 주소" : "돌봄 받는 분 정보");
-  if (!categoryId) step1Missing.push("서비스 종류");
+  if (!categoryId && !(domain === "postpartum" && ppVoucher)) step1Missing.push("서비스 종류");
   if (bbStarted && !bbComplete) step1Missing.push("아기 정보(이름·성별·태어난 날·몸무게 500~7,000g)");
   if (!screeningOk) step1Missing.push("이용 안내 확인 체크");
   const step2Missing: string[] = [];
@@ -739,6 +742,10 @@ export default function NewRequestPage() {
         });
         if (!res?.data?.data?.id) throw new Error("대상 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
         await qc.invalidateQueries({ queryKey: ["member", "mental-care-clients"] });
+      }
+      if (domain === "postpartum" && ppVoucher && ppClientIdForBaby) {
+        router.push(`/mnh/new?client=${ppClientIdForBaby}`);
+        return;
       }
       setStep(2);
     } catch (e) {
@@ -1095,6 +1102,42 @@ export default function NewRequestPage() {
                     </option>
                   ))}
                 </select>
+              )}
+            </div>
+          )}
+
+          {domain === "postpartum" && (
+            <div>
+              <label className={SECTION_LABEL}>이용 방식</label>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="이용 방식">
+                {([
+                  [true, "바우처 기간형", "정부지원 · 5~40일"],
+                  [false, "시간 단위", "필요한 날·시간만"],
+                ] as const).map(([v, t, sub]) => {
+                  const on = ppVoucher === v;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => setPpVoucher(v)}
+                      className={
+                        "rounded-xl border px-3 py-2.5 text-left transition-colors " +
+                        (on ? "border-brand-500 bg-brand-50" : "border-warm-200 bg-white")
+                      }
+                    >
+                      <span className={"block text-[14px] font-bold " + (on ? "text-brand-700" : "text-warm-700")}>{t}</span>
+                      <span className="block text-[12px] text-warm-500">{sub}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {ppVoucher && (
+                <p className="mt-2 rounded-lg bg-warm-50 px-3 py-2 text-[12.5px] leading-relaxed text-warm-600">
+                  보건복지부 산모신생아 건강관리 바우처로 이용해요. 산모를 정하고 「다음」을 누르면 지원 유형·기간을 고르고 본인부담금을 확인하는 계약 신청으로 넘어가요.
+                  이미 신청했다면 <Link href="/mnh" className="font-bold text-brand-600 underline">내 바우처 계약</Link>에서 볼 수 있어요.
+                </p>
               )}
             </div>
           )}
@@ -1487,7 +1530,8 @@ export default function NewRequestPage() {
             </div>
           )}
 
-          {/* 서비스 종류 */}
+          {/* 서비스 종류 — 바우처 기간형은 계약 신청 화면에서 유형·기간을 고른다 */}
+          {!(domain === "postpartum" && ppVoucher) && (
           <div className="mt-4">
             <label className={SECTION_LABEL}>서비스 종류</label>
             {noCategories ? (
@@ -1532,6 +1576,7 @@ export default function NewRequestPage() {
               </select>
             )}
           </div>
+          )}
         </Card>
         </>
         )}
@@ -2078,7 +2123,7 @@ export default function NewRequestPage() {
               disabled={!step1Valid || registering}
               onClick={goSchedule}
             >
-              {registering ? "등록 중…" : "다음"}
+              {registering ? "등록 중…" : domain === "postpartum" && ppVoucher ? "다음 · 바우처 계약" : "다음"}
             </Button>
           )}
           {step === 2 && (

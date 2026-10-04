@@ -397,9 +397,14 @@ export default function MyPage() {
           </Link>
         )}
         {!isCaregiver && (user?.guardian?.intent === "postpartum" || user?.guardian?.preferences?.services?.includes("postpartum")) && (
-          <Link href="/epds" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
-            산후우울 자가검사 <ChevronRight className="h-5 w-5 text-warm-400" />
-          </Link>
+          <>
+            <Link href="/mnh" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+              바우처 계약 <ChevronRight className="h-5 w-5 text-warm-400" />
+            </Link>
+            <Link href="/epds" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+              산후우울 자가검사 <ChevronRight className="h-5 w-5 text-warm-400" />
+            </Link>
+          </>
         )}
         <Link href="/support" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
           고객센터 · 자주 묻는 질문 <ChevronRight className="h-5 w-5 text-warm-400" />
