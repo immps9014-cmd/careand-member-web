@@ -27,7 +27,7 @@ export default function MnhEvaluationsPage() {
             <p className="mt-1 text-[13px] text-warm-500">
               이용자 후기 {h.counts.reviews}건 · 기관 평가 {h.counts.org_evaluations}건 · 완료 방문 {h.counts.completed_visits}회를 모았어요.
             </p>
-            <div className="mx-auto mt-2 max-w-sm"><HexagonChart axes={h.axes} compare={h.team_average} title="나" size={200} /></div>
+            <div className="mx-auto mt-2 max-w-sm"><HexagonChart axes={h.axes} compare={h.team_average} title="나" size={160} fontScale={1.5} pad={150} /></div>
             <ul className="mt-2 divide-y divide-warm-100">
               {h.axes.map((a) => (
                 <li key={a.key} className="flex items-center justify-between py-2 text-[14px]">
