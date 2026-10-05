@@ -18,6 +18,7 @@ import { caregiverRoleLabel } from "@/lib/caregiverType";
 import { roleLabel } from "@/lib/role";
 import { useSeniorMode } from "@/lib/senior-mode";
 import { PushSettingsCard } from "@/components/push-settings";
+import { CaregiverExtrasCard } from "@/components/caregiver-extras";
 
 export default function MyPage() {
   const router = useRouter();
@@ -363,6 +364,9 @@ export default function MyPage() {
           </Button>
         </Card>
       )}
+
+      {/* 프로필 사진·비상연락처·희망사항(2026-10-05) */}
+      {isCaregiver && cg.data && <CaregiverExtrasCard />}
 
       {/* 역경매 입찰 설정 (돌봄전문가 전용) */}
       {isCaregiver && cg.data?.status === "active" && (

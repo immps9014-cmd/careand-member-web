@@ -16,6 +16,8 @@ export interface CaregiverRegisterPayload {
   license_issued_at?: string; // YYYY-MM-DD
   specialties?: string[];
   base_address: string;
+  /** 비상연락처(2026-10-05) — 운영팀만 본다. 사진·희망사항은 가입 뒤 내 정보에서 */
+  emergency_contact?: { name: string; relation: string; phone: string };
 }
 
 export interface CaregiverRegisterResult {

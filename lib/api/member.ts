@@ -495,6 +495,18 @@ export interface CaregiverProfile {
   service_domains: string | null;  // 돌봄전문가 직군 (senior=요양보호/nursing=간병/housekeeping=가사)
   default_rate: number | null;     // 역경매 표준 희망 시급
   auto_bid: boolean;               // 초대 시 default_rate로 자동 입찰
+  photo_url?: string | null;       // 프로필 사진 서명 링크(6시간)
+}
+
+/** 인력 비상연락처·사진·희망사항(2026-10-05) — 비상연락처·희망사항은 본인과 운영팀만 본다 */
+export interface EmergencyContact { name: string; relation: string; phone: string }
+export interface WorkPreferences { days: number[]; times: string[]; regions: string | null; note: string | null }
+export interface CaregiverExtras {
+  emergency_contact: EmergencyContact | null;
+  work_preferences: WorkPreferences | null;
+  photo_url: string | null;
+  missing: ("emergency_contact" | "photo")[];
+  labels?: { times: Record<string, string>; relations: string[] };
 }
 
 export interface Coords {
@@ -606,6 +618,7 @@ export interface CaregiverDetail {
   base_address: string | null;
   default_rate: number | null;
   organization: { id: number; name: string } | null;
+  photo_url?: string | null;
 }
 
 export interface MemberSettlement {
@@ -982,6 +995,29 @@ export const memberApi = {
   },
   updatePayout: (payload: { bank_name: string; bank_account: string; bank_holder: string }) =>
     api.put("/v1/caregivers/me/payout-account", payload),
+  /* 비상연락처·사진·희망사항(2026-10-05) */
+  async myExtras(): Promise<CaregiverExtras> {
+    const { data } = await api.get("/v1/caregivers/me/extras");
+    return data.data;
+  },
+  async saveEmergency(payload: EmergencyContact): Promise<CaregiverExtras> {
+    const { data } = await api.put("/v1/caregivers/me/emergency-contact", payload);
+    return data.data;
+  },
+  async savePreferences(payload: WorkPreferences): Promise<CaregiverExtras> {
+    const { data } = await api.put("/v1/caregivers/me/work-preferences", payload);
+    return data.data;
+  },
+  async uploadPhoto(file: File): Promise<CaregiverExtras> {
+    const fd = new FormData();
+    fd.append("photo", file);
+    const { data } = await api.post("/v1/caregivers/me/photo", fd, { headers: { "Content-Type": "multipart/form-data" } });
+    return data.data;
+  },
+  async deletePhoto(): Promise<CaregiverExtras> {
+    const { data } = await api.delete("/v1/caregivers/me/photo");
+    return data.data;
+  },
   async journalChips(): Promise<JournalChip[]> {
     const { data } = await api.get("/v1/care-journal/chips");
     return data.data?.chips ?? [];

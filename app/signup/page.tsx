@@ -153,6 +153,10 @@ export default function SignupPage() {
   const [licenseIssuedAt, setLicenseIssuedAt] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [baseAddress, setBaseAddress] = useState("");
+  // 비상연락처(2026-10-05, 요구사항분석 「인력 회원가입」) — 근무 중 사고 때 운영팀이 연락
+  const [ecName, setEcName] = useState("");
+  const [ecRelation, setEcRelation] = useState("배우자");
+  const [ecPhone, setEcPhone] = useState("");
 
   // 활동 도메인 토글(복수). 변경 시 자격종류 초기화(도메인별 인정 자격이 달라질 수 있음).
   const toggleCgDomain = (token: string) => {
@@ -244,6 +248,7 @@ export default function SignupPage() {
         license_issued_at: hasLicense ? licenseIssuedAt : undefined,
         specialties: specialties.length ? specialties : undefined,
         base_address: baseAddress.trim(),
+        emergency_contact: { name: ecName.trim(), relation: ecRelation, phone: ecPhone.trim() },
       });
     },
     onSuccess: () => setStep("done"),
@@ -297,6 +302,8 @@ export default function SignupPage() {
     !!birthDate &&
     !!gender &&
     baseAddress.trim().length >= 5 &&
+    ecName.trim().length >= 1 &&
+    /^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ecPhone.trim()) &&
     (cgRequired ? licenseNo.trim().length >= 4 && !!licenseIssuedAt : true) &&
     licenseTypeValid;
   const orgValid =
@@ -704,6 +711,22 @@ export default function SignupPage() {
                   placeholder="예) 서울특별시 강남구 테헤란로 123"
                 />
               </Field>
+
+              <Field label="비상연락처 (근무 중 사고 때 운영팀이 연락할 가족·지인)">
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <Input value={ecName} maxLength={30} onChange={(e) => setEcName(e.target.value)} placeholder="이름" aria-label="비상연락처 이름" />
+                  <select
+                    value={ecRelation}
+                    aria-label="관계"
+                    onChange={(e) => setEcRelation(e.target.value)}
+                    className="h-11 rounded-xl border border-warm-200 bg-white px-3 text-[16px] text-warm-800 outline-none focus:border-brand-400"
+                  >
+                    {["배우자", "자녀", "부모", "형제자매", "친척", "지인", "기타"].map((r) => <option key={r}>{r}</option>)}
+                  </select>
+                </div>
+                <Input className="mt-2" type="tel" inputMode="tel" value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} placeholder="010-0000-0000" aria-label="비상연락처 전화번호" />
+                <p className="text-[12px] text-warm-500 mt-1">운영팀만 봐요. 프로필 사진과 희망 근무 조건은 가입 뒤 내 정보에서 넣을 수 있어요.</p>
+              </Field>
             </div>
 
             <div className="mt-6">
@@ -806,7 +829,8 @@ export default function SignupPage() {
               {role === "caregiver" ? (
                 <>
                   자격증 진위확인과 관리자 검수가 완료되면<br />
-                  활동을 시작하실 수 있어요. 검수 결과는 알림으로 안내드립니다.
+                  활동을 시작하실 수 있어요. 검수 결과는 알림으로 안내드립니다.<br />
+                  <b className="text-warm-800">내 정보에서 프로필 사진과 희망 근무 조건을 넣어 주세요.</b> 승인 때 함께 확인해요.
                 </>
               ) : role === "organization" ? (
                 <>
@@ -847,7 +871,8 @@ export default function SignupPage() {
                 className="w-full"
                 onClick={() => {
                   // 돌봄전문가·기관은 검수 대기 → 항상 홈. 보호자·가사요청자만 신청 동선으로.
-                  if (role === "caregiver" || role === "organization") return router.push("/home");
+                  if (role === "caregiver") return router.push("/mypage");   // 사진·희망사항 입력으로
+                  if (role === "organization") return router.push("/home");
                   // 공개웹 "신청하기"로 진입한 경우 복귀 URL(신청화면)을 최우선.
                   const back = safeRedirect();
                   router.push(
@@ -864,7 +889,9 @@ export default function SignupPage() {
                   );
                 }}
               >
-                {role === "caregiver" || role === "organization"
+                {role === "caregiver"
+                  ? "사진·희망사항 넣기"
+                  : role === "organization"
                   ? "홈으로 이동"
                   : kind === "housekeeping"
                   ? "생활지원서비스 신청하기"

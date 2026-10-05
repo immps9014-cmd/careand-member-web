@@ -102,8 +102,10 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
           <>
             <Card className="p-5 mb-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center text-2xl font-extrabold text-brand-600 shrink-0">
-                  {name.charAt(0) || "?"}
+                <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center text-2xl font-extrabold text-brand-600 shrink-0 overflow-hidden">
+                  {/* 프로필 사진(서명 링크) — 없으면 이름 첫 글자 */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {c.photo_url ? <img src={c.photo_url} alt={`${name} 사진`} className="w-full h-full object-cover" /> : (name.charAt(0) || "?")}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
