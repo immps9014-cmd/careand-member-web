@@ -5,7 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ChevronLeft, Star, Check, ChevronRight } from "lucide-react";
+import { ChevronLeft, Star, Check, ChevronRight, ShieldCheck, MapPin } from "lucide-react";
+import { CareIssueCard } from "@/components/care/care-issue-card";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -217,7 +218,12 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
           return (
             <Card key={c.id} className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* 사진(서명 링크) — 없으면 첫 글자 */}
+                  <span className="w-9 h-9 shrink-0 rounded-full bg-brand-50 overflow-hidden flex items-center justify-center text-sm font-extrabold text-brand-600">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {c.caregiver?.photo_url ? <img src={c.caregiver.photo_url} alt="" className="w-full h-full object-cover" /> : (c.caregiver?.name ?? "?").charAt(0)}
+                  </span>
                   <span className="font-bold text-warm-800">{c.caregiver?.name ?? "돌봄전문가"}</span>
                   {c.source === "direct" && <Badge variant="brand">직접 지정</Badge>}
                   {isFav(c) && <Badge variant="brand">★ 찜</Badge>}
@@ -243,6 +249,16 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                 {c.caregiver?.age && <span>{c.caregiver.age}세</span>}
                 {c.caregiver?.gender && <span>{c.caregiver.gender === "F" ? "여" : "남"}</span>}
               </div>
+              {/* 자격 확인·활동 지역 — 상세로 안 들어가도 보이게(2026-10-05) */}
+              {(c.caregiver?.license_verified || c.caregiver?.region || !!c.caregiver?.verified_doc_count) && (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-warm-600 mb-2">
+                  {c.caregiver?.license_verified && (
+                    <span className="inline-flex items-center gap-1 font-semibold text-brand-700"><ShieldCheck className="w-3.5 h-3.5" />자격 확인</span>
+                  )}
+                  {!!c.caregiver?.verified_doc_count && <span>확인 서류 {c.caregiver.verified_doc_count}종</span>}
+                  {c.caregiver?.region && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{c.caregiver.region}</span>}
+                </div>
+              )}
 
               {/* 입찰가 */}
               <div className="flex items-center justify-between rounded-lg bg-warm-50 px-3.5 py-2.5 mb-3">
@@ -334,6 +350,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
           )}
         </div>
       )}
+      {matched && <CareIssueCard requestId={requestId} />}
       {matched && data?.payment_status !== "paid" && (
         <p className="mt-6 text-center text-sm text-warm-600">
           확정된 요청의 취소·일정 변경은 <Link href="/support" className="font-bold text-brand-600 underline">고객센터</Link>로 문의해 주세요.

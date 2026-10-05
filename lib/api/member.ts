@@ -101,7 +101,51 @@ export interface Candidate {
     rating_avg: number;
     rating_count?: number;   // 0 이면 「신규」(09-29)
     completed_sessions: number;
+    /** 후보 카드에서 바로(2026-10-05) */
+    license_verified?: boolean;
+    region?: string | null;
+    photo_url?: string | null;
+    verified_doc_count?: number;
   };
+}
+
+/** 돌봄전문가 후기(GET caregivers/{id}/reviews) */
+export interface CaregiverReview {
+  id: number;
+  rating: number;
+  comment: string | null;
+  tags: string[];
+  admin_reply: string | null;
+  reviewer: string;
+  service_label: string;
+  created_at: string;
+}
+export interface CaregiverReviewPage {
+  summary: { count: number; avg: number | null; distribution: Record<string, number> };
+  reviews: CaregiverReview[];
+  meta: { page: number; last_page: number; total: number };
+}
+
+/** 교체 요청·신고(2026-10-05) */
+export type IssueKind = "replace" | "report";
+export interface CareIssue {
+  id: number;
+  kind: IssueKind;
+  kind_label: string;
+  category: string;
+  category_label: string;
+  detail: string;
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  status_label: string;
+  admin_reply: string | null;
+  handled_at: string | null;
+  created_at: string;
+}
+export interface CareIssueOverview {
+  issues: CareIssue[];
+  kinds: Record<IssueKind, string>;
+  categories: Record<string, string>;
+  can_report: boolean;
 }
 
 /* ===== 보호자: 돌봄대상 ===== */
@@ -997,6 +1041,18 @@ export const memberApi = {
   async mySessions(): Promise<MySession[]> {
     const { data } = await api.get("/v1/caregivers/me/sessions");
     return data.data ?? [];
+  },
+  async caregiverReviews(caregiverId: number, page = 1): Promise<CaregiverReviewPage> {
+    const { data } = await api.get(`/v1/caregivers/${caregiverId}/reviews`, { params: { page } });
+    return data.data;
+  },
+  async careIssues(requestId: number): Promise<CareIssueOverview> {
+    const { data } = await api.get(`/v1/matching/requests/${requestId}/issues`);
+    return data.data;
+  },
+  async reportCareIssue(requestId: number, body: { kind: IssueKind; category: string; detail: string }): Promise<string> {
+    const { data } = await api.post(`/v1/matching/requests/${requestId}/issues`, body);
+    return data.message;
   },
   acceptMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/accept`),
   rejectMatch: (candidateId: number) => api.post(`/v1/matching/candidates/${candidateId}/reject`),

@@ -13,6 +13,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { caregiverDomainLabels, domainLabel } from "@/lib/caregiverType";
 import { formatDateTime } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
+import { CaregiverReviews } from "@/components/care/caregiver-reviews";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const stripTag = (s: string | null | undefined) => (s ?? "").replace(/^\[.*?\]\s*/, "");
@@ -160,6 +161,8 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
                 </ul>
               </Card>
             )}
+
+            <CaregiverReviews caregiverId={c.id} />
 
             <div className="flex gap-2">
               <Button

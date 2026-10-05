@@ -33,7 +33,11 @@ function linkFor(n: MemberNotification, role?: string): string | null {
     case "CAREGIVER_DOC_REJECTED":
       return "/documents";
     case "MATCH_OFFER_TIMEOUT":
+    case "CARE_NOSHOW":
+    case "CARE_ISSUE_UPDATED":
       return d.request_id ? `/request/${d.request_id}` : "/home";
+    case "CARE_LATE":
+      return role === "caregiver" ? (d.session_id ? `/session/${d.session_id}` : "/schedule") : d.request_id ? `/request/${d.request_id}` : "/home";
     case "CARE_REMINDER":
       return role === "caregiver" ? "/schedule" : "/home";
     case "MATCH_REQUEST_ASSIGNED":
