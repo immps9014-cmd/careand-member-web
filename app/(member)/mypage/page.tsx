@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/store";
 import { authApi } from "@/lib/api/auth";
 import { memberApi } from "@/lib/api/member";
+import { mnhApi } from "@/lib/api/mnh";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { caregiverRoleLabel } from "@/lib/caregiverType";
 import { roleLabel } from "@/lib/role";
@@ -29,6 +30,10 @@ export default function MyPage() {
   const setUser = useAuth((s) => s.setUser);
   const logout = useAuth((s) => s.logout);
   const isCaregiver = user?.role === "caregiver";
+  // 산모신생아 메뉴 — 그 서비스를 고른 회원이거나 바우처 계약이 있는 회원에게만(보호자 앱과 같은 기준, 2026-10-05)
+  const pickedPostpartum = user?.guardian?.intent === "postpartum" || !!user?.guardian?.preferences?.services?.includes("postpartum");
+  const mnhQ = useQuery({ queryKey: ["member", "mnh", "contracts"], queryFn: mnhApi.contracts, enabled: !isCaregiver && !pickedPostpartum, retry: false, staleTime: 60_000 });
+  const showMnh = !isCaregiver && (pickedPostpartum || (mnhQ.data?.length ?? 0) > 0);
   const cg = useQuery({ queryKey: ["mypage", "caregiver"], queryFn: memberApi.myCaregiver, enabled: isCaregiver, retry: false });
   const leaveToggle = useMutation({
     mutationFn: (returning: boolean) => (returning ? memberApi.requestReturn() : memberApi.requestLeave()),
@@ -426,7 +431,7 @@ export default function MyPage() {
             돌봄 받는 분 <ChevronRight className="h-5 w-5 text-warm-400" />
           </Link>
         )}
-        {!isCaregiver && (user?.guardian?.intent === "postpartum" || user?.guardian?.preferences?.services?.includes("postpartum")) && (
+        {showMnh && (
           <>
             <Link href="/mnh" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
               바우처 계약 <ChevronRight className="h-5 w-5 text-warm-400" />
