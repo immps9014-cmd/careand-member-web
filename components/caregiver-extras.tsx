@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const RELATIONS = ["배우자", "자녀", "부모", "형제자매", "친척", "지인", "기타"];
 const TIMES: Record<string, string> = { day: "주간(09~18시)", evening: "저녁", night: "야간", live_in: "입주·숙식" };
+/** 01023456789 → 010-2345-6789 (서버는 숫자만 저장) */
+const fmtPhone = (p?: string | null) => (p ?? "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3");
 
 export function CaregiverExtrasCard() {
   const qc = useQueryClient();
@@ -90,8 +92,8 @@ function PhotoBlock({ url, onDone }: { url: string | null; onDone: (d: Caregiver
 function EmergencyBlock({ value, onDone }: { value: CaregiverExtras["emergency_contact"]; onDone: (d: CaregiverExtras) => void }) {
   const [name, setName] = useState(value?.name ?? "");
   const [relation, setRelation] = useState(value?.relation ?? "배우자");
-  const [phone, setPhone] = useState(value?.phone ?? "");
-  useEffect(() => { setName(value?.name ?? ""); setRelation(value?.relation ?? "배우자"); setPhone(value?.phone ?? ""); }, [value]);
+  const [phone, setPhone] = useState(fmtPhone(value?.phone));
+  useEffect(() => { setName(value?.name ?? ""); setRelation(value?.relation ?? "배우자"); setPhone(fmtPhone(value?.phone)); }, [value]);
   const save = useMutation({
     mutationFn: () => memberApi.saveEmergency({ name: name.trim(), relation, phone: phone.trim() }),
     onSuccess: (d) => { toast.success("비상연락처를 저장했어요."); onDone(d); },
