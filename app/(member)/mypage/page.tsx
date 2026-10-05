@@ -289,6 +289,18 @@ export default function MyPage() {
           </Card>
         </Link>
       )}
+      {isCaregiver && (cg.data?.service_domains ?? "").split(",").includes("postpartum") && (
+        <Link href="/mnh/evaluations" className="mb-4 block">
+          <Card className="flex items-center gap-3 p-5 transition-colors lg:hover:bg-warm-50/60">
+            <Star className="h-5 w-5 flex-none text-brand-600" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-warm-800">종합평가 · 이용자 평가</div>
+              <div className="text-xs text-warm-500">내 육각형 종합평가와 맡은 산모 가정 평가</div>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
+          </Card>
+        </Link>
+      )}
 
       {/* 받은 후기·활동(기능 16) */}
       {isCaregiver && (

@@ -200,3 +200,28 @@ export const mnhDocApi = {
     }
   },
 };
+
+/* ───── 양방향 평가·내 종합평가(4단계, 돌봄전문가) ───── */
+
+export interface MyHexAxis { key: string; label: string; score: number | null; n: number; enough: boolean }
+export interface ClientEvalItem { key: string; label: string; score?: number | null }
+export interface ClientEval { id: number; timing: "interim" | "final"; timing_label: string; items: ClientEvalItem[]; average: number | null; comment: string | null; updated_at: string }
+
+export const mnhEvalApi = {
+  async contracts(): Promise<{ contract_id: number; contract_no: string; status: string; client_name: string | null; start_date: string; end_date: string | null; interim_count: number; final_done: boolean }[]> {
+    const { data } = await api.get("/v1/mnh/client-evaluations");
+    return data.data ?? [];
+  },
+  async form(contractId: number): Promise<{ contract_id: number; contract_no: string; status: string; client_name: string | null; items: ClientEvalItem[]; can_final: boolean; mine: ClientEval[] }> {
+    const { data } = await api.get(`/v1/mnh/contracts/${contractId}/client-evaluation`);
+    return data.data;
+  },
+  async submit(contractId: number, body: { scores: Record<string, number>; comment?: string; timing: "interim" | "final" }): Promise<{ message: string }> {
+    const { data } = await api.post(`/v1/mnh/contracts/${contractId}/client-evaluations`, body);
+    return data;
+  },
+  async myHexagon(): Promise<{ axes: MyHexAxis[]; overall: number | null; counts: { reviews: number; org_evaluations: number; completed_visits: number }; team_average: { key: string; label: string; score: number | null }[]; min_samples: number }> {
+    const { data } = await api.get("/v1/mnh/my-hexagon");
+    return data.data;
+  },
+};

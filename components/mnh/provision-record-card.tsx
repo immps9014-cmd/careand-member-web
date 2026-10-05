@@ -3,6 +3,7 @@
 // 서비스 제공기록지(바우처 방문만) — 관리사가 제공한 서비스를 표시하고, 그 기기에서 산모가 서명한다(CAREN-MNH-01 3단계).
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { ClipboardSignature } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,9 @@ export function ProvisionRecordCard({ sessionId, status }: { sessionId: number; 
             {doc.status === "signed" ? "기록지 보기" : "기록지 작성 · 산모 서명 받기"}
           </Button>
         </>
+      )}
+      {doc && !open && doc.contract_id && (
+        <Link href={`/mnh/evaluations/${doc.contract_id}`} className="mt-2 block text-center text-[13.5px] font-semibold text-brand-600 underline">이 가정 평가하기(운영팀만 봐요)</Link>
       )}
       {doc && open && (
         <div className="mt-3">
