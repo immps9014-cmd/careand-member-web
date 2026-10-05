@@ -37,6 +37,12 @@ export default function NewPostpartumClientPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("natural");
   const [isFirstBaby, setIsFirstBaby] = useState(true);
+  // 비상연락처(선택, 2026-10-05) — 셋 다 채우면 함께 저장
+  const [ecName, setEcName] = useState("");
+  const [ecRelation, setEcRelation] = useState("배우자");
+  const [ecPhone, setEcPhone] = useState("");
+  const ecFilled = ecName.trim() !== "" && ecPhone.trim() !== "";
+  const ecPartial = !ecFilled && (ecName.trim() !== "" || ecPhone.trim() !== "");
 
   const create = useMutation({
     mutationFn: (payload: CreatePostpartumClientPayload) => memberApi.createPostpartumClient(payload),
@@ -49,7 +55,7 @@ export default function NewPostpartumClientPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
-  const valid = name && phone && birthDate && address && regionCode && deliveryDate;
+  const valid = name && phone && birthDate && address && regionCode && deliveryDate && !ecPartial;
 
   return (
     <div className="min-h-screen bg-warm-50 pb-28">
@@ -132,6 +138,18 @@ export default function NewPostpartumClientPage() {
               })}
             </div>
           </div>
+          <div>
+            <label className={SECTION_LABEL}>비상연락처 (선택)</label>
+            <p className="-mt-1 mb-2 text-[12.5px] text-warm-500">산모와 연락이 안 될 때 케어앤이 연락할 가족·지인이에요. 나중에 이용일지 화면에서도 넣을 수 있어요.</p>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <Input value={ecName} maxLength={30} onChange={(e) => setEcName(e.target.value)} placeholder="이름" aria-label="비상연락처 이름" className="h-12 rounded-xl text-[15.5px]" />
+              <select aria-label="관계" value={ecRelation} onChange={(e) => setEcRelation(e.target.value)} className={SELECT_CLASS + " w-auto"}>
+                {["배우자", "부모", "형제자매", "자녀", "친척", "지인", "기타"].map((r) => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+            <Input value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} placeholder="010-0000-0000" inputMode="tel" aria-label="비상연락처 전화번호" className="mt-2 h-12 rounded-xl text-[15.5px]" />
+            {ecPartial && <p className="mt-1.5 text-[12.5px] text-danger">이름과 전화번호를 모두 넣거나 둘 다 비워 주세요.</p>}
+          </div>
         </Card>
 
         <Button
@@ -149,6 +167,7 @@ export default function NewPostpartumClientPage() {
               delivery_date: deliveryDate,
               delivery_type: deliveryType,
               is_first_baby: isFirstBaby,
+              ...(ecFilled ? { emergency_contact: { name: ecName.trim(), relation: ecRelation, phone: ecPhone.trim() } } : {}),
             })
           }
         >

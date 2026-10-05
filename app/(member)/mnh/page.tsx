@@ -3,7 +3,7 @@
 // 내 바우처 계약 — 산모신생아 건강관리 기간형(CAREN-MNH-01 2단계, 2026-10-05)
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, NotebookPen, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { mnhApi, MNH_STATUS_CLS, mnhDay, won } from "@/lib/api/mnh";
@@ -23,6 +23,9 @@ export default function MnhListPage() {
 
       <Link href="/request/new?domain=postpartum&mode=voucher" className="mt-4 block">
         <Button variant="brand" size="lg" className="w-full rounded-2xl"><Plus className="h-5 w-5" />새 바우처 계약 신청</Button>
+      </Link>
+      <Link href="/mnh/journal" className="mt-2 block">
+        <Button variant="outline" size="lg" className="w-full rounded-2xl"><NotebookPen className="h-5 w-5" />이용일지 쓰기</Button>
       </Link>
 
       {q.isLoading && <Card className="mt-4 p-8 text-center text-sm text-warm-500">불러오는 중…</Card>}

@@ -226,6 +226,59 @@ export interface PostpartumClient {
   newborns?: Newborn[];
   /** 가정 정보·희망사항·희망 제공인력 (산모신생아 건강관리, 2026-10-05) */
   care_profile?: CareProfile | null;
+  /** 산모 비상연락처(2026-10-05) — phone 은 숫자만 */
+  emergency_contact?: EmergencyContact | null;
+}
+
+export interface EmergencyContact { name: string; relation: string; phone: string }
+
+/** 산모 이용일지(2026-10-05) — 백엔드 App\Support\MnhClientJournal */
+export type JournalKind = "feeding" | "diaper" | "sleep" | "temperature" | "mother" | "service" | "note";
+export interface JournalValues {
+  method?: "breast" | "bottle_breast" | "formula";
+  ml?: number;
+  minutes?: number;
+  type?: "urine" | "stool" | "both";
+  target?: "baby" | "mother";
+  celsius?: number;
+  condition?: "good" | "ok" | "bad";
+}
+export interface JournalEntry {
+  id: number;
+  kind: JournalKind;
+  kind_label: string;
+  newborn_id: number | null;
+  newborn_name: string | null;
+  logged_at: string;
+  values: JournalValues | null;
+  summary: string;
+  note: string | null;
+  flag: string | null;
+  flag_label: string | null;
+  checked_at: string | null;
+  checked_by_name: string | null;
+  check_note: string | null;
+  created_at: string;
+}
+export interface JournalOverview {
+  options: {
+    kinds: Record<JournalKind, string>;
+    feeding_methods: Record<string, string>;
+    diaper_types: Record<string, string>;
+    conditions: Record<string, string>;
+    flags: Record<string, string>;
+    thresholds: { baby_fever: number; baby_low: number; mother_fever: number };
+  };
+  newborns: { id: number; name: string }[];
+  entries: JournalEntry[];
+  days: number;
+}
+export interface CreateJournalPayload {
+  kind: JournalKind;
+  newborn_id?: number | null;
+  logged_at?: string;
+  values?: JournalValues;
+  note?: string;
 }
 
 /** 산모 가정 정보 — 백엔드 App\Support\PostpartumCareProfile 과 같은 모양 */
@@ -280,6 +333,7 @@ export interface CreateNewbornPayload {
 }
 
 export interface CreatePostpartumClientPayload {
+  emergency_contact?: EmergencyContact;
   name: string;
   phone: string;
   birth_date: string;
@@ -874,6 +928,24 @@ export const memberApi = {
   // 산모 가정 정보 저장(통째로 덮어씀)
   updateCareProfile: (postpartumClientId: number, care_profile: CareProfile) =>
     api.put(`/v1/matching/postpartum-clients/${postpartumClientId}/care-profile`, { care_profile }),
+
+  // 산모 비상연락처 저장
+  async savePostpartumEmergency(postpartumClientId: number, v: EmergencyContact): Promise<EmergencyContact> {
+    const { data } = await api.put(`/v1/matching/postpartum-clients/${postpartumClientId}/emergency-contact`, v);
+    return data.data.emergency_contact;
+  },
+
+  // 산모 이용일지 — 최근 n일 / 기록 / 지우기(기관 확인 전만)
+  async journal(postpartumClientId: number, days = 7): Promise<JournalOverview> {
+    const { data } = await api.get(`/v1/matching/postpartum-clients/${postpartumClientId}/journal`, { params: { days } });
+    return data.data;
+  },
+  async addJournal(postpartumClientId: number, payload: CreateJournalPayload): Promise<{ entry: JournalEntry; message: string }> {
+    const { data } = await api.post(`/v1/matching/postpartum-clients/${postpartumClientId}/journal`, payload);
+    return { entry: data.data, message: data.message };
+  },
+  deleteJournal: (postpartumClientId: number, entryId: number) =>
+    api.delete(`/v1/matching/postpartum-clients/${postpartumClientId}/journal/${entryId}`),
 
   // 에딘버러 산후우울 검사 — 문항·이력 / 응시(10개 답, 각 0~3)
   async epds(postpartumClientId: number): Promise<EpdsOverview> {
