@@ -148,6 +148,7 @@ export interface MnhDocBrief {
   signed_at: string | null;
   pdf_ready: boolean;
   issued_at: string;
+  session_date?: string | null;
 }
 
 export interface MnhDoc extends MnhDocBrief {

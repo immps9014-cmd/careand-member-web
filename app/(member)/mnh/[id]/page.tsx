@@ -106,7 +106,7 @@ export default function MnhDetailPage() {
             <p className="mt-2 text-[13px] text-warm-500">
               서비스 제공기록지 {docs.data!.documents.filter((d) => d.doc_type === "provision_record" && d.status === "signed").length}건 서명 완료 —{" "}
               {docs.data!.documents.filter((d) => d.doc_type === "provision_record").map((d) => (
-                <Link key={d.id} href={`/mnh/docs/${d.id}`} className="mr-1.5 font-semibold text-brand-600 underline">{d.issued_at.slice(5, 10).replace("-", "/")}</Link>
+                <Link key={d.id} href={`/mnh/docs/${d.id}`} className="mr-1.5 font-semibold text-brand-600 underline">{(d.session_date ?? d.issued_at).slice(5, 10).replace("-", "/")}</Link>
               ))}
             </p>
           )}
