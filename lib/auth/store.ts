@@ -41,54 +41,64 @@ export interface User {
   };
 }
 
+/**
+ * 로그인 토큰은 브라우저 저장소에 두지 않는다(2026-10-05) — 백엔드가 httpOnly 쿠키(caren_at·caren_rt)로 주고받고,
+ * 이 스토어는 사용자 정보와 로그인 여부만 기억한다(lib/api/client.ts 가 X-Auth-Mode: cookie 를 보낸다).
+ * 예전 판(version 0)은 localStorage 에 토큰이 있었다 — 첫 로드 때 그 리프레시 토큰을 쿠키로 바꾸고 지운다(legacyRefreshToken).
+ */
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   hasHydrated: boolean;
 
   setUser: (user: User) => void;
   setHasHydrated: (v: boolean) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  /** 로그인·가입 성공 표시(토큰은 쿠키로 이미 받음). 인자는 예전 호출부 호환용으로 무시한다 */
+  setTokens: (_accessToken?: string, _refreshToken?: string) => void;
   logout: () => void;
+}
+
+let legacyRefresh: string | null = null;
+/** 예전 판에서 옮겨 온 리프레시 토큰(한 번만 꺼낼 수 있다) */
+export function takeLegacyRefreshToken(): string | null {
+  const t = legacyRefresh;
+  legacyRefresh = null;
+  return t;
 }
 
 export const authStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       hasHydrated: false,
 
       setUser: (user) => set({ user, isAuthenticated: true }),
       setHasHydrated: (v) => set({ hasHydrated: v }),
 
-      setTokens: (accessToken, refreshToken) => {
+      setTokens: () => {
         setAuthCookie();
-        set({ accessToken, refreshToken, isAuthenticated: true });
+        set({ isAuthenticated: true });
       },
 
       logout: () => {
         clearAuthCookie();
-        set({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-        });
+        set({ user: null, isAuthenticated: false });
       },
     }),
     {
       name: "careand-member-auth",
+      version: 1,
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      // version 0(토큰 보관) → 1: 리프레시 토큰만 메모리로 빼 두고 저장소에서는 지운다
+      migrate: (persisted, version) => {
+        const old = (persisted ?? {}) as { user?: User | null; isAuthenticated?: boolean; refreshToken?: string | null };
+        if (version < 1 && old.refreshToken) legacyRefresh = old.refreshToken;
+        return { user: old.user ?? null, isAuthenticated: !!old.isAuthenticated } as unknown as AuthState;
+      },
       onRehydrateStorage: () => (state) => {
         // persist 복원 완료 후에만 인증 판정을 하도록 플래그 세팅
         state?.setHasHydrated(true);

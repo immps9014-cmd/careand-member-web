@@ -1,109 +1,85 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
-import { authStore } from "@/lib/auth/store";
+import { authStore, takeLegacyRefreshToken } from "@/lib/auth/store";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /**
- * Axios 인스턴스
- * - 모든 요청에 JWT Bearer 토큰 자동 첨부
- * - 401 시 토큰 자동 갱신 후 재시도
+ * Axios 인스턴스 — 로그인 토큰은 httpOnly 쿠키(백엔드 AuthCookieBridge, 2026-10-05).
+ * - X-Auth-Mode: cookie → 로그인·갱신 응답의 토큰이 쿠키로 오고 본문에서 빠진다(JS 로 읽을 수 없음 = XSS 로 못 훔침)
+ * - X-Requested-With → 쿠키로 인증하는 쓰기 요청의 CSRF 표시(없으면 419)
+ * - 401 이면 리프레시 쿠키로 한 번 갱신 후 재시도
  */
+const AUTH_HEADERS = { "X-Auth-Mode": "cookie", "X-Requested-With": "XMLHttpRequest" };
+
 export const api: AxiosInstance = axios.create({
   baseURL: `${API_URL}/api`,
   timeout: 15000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    ...AUTH_HEADERS,
   },
 });
 
-// === Request: JWT 첨부 ===
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = authStore.getState().accessToken;
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+// === 예전 판(localStorage 토큰) 사용자 — 첫 요청 전에 리프레시 토큰을 쿠키로 바꾼다 ===
+let legacyExchange: Promise<void> | null = null;
+function exchangeLegacy(): Promise<void> {
+  if (legacyExchange) return legacyExchange;
+  const rt = takeLegacyRefreshToken();
+  legacyExchange = rt
+    ? axios
+        .post(`${API_URL}/api/v1/auth/refresh`, {}, { withCredentials: true, headers: { ...AUTH_HEADERS, Authorization: `Bearer ${rt}` } })
+        .then(() => undefined)
+        .catch(() => undefined)   // 실패하면 다음 요청이 401 → 로그인 화면
+    : Promise.resolve();
+  return legacyExchange;
+}
+
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  await exchangeLegacy();
   return config;
 });
 
-// === Response: 401 자동 갱신 ===
-let isRefreshing = false;
-let pendingQueue: Array<(token: string) => void> = [];
+// === Response: 401 자동 갱신(리프레시 쿠키) ===
+let refreshing: Promise<void> | null = null;
 
-function processQueue(token: string) {
-  pendingQueue.forEach((cb) => cb(token));
-  pendingQueue = [];
-}
-
-function resetRefreshState() {
-  isRefreshing = false;
-  pendingQueue = [];
-}
-
-// 로그아웃(토큰 제거) 시 인터셉터 갱신 상태를 초기화 — 계정 전환 시
-// 이전 세션의 stale 요청이 남긴 isRefreshing/대기큐 데드락을 방지.
-authStore.subscribe((state, prev) => {
-  if (prev.accessToken && !state.accessToken) {
-    resetRefreshState();
+function refreshOnce(): Promise<void> {
+  if (!refreshing) {
+    refreshing = axios
+      .post(`${API_URL}/api/v1/auth/refresh`, {}, { withCredentials: true, headers: AUTH_HEADERS })
+      .then(() => undefined)
+      .finally(() => {
+        refreshing = null;
+      });
   }
-});
+  return refreshing;
+}
 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (
       error.response?.status === 401 &&
+      originalRequest &&
       !originalRequest._retry &&
       originalRequest.url !== "/v1/auth/refresh" &&
       originalRequest.url !== "/v1/auth/login"
     ) {
-      if (isRefreshing) {
-        // 다른 요청이 갱신 중이면 큐 대기
-        return new Promise((resolve) => {
-          pendingQueue.push((token: string) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            resolve(api(originalRequest));
-          });
-        });
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
-
       try {
-        const refreshToken = authStore.getState().refreshToken;
-        if (!refreshToken) throw new Error("No refresh token");
-
-        const { data } = await axios.post(
-          `${API_URL}/api/v1/auth/refresh`,
-          {},
-          { headers: { Authorization: `Bearer ${refreshToken}` } }
-        );
-
-        const newToken = data.access_token;
-        authStore.getState().setTokens(newToken, refreshToken);
-        processQueue(newToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        }
+        await refreshOnce();
         return api(originalRequest);
       } catch (refreshError) {
-        // 갱신 실패 → 로그아웃
-        resetRefreshState();
+        // 갱신 실패 → 로그아웃(로그인 상태였을 때만 로그인 화면으로)
+        const wasIn = authStore.getState().isAuthenticated;
         authStore.getState().logout();
-        if (typeof window !== "undefined" && !window.location.pathname.endsWith("/login")) {
+        if (wasIn && typeof window !== "undefined" && !window.location.pathname.endsWith("/login")) {
           window.location.href = "/app/login";
         }
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
 

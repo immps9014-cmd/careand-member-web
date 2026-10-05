@@ -4,8 +4,9 @@ import { User } from "@/lib/auth/store";
 
 interface LoginResponse {
   user: User;
-  access_token: string;
-  refresh_token: string;
+  /** 쿠키 모드(X-Auth-Mode: cookie)에선 본문에 없다 — httpOnly 쿠키로 받는다 */
+  access_token?: string;
+  refresh_token?: string;
   token_type: string;
   expires_in: number;
 }
