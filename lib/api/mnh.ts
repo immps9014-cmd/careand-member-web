@@ -60,11 +60,13 @@ export interface MnhContract {
 }
 
 export interface MnhContractDetail extends MnhContract {
-  schedule: { date: string; seq: number; status: "planned" | "scheduled" | "in_progress" | "completed"; caregiver_name: string | null; actual_start: string | null; actual_end: string | null }[];
+  schedule: { date: string; seq: number; status: "planned" | "scheduled" | "in_progress" | "completed"; caregiver_name: string | null; actual_start: string | null; actual_end: string | null; holiday?: string | null }[];
   postponed: string[];
+  /** 공휴일이라 빠진 날(끝에 보충) */
+  holidays?: { date: string; name: string }[];
   completed_days: number;
   delivery_date: string | null;
-  events: { id: number; type: string; date: string | null; payload: { reason?: string; new_end?: string } | null; created_at: string }[];
+  events: { id: number; type: string; date: string | null; payload: { reason?: string; new_end?: string; name?: string } | null; created_at: string }[];
   caregiver_documents: { type: string; label: string; issued_at: string | null; expires_at: string | null }[];
 }
 

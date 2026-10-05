@@ -43,7 +43,7 @@ export default function MnhDetailPage() {
   if (q.isError) return <div className="p-6 text-sm text-warm-600">{getApiErrorMessage(q.error)}</div>;
   if (!c) return <div className="p-6 text-sm text-warm-500">불러오는 중…</div>;
   const today = todayKst();
-  const changes = c.events.filter((e) => ["postponed", "restored", "swapped", "start_changed"].includes(e.type));
+  const changes = c.events.filter((e) => ["postponed", "restored", "swapped", "start_changed", "holiday_work", "holiday_off", "holiday_changed"].includes(e.type));
 
   return (
     <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-3xl">
@@ -145,12 +145,18 @@ export default function MnhDetailPage() {
               <li key={d.date} className="flex items-center gap-3 py-2 text-[14px]">
                 <span className="w-11 text-[12px] text-warm-500">{d.seq}일차</span>
                 <span className={cn("flex-1 font-semibold", d.date === today ? "text-brand-700" : "text-warm-800")}>{mnhDay(d.date)}</span>
+                {d.holiday && <span className="text-[12px] font-semibold text-danger">{d.holiday}</span>}
                 {d.caregiver_name && d.caregiver_name !== c.caregiver_name && <span className="text-[12px] text-warm-500">{d.caregiver_name}</span>}
                 <span className={cn("rounded-full px-2 py-0.5 text-[12px] font-bold", st.cls)}>{st.label}</span>
               </li>
             );
           })}
         </ol>
+        {(c.holidays ?? []).length > 0 && (
+          <p className="mt-2 text-[13px] text-warm-500">
+            공휴일이라 쉬는 날: {c.holidays!.map((h) => `${mnhDay(h.date)} ${h.name}`).join(", ")} — 그만큼 끝에 이어서 제공해요.
+          </p>
+        )}
         {c.postponed.length > 0 && (
           <p className="mt-2 text-[13px] text-warm-500">연기된 날: {c.postponed.map(mnhDay).join(", ")}</p>
         )}
@@ -166,6 +172,9 @@ export default function MnhDetailPage() {
                 {e.type === "restored" && `${e.date ? mnhDay(e.date) : ""} 연기 취소`}
                 {e.type === "swapped" && `${e.date ? mnhDay(e.date) : ""}부터 담당 관리사 변경`}
                 {e.type === "start_changed" && "일정 조정"}
+                {e.type === "holiday_work" && `${e.date ? mnhDay(e.date) : ""} ${e.payload?.name ?? "공휴일"}에도 제공`}
+                {e.type === "holiday_off" && `${e.date ? mnhDay(e.date) : ""} ${e.payload?.name ?? "공휴일"} 휴무`}
+                {e.type === "holiday_changed" && `${e.date ? mnhDay(e.date) : ""} 공휴일 ${e.payload?.name ? `지정(${e.payload.name})` : "해제"}로 일정 조정`}
               </li>
             ))}
           </ul>
