@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#D5603E">
+<title>연결 끊김 · 케어앤</title>
+<style>
+  :root { --bg:#F7F6F4; --fg:#2B2622; --sub:#6B625A; --brand:#D5603E; --card:#fff; --line:#ECE7E1; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1C1A18; --fg:#F1ECE6; --sub:#B5ACA2; --card:#26231F; --line:#3A352F; } }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--fg);
+         font-family:"Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; padding:24px 16px; }
+  main { width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:28px 22px; text-align:center; }
+  .ico { width:64px; height:64px; margin:0 auto 14px; border-radius:20px; background:rgba(213,96,62,.12); display:grid; place-items:center; }
+  h1 { font-size:21px; margin:0 0 8px; }
+  p { margin:0 0 6px; line-height:1.6; color:var(--sub); font-size:15.5px; }
+  button { margin-top:18px; width:100%; height:52px; border:0; border-radius:14px; background:var(--brand); color:#fff; font-size:17px; font-weight:700; font-family:inherit; }
+  .tel { margin-top:18px; padding-top:16px; border-top:1px solid var(--line); font-size:14px; color:var(--sub); }
+  .tel a { color:var(--fg); font-weight:700; text-decoration:none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="ico" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D5603E" stroke-width="2" stroke-linecap="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></svg>
+  </div>
+  <h1>인터넷 연결이 끊겼어요</h1>
+  <p>와이파이나 모바일 데이터를 확인한 뒤 다시 시도해 주세요.</p>
+  <p>연결되면 보던 화면이 그대로 열려요.</p>
+  <button type="button" onclick="location.reload()">다시 시도</button>
+  <div class="tel">위급한 상황이면 바로 <a href="tel:119">119</a>에 전화해 주세요.</div>
+</main>
+<script>
+  // 연결이 돌아오면 자동으로 다시 연다
+  window.addEventListener("online", function () { location.reload(); });
+</script>
+</body>
+</html>

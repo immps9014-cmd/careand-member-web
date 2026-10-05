@@ -12,8 +12,69 @@
   "background_color": "#F7F6F4",
   "theme_color": "#D5603E",
   "icons": [
-    { "src": "/app/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/app/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/app/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/app/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "돌봄 신청하기",
+      "short_name": "돌봄 신청",
+      "url": "/app/request/new",
+      "icons": [
+        {
+          "src": "/app/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "산모신생아 건강관리 신청",
+      "short_name": "산모신생아",
+      "url": "/app/request/new?domain=postpartum",
+      "icons": [
+        {
+          "src": "/app/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "케어일지 보기",
+      "short_name": "케어일지",
+      "url": "/app/logs",
+      "icons": [
+        {
+          "src": "/app/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "알림",
+      "short_name": "알림",
+      "url": "/app/notifications",
+      "icons": [
+        {
+          "src": "/app/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

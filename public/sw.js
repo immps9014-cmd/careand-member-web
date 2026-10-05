@@ -3,9 +3,11 @@
  * 정책: 네비게이션/동일출처 GET만 네트워크 우선(실패 시 캐시 폴백).
  * API(POST 등)·교차출처는 가로채지 않고 그대로 통과 → 데이터 정합성 보존.
  */
-const CACHE = "careand-shell-v1";
+const CACHE = "careand-shell-v2";
+const OFFLINE = "/app/offline.html";   // 연결이 끊겼을 때 화면 이동(문서 요청)에 보여 줄 페이지(PWA 2단계)
 
-self.addEventListener("install", () => {
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE).then((c) => c.add(new Request(OFFLINE, { cache: "reload" }))).catch(() => {}));
   self.skipWaiting();
 });
 
@@ -39,6 +41,11 @@ self.addEventListener("fetch", (event) => {
       } catch (err) {
         const cached = await caches.match(req);
         if (cached) return cached;
+        // 화면 이동인데 캐시도 없으면 오프라인 안내(로그인 화면처럼 개인정보가 담긴 문서는 캐시하지 않던 경우 포함)
+        if (req.mode === "navigate") {
+          const off = await caches.match(OFFLINE);
+          if (off) return off;
+        }
         throw err;
       }
     })()
