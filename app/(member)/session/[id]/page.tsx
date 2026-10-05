@@ -16,6 +16,7 @@ import { memberApi, type CareActivityItem, type VoiceLogItem } from "@/lib/api/m
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/utils";
 import { ChipJournalCard } from "@/components/care/chip-journal-card";
+import { ProvisionRecordCard } from "@/components/mnh/provision-record-card";
 import { CareLogReviewCard } from "@/components/care/care-log-review-card";
 
 /**
@@ -241,6 +242,9 @@ export default function SessionActivityPage({ params }: { params: { id: string }
           진행 중인 케어에서만 기록할 수 있습니다
         </Card>
       )}
+
+      {/* ───────── 바우처 방문: 서비스 제공기록지 + 산모 서명(CAREN-MNH-01 3단계) ───────── */}
+      {validId && session && <ProvisionRecordCard sessionId={sessionId} status={session.status} />}
 
       {/* ───────── 퇴근 후 일지 확인·수정(기능 14) ───────── */}
       {validId && session?.status === "completed" && <CareLogReviewCard sessionId={sessionId} />}

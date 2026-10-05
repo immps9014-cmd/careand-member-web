@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ChevronRight, FileSignature, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { mnhApi, MNH_STATUS_CLS, mnhDay, todayKst, won } from "@/lib/api/mnh";
+import { mnhApi, mnhDocApi, MNH_STATUS_CLS, mnhDay, todayKst, won } from "@/lib/api/mnh";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,7 @@ export default function MnhDetailPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["member", "mnh", "contract", Number(id)], queryFn: () => mnhApi.contract(Number(id)) });
   const c = q.data;
+  const docs = useQuery({ queryKey: ["member", "mnh", "contract-docs", Number(id)], queryFn: () => mnhDocApi.forContract(Number(id)) });
   const cancel = useMutation({
     mutationFn: () => mnhApi.cancel(Number(id)),
     onSuccess: () => { toast.success("신청을 취소했어요."); qc.invalidateQueries({ queryKey: ["member", "mnh"] }); },
@@ -76,6 +77,41 @@ export default function MnhDetailPage() {
         )}
         <Row k="납부" v={c.prepaid ? `${c.payment_method_label} 납부 확인${c.prepaid_at ? ` (${c.prepaid_at.slice(0, 10)})` : ""}` : `${c.payment_method_label} · 납부 전`} />
       </Card>
+
+      {(docs.data?.documents.length ?? 0) > 0 && (
+        <Card className="mt-4 p-4">
+          <div className="flex items-center gap-2">
+            <FileSignature className="h-5 w-5 text-brand-600" />
+            <h2 className="text-[15px] font-bold text-warm-800">전자서명 서류</h2>
+          </div>
+          {docs.data!.missing_before_start.length > 0 && (
+            <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+              서비스 시작 전에 서명해 주세요: {docs.data!.missing_before_start.join(", ")}
+            </p>
+          )}
+          <ul className="mt-2 divide-y divide-warm-100">
+            {docs.data!.documents.filter((d) => d.doc_type !== "provision_record").map((d) => (
+              <li key={d.id}>
+                <Link href={`/mnh/docs/${d.id}`} className="flex min-h-12 items-center gap-2 py-2">
+                  <span className="flex-1 text-[14.5px] font-semibold text-warm-800">{d.title}</span>
+                  <span className={cn("rounded-full px-2 py-0.5 text-[12px] font-bold", d.status === "signed" ? "bg-brand-50 text-brand-700" : "bg-amber-50 text-amber-800")}>
+                    {d.status === "signed" ? "서명 완료" : "서명하기"}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-warm-400" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {docs.data!.documents.some((d) => d.doc_type === "provision_record") && (
+            <p className="mt-2 text-[13px] text-warm-500">
+              서비스 제공기록지 {docs.data!.documents.filter((d) => d.doc_type === "provision_record" && d.status === "signed").length}건 서명 완료 —{" "}
+              {docs.data!.documents.filter((d) => d.doc_type === "provision_record").map((d) => (
+                <Link key={d.id} href={`/mnh/docs/${d.id}`} className="mr-1.5 font-semibold text-brand-600 underline">{d.issued_at.slice(5, 10).replace("-", "/")}</Link>
+              ))}
+            </p>
+          )}
+        </Card>
+      )}
 
       <Card className="mt-4 p-4">
         <h2 className="text-[15px] font-bold text-warm-800">담당 산모신생아 건강관리사</h2>

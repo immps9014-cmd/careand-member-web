@@ -276,6 +276,20 @@ export default function MyPage() {
         </Link>
       )}
 
+      {/* 전자서명 계약서(산모신생아 건강관리사 근로·프리랜서 계약 등, CAREN-MNH-01 3단계) */}
+      {isCaregiver && (cg.data?.service_domains ?? "").split(",").includes("postpartum") && (
+        <Link href="/mnh/docs" className="mb-4 block">
+          <Card className="flex items-center gap-3 p-5 transition-colors lg:hover:bg-warm-50/60">
+            <FileCheck2 className="h-5 w-5 flex-none text-brand-600" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-warm-800">전자서명 계약서</div>
+              <div className="text-xs text-warm-500">제공기관과 맺는 근로·프리랜서 계약서 확인과 서명</div>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
+          </Card>
+        </Link>
+      )}
+
       {/* 받은 후기·활동(기능 16) */}
       {isCaregiver && (
         <Link href="/my-activity" className="mb-4 block">
