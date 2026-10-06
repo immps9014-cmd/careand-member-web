@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Smartphone, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,17 +21,17 @@ function AppReturnInner({ app, provider }: { app: string; provider: string }) {
   const [android, setAndroid] = useState<boolean | null>(null);
   const target = PACKAGES[app];
 
-  const intentUrl = useMemo(() => {
-    if (typeof window === "undefined" || !target) return "";
-    const path = `${window.location.host}/app/auth/app/${app}/${provider}?${q.toString()}`;
-    return `intent://${path}#Intent;scheme=https;package=${target.pkg};end`;
-  }, [app, provider, q, target]);
+  // 주소는 브라우저에서만 만든다(서버 렌더 값과 달라도 하이드레이션은 href 를 고치지 않으므로 state 로)
+  const [intentUrl, setIntentUrl] = useState("");
 
   useEffect(() => {
+    if (!target) return;
     const isAndroid = /Android/i.test(navigator.userAgent);
     setAndroid(isAndroid);
-    if (isAndroid && intentUrl) window.location.href = intentUrl; // 막히면 아래 버튼으로
-  }, [intentUrl]);
+    const url = `intent://${window.location.host}/app/auth/app/${app}/${provider}?${q.toString()}#Intent;scheme=https;package=${target.pkg};end`;
+    setIntentUrl(url);
+    if (isAndroid) window.location.href = url; // 막히면 아래 버튼으로
+  }, [app, provider, q, target]);
 
   return (
     <div className="min-h-screen bg-warm-50 p-5">
@@ -50,7 +50,7 @@ function AppReturnInner({ app, provider }: { app: string; provider: string }) {
             ) : (
               <>
                 <p className="mt-1.5 text-sm text-warm-500">앱이 자동으로 열리지 않으면 아래 버튼을 눌러 주세요.</p>
-                <a href={intentUrl}>
+                <a href={intentUrl || undefined}>
                   <Button variant="brand" size="lg" className="mt-6 w-full rounded-2xl">{target.name} 앱 열기</Button>
                 </a>
               </>
