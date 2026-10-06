@@ -103,6 +103,7 @@ export interface Candidate {
     completed_sessions: number;
     /** 후보 카드에서 바로(2026-10-05) */
     license_verified?: boolean;
+    careand_certified?: boolean;   // 케어앤에듀 인증 마크(2026-10-07)
     region?: string | null;
     photo_url?: string | null;
     verified_doc_count?: number;
@@ -594,6 +595,8 @@ export interface CaregiverProfile {
   default_rate: number | null;     // 역경매 표준 희망 시급
   auto_bid: boolean;               // 초대 시 default_rate로 자동 입찰
   photo_url?: string | null;       // 프로필 사진 서명 링크(6시간)
+  careand_certified?: boolean;
+  careand_cert?: { name: string; issuer: string; number: string; issued_date: string } | null;
 }
 
 /** 인력 비상연락처·사진·희망사항(2026-10-05) — 비상연락처·희망사항은 본인과 운영팀만 본다 */
@@ -661,6 +664,14 @@ export interface PaymentReceipt {
   seller: { name: string; ceo: string; biz_no: string; address: string; tel: string };
 }
 
+export interface MyCertificate {
+  certified: boolean;
+  certificate: { name: string; issuer: string; number: string; issued_date: string; holder: string } | null;
+  name: string;
+  criteria: { min_sessions: number; min_rating: number; min_reviews: number };
+  stats: { sessions: number; reviews: number; rating: number | null };
+}
+
 export interface RecommendedCaregiver {
   id: number;
   name: string;
@@ -675,6 +686,7 @@ export interface RecommendedCaregiver {
   base_rate: number | null;
   distance_km: number | null;
   tag: string | null;
+  careand_certified?: boolean;   // 케어앤에듀 인증 마크(2026-10-07)
   is_favorited?: boolean;
 }
 
@@ -698,6 +710,9 @@ export interface ReviewableCare {
 
 /** 돌봄전문가 상세 프로필 — GET /v1/caregivers/{id} (CaregiverResource) */
 export interface CaregiverDetail {
+  /** 케어앤에듀 인증 돌봄전문가(2026-10-07) */
+  careand_certified?: boolean;
+  careand_cert?: { name: string; issuer: string; number: string; issued_date: string } | null;
   /** 이용자 공개 서류(확인 완료분, 2026-10-05) — 파일 없이 이름·유효기간만 */
   verified_documents?: { type: string; label: string; issued_at: string | null; expires_at: string | null }[];
   id: number;
@@ -1110,6 +1125,12 @@ export const memberApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+  /** 케어앤에듀 인증 자격 — 보유 시 자격 정보, 없으면 기준 대비 진행(2026-10-07) */
+  async myCertificate(): Promise<MyCertificate> {
+    const { data } = await api.get("/v1/caregivers/me/certificate");
+    return data.data;
+  },
+
   async myDocuments(): Promise<CaregiverDocuments> {
     const { data } = await api.get("/v1/caregivers/me/documents");
     return data.data;

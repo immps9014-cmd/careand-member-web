@@ -2,6 +2,7 @@
 import { DOMAIN_LABEL as DOMAIN, caregiverUi, caregiverPrimaryDomain } from "@/lib/caregiverType";
 import { roleLabel } from "@/lib/role";
 import { UI } from "@/lib/theme";
+import { CareandCertMark } from "@/components/care/careand-cert-mark";
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -149,6 +150,7 @@ function GCgRow({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg
           <span style={{ fontSize: 15, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span>
           <GStars n={c.rating} />
           {c.tag && <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", background: ACCENT, borderRadius: 6, padding: "2px 6px", flexShrink: 0 }}>{c.tag}</span>}
+          {c.careand_certified && <CareandCertMark compact />}
         </div>
         <div style={{ fontSize: 12.5, color: INK2, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta || "돌봄전문가"}</div>
       </div>

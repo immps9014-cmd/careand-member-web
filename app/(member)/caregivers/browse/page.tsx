@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
 import { domainLabel } from "@/lib/caregiverType";
 import { cn } from "@/lib/utils";
+import { CareandCertMark } from "@/components/care/careand-cert-mark";
 
 const stripTag = (s: string) => s.replace(/^\[.*?\]\s*/, "");
 const genderLabel = (g?: string | null) => (g === "F" ? "여" : g === "M" ? "남" : "-");
@@ -153,6 +154,7 @@ function GroupBody({
                   <td className="px-4 py-3 font-bold text-warm-800 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1.5">
                       {name}
+                      {c.careand_certified && <CareandCertMark compact />}
                       {c.tag && (
                         <span className="inline-flex items-center gap-0.5 text-[12px] font-bold text-brand-600">
                           {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}
@@ -196,6 +198,7 @@ function GroupBody({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-warm-800 truncate">{name}</span>
+                  {c.careand_certified && <CareandCertMark compact />}
                   {c.tag && (
                     <span className="inline-flex items-center gap-0.5 text-[12px] font-bold text-brand-600 shrink-0">
                       {c.tag === "인증" && <ShieldCheck className="w-3 h-3" />}

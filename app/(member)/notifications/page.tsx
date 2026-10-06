@@ -30,6 +30,8 @@ function linkFor(n: MemberNotification, role?: string): string | null {
       return "/settlements";
     case "REVIEW_REQUEST":
       return "/satisfaction";
+    case "CERT_GRANTED":
+      return "/certificate";
     case "CAREGIVER_DOC_REJECTED":
       return "/documents";
     case "MATCH_OFFER_TIMEOUT":

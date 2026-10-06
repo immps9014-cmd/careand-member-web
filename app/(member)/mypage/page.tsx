@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle, FileCheck2, ChevronRight, Star } from "lucide-react";
+import { LogOut, ShieldCheck, Wallet, User as UserIcon, Phone, Mail, MapPin, KeyRound, ChevronDown, Type, AlertTriangle, FileCheck2, ChevronRight, Star, BadgeCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -267,6 +267,20 @@ export default function MyPage() {
           {saveAccount.isPending ? "저장 중…" : "계정 정보 저장"}
         </Button>
       </Card>
+
+      {/* 케어앤에듀 인증 자격(2026-10-07) */}
+      {isCaregiver && (
+        <Link href="/certificate" className="mb-4 block">
+          <Card className="flex items-center gap-3 p-5 transition-colors lg:hover:bg-warm-50/60">
+            <BadgeCheck className="h-5 w-5 flex-none text-amber-600" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-warm-800">케어앤에듀 인증</div>
+              <div className="text-xs text-warm-500">활동 기록과 보호자 평점으로 받는 인증 자격 · 진행 상황</div>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-none text-warm-400" />
+          </Card>
+        </Link>
+      )}
 
       {/* 서류·정산 계좌(인력) — 기능 9·20 */}
       {isCaregiver && (

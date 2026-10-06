@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ChevronLeft, Star, Check, ChevronRight, ShieldCheck, MapPin } from "lucide-react";
 import { CareIssueCard } from "@/components/care/care-issue-card";
+import { CareandCertMark } from "@/components/care/careand-cert-mark";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -250,8 +251,9 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
                 {c.caregiver?.gender && <span>{c.caregiver.gender === "F" ? "여" : "남"}</span>}
               </div>
               {/* 자격 확인·활동 지역 — 상세로 안 들어가도 보이게(2026-10-05) */}
-              {(c.caregiver?.license_verified || c.caregiver?.region || !!c.caregiver?.verified_doc_count) && (
+              {(c.caregiver?.careand_certified || c.caregiver?.license_verified || c.caregiver?.region || !!c.caregiver?.verified_doc_count) && (
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-warm-600 mb-2">
+                  {c.caregiver?.careand_certified && <CareandCertMark compact />}
                   {c.caregiver?.license_verified && (
                     <span className="inline-flex items-center gap-1 font-semibold text-brand-700"><ShieldCheck className="w-3.5 h-3.5" />자격 확인</span>
                   )}

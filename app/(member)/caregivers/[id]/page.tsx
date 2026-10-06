@@ -14,6 +14,7 @@ import { caregiverDomainLabels, domainLabel } from "@/lib/caregiverType";
 import { formatDateTime } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
 import { CaregiverReviews } from "@/components/care/caregiver-reviews";
+import { CareandCertMark } from "@/components/care/careand-cert-mark";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
 const stripTag = (s: string | null | undefined) => (s ?? "").replace(/^\[.*?\]\s*/, "");
@@ -115,6 +116,7 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
                       <Badge variant="success" className="gap-1"><ShieldCheck className="w-3 h-3" />자격인증</Badge>
                     )}
                   </div>
+                  {c.careand_certified && <CareandCertMark className="mt-1" />}
                   <div className="flex items-center gap-2 mt-1 text-sm text-warm-500">
                     <span className="inline-flex items-center gap-1 text-amber-500 font-bold">
                       <Star className="w-3.5 h-3.5 fill-current" />
@@ -132,6 +134,22 @@ export default function CaregiverDetailPage({ params }: { params: { id: string }
                 </div>
               </div>
             </Card>
+
+            {/* 케어앤에듀 인증 자격(2026-10-07) — 활동 기록·보호자 평점 기준을 넘어 케어앤에듀가 인정 */}
+            {c.careand_cert && (
+              <Card className="p-4 mb-4 border-amber-200 bg-amber-50/50">
+                <div className="flex items-center gap-2">
+                  <CareandCertMark />
+                  <span className="text-sm font-bold text-warm-800">{c.careand_cert.name}</span>
+                </div>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-warm-600">
+                  이 플랫폼에서 꾸준히 돌봄을 하고 보호자에게 좋은 평가를 받아 {c.careand_cert.issuer}가 인정한 돌봄전문가예요.
+                </p>
+                <div className="mt-1 text-[12.5px] tabular-nums text-warm-500">
+                  자격 번호 {c.careand_cert.number} · {c.careand_cert.issued_date} 발급
+                </div>
+              </Card>
+            )}
 
             <Card className="p-5 mb-4 space-y-3">
               <Row label="완료 케어" value={`${c.completed_sessions}건`} />
