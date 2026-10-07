@@ -416,20 +416,11 @@ const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F7F4F1,#EAE4DD)", in
 
 function GServices({ go }: { go: GNav }) {
   const user = useAuth((s) => s.user);
-  const role = user?.role;
   const domainsQuery = useServiceDomains();
   // 개인화 도메인 신호 — AI 추천 목록(GFeed)과 동일한 훅을 공유해 상단 featured 카드와 어긋나지 않게 한다.
   const preferredToken = useGuardianPreferredDomain();
-  // 레지스트리(SSOT). 보호자 신청 위저드는 병원간병을 숨기지만, 홈 허브에는 6번째 타일로
-  // '기관 전용' 안내용 노출(탭 시 신청 대신 안내). 기관은 정상 신청 가능.
-  const base = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
-    (d) => !(d.token === "nursing" && role === "guardian"),
-  );
-  const nursingMeta = FALLBACK_DOMAINS.find((d) => d.token === "nursing");
-  const domains =
-    role === "guardian" && nursingMeta && !base.some((d) => d.token === "nursing")
-      ? [...base, nursingMeta]
-      : base;
+  // 역할별 도메인 가시성은 백엔드(hidden_for_roles)가 결정 — 2026-10-07부터 보호자도 병원간병 정상 신청.
+  const domains = domainsQuery.data ?? FALLBACK_DOMAINS;
   if (domains.length === 0) return null;
 
   // featured(맨 위 큰 카드) 개인화 — preferredToken(useGuardianPreferredDomain)에 맞는 서비스를 최상단으로.
@@ -482,8 +473,7 @@ function GServices({ go }: { go: GNav }) {
         {rest.map((d) => {
           const tone = DOMAIN_TONE[d.token] ?? DEFAULT_TONE;
           const Icon = domainIcon(d.icon);
-          // 보호자에게 병원간병은 기관 전용 — 탭 시 신청 대신 안내
-          const orgOnly = d.token === "nursing" && role === "guardian";
+          const orgOnly = false; // 2026-10-07: 보호자도 병원간병 신청 가능(기관 전용 해제)
           return (
             <button
               key={d.token}

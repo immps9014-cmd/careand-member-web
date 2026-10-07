@@ -92,9 +92,8 @@ export default function NewRequestPage() {
   // 도메인 카탈로그/가시성을 레지스트리(SSOT)에서 가져옴. API는 역할별로 서버측 필터됨.
   // (병원 간병=기관 발주 전용 → 보호자 숨김 규칙도 백엔드 hidden_for_roles로 일원화)
   const domainsQuery = useServiceDomains();
-  const availableDomains = (domainsQuery.data ?? FALLBACK_DOMAINS).filter(
-    (d) => !(d.token === "nursing" && role === "guardian"),
-  );
+  // 역할별 도메인 가시성은 백엔드(hidden_for_roles)가 결정 — 2026-10-07 보호자도 병원간병 신청 가능(클라 필터 제거)
+  const availableDomains = domainsQuery.data ?? FALLBACK_DOMAINS;
   // 찜한 돌봄전문가 — 매칭 결과에서 우선 표시 안내용
   const favQuery = useQuery({
     queryKey: ["member", "caregivers", "favorites"],
