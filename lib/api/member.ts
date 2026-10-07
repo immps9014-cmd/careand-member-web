@@ -906,7 +906,7 @@ export const memberApi = {
     const { data } = await api.post(`/v1/chatbot/sessions/${sessionId}/ask`, { question }, { timeout: 60_000 });
     return data.data;
   },
-  // 적정 간병비 미리보기 (요청 생성 전)
+  // 적정 돌봄비 미리보기 (요청 생성 전)
   async pricingEstimate(params: {
     service_domain?: string;
     category_id: number;

@@ -170,10 +170,10 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         </Card>
       )}
 
-      {/* 적정 간병비 권장 가격대 */}
+      {/* 적정 돌봄비 권장 가격대 */}
       {est && (
         <Card className="p-4 mb-4 border-brand-200" style={{ background: "rgba(63,125,82,.05)" }}>
-          <div className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mb-1.5">적정 간병비 (시급)</div>
+          <div className="text-xs font-extrabold tracking-wider text-warm-500 uppercase mb-1.5">적정 돌봄비 (시급)</div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-brand-700 tabular-nums">{won(est.suggested)}</span>
             <span className="text-xs text-warm-500">권장</span>

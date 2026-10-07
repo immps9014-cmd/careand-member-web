@@ -255,7 +255,7 @@ export default function NewRequestPage() {
     queryFn: () => memberApi.categories(domain),
   });
 
-  // 적정 간병비 미리보기 — 입력이 충분하면 실시간 산출
+  // 적정 돌봄비 미리보기 — 입력이 충분하면 실시간 산출
   const estimateEnabled = !!(categoryId && start && duration >= 60);
   const priceEstimate = useQuery({
     queryKey: ["member", "price-estimate", domain, categoryId, mode, start, duration, seniorId, patientId, addressId, serviceItems.join(",")],
@@ -864,7 +864,7 @@ export default function NewRequestPage() {
           </div>
         )}
 
-        {/* 데스크톱 2단: 좌(입력) / 우(적정간병비·제출 sticky) */}
+        {/* 데스크톱 2단: 좌(입력) / 우(적정 돌봄비·제출 sticky) */}
         <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6 lg:items-start">
         {/* ── 좌측: 스텝별 입력 ── */}
         <div>
@@ -2048,12 +2048,12 @@ export default function NewRequestPage() {
         )}
         </div>
 
-        {/* ── 우측: 적정 간병비 + 네비게이션 (데스크톱 sticky) ── */}
+        {/* ── 우측: 적정 돌봄비 + 네비게이션 (데스크톱 sticky) ── */}
         <div className="lg:sticky lg:top-6 lg:self-start">
-        {/* 적정 간병비 + 희망 상한 (역경매) — 일정·확인 스텝에서 노출 */}
+        {/* 적정 돌봄비 + 희망 상한 (역경매) — 일정·확인 스텝에서 노출 */}
         {step >= 2 && (
         <Card className="mt-3.5 p-4 lg:mt-0">
-          <label className={SECTION_LABEL}>적정 간병비</label>
+          <label className={SECTION_LABEL}>적정 돌봄비</label>
           {!estimateEnabled ? (
             <p className="text-[13.5px] text-warm-500 mt-1">서비스·일시·소요 시간을 선택하면 권장 시급을 안내해 드려요.</p>
           ) : priceEstimate.isLoading ? (
