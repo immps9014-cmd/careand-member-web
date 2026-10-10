@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { UI, brand } from "@/lib/theme";
 import { syncPush } from "@/lib/push";
+import { mappUrlFor } from "@/lib/mapp";
 
 /* ===== 데스크톱(웹) 사이드바 네비게이션 ===== */
 // external=true: 회원앱(/app) 밖 웹 홈(/www)으로 전체 이동 (Link 대신 plain <a>)
@@ -158,11 +159,25 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     }
   }, [hasHydrated, isAuthenticated, router, pathname]);
 
+  // 보호자·돌봄전문가는 앱 웹판(/mapp·/mapp-partner)으로 — 회원웹은 기관 전용(2026-10-10). 같은 화면으로 옮겨 준다.
+  const mappUrl = hasHydrated && isAuthenticated ? mappUrlFor(user?.role, pathname + (typeof window !== "undefined" ? window.location.search : "")) : null;
+  useEffect(() => {
+    if (mappUrl) window.location.replace(mappUrl);
+  }, [mappUrl]);
+
   // 이미 알림을 허용한 기기면 지금 로그인한 계정으로 구독을 다시 알린다(계정 전환·서버 만료 복구)
   const uid = user?.id;
   useEffect(() => {
-    if (hasHydrated && isAuthenticated && uid) syncPush();
-  }, [hasHydrated, isAuthenticated, uid]);
+    if (hasHydrated && isAuthenticated && uid && !mappUrl) syncPush();
+  }, [hasHydrated, isAuthenticated, uid, mappUrl]);
+
+  if (mappUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-warm-500">
+        {user?.role === "caregiver" ? "케어앤 파트너" : "케어앤"} 화면으로 이동 중…
+      </div>
+    );
+  }
 
   if (!hasHydrated || !isAuthenticated || !user) {
     return (
