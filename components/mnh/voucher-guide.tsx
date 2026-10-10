@@ -121,11 +121,9 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
           <div>
             <span className={LABEL}>태아 유형</span>
             <Chips label="태아 유형" value={fetus} onChange={(v) => { setFetus(v); setSub(""); }} options={fetusOptions} />
-            {fetus !== "single" && (
-              <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">
-                장애 정도가 심한 장애인 산모는 한 단계 위 유형(단태아→쌍태아 칸)을 골라요. 미숙아로 신생아집중치료실에 입원했다면 한 단계 위 유형을 고를 수 있어요.
-              </p>
-            )}
+            <p className="mt-1 text-[12.5px] leading-relaxed text-warm-500">
+              장애 정도가 심한 장애인 산모는 한 단계 위 유형(단태아면 쌍태아 칸)을 골라요. 미숙아로 신생아집중치료실에 입원했다면 한 단계 위 유형을 고를 수 있어요.
+            </p>
           </div>
           <div>
             <span className={LABEL}>{fetus === "single" ? "출산 순위" : "제공 인력"}</span>
@@ -241,7 +239,7 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
         <Card className="space-y-3 p-4">
           <h2 className={H2}>지원 기간</h2>
           <div className="overflow-x-auto rounded-xl border border-warm-200">
-            <table className="w-full min-w-[420px] text-[13px]">
+            <table className="w-full text-[13px]">
               <thead className="bg-warm-50 text-warm-600">
                 <tr><th className="p-2 text-left">유형</th>{Object.entries(g.periods).map(([k, v]) => <th key={k} className="p-2 text-right">{v}</th>)}</tr>
               </thead>
