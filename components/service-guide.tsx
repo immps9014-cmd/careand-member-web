@@ -2,7 +2,9 @@
 
 import { Check, X, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { serviceGuide } from "@/lib/serviceGuides";
+import { contentsApi, scopeFrom } from "@/lib/api/contents";
 
 interface ServiceGuideProps {
   /** 서비스 도메인 토큰 (senior, nursing, living_support, ...) */
@@ -20,7 +22,13 @@ interface ServiceGuideProps {
  * 케어네이션 "신청 전 안내" 패턴(sample_app/BENCHMARK-CARENATION.md).
  */
 export function ServiceGuide({ domain, confirmed, onConfirm, className }: ServiceGuideProps) {
-  const g = serviceGuide(domain);
+  // 문구는 관리자 「안내 콘텐츠」(service_scope)가 우선, 없거나 못 받으면 코드 기준안(CAREN-REF-01 3단계)
+  const q = useQuery({
+    queryKey: ["public", "contents", "service_scope", domain],
+    queryFn: () => contentsApi.list({ placement: "service_scope", domain }),
+    staleTime: 10 * 60_000, retry: false,
+  });
+  const g = scopeFrom(q.data?.find((c) => c.domain === domain)) ?? serviceGuide(domain);
   return (
     <Card className={"rounded-2xl p-4 " + (className ?? "")}>
       {/* 제공 서비스 */}

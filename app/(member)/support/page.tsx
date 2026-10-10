@@ -7,8 +7,12 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/store";
 import { usesCaregiverShell } from "@/lib/role";
 import { SUPPORT } from "@/lib/support";
+import { useQuery } from "@tanstack/react-query";
+import { contentsApi, faqFrom } from "@/lib/api/contents";
+import { ContentBlocks } from "@/components/content-blocks";
 
-// 자주 묻는 질문 — 화면에서 바로 답할 수 있는 것만. 나머지는 AI 상담·전화로.
+// 자주 묻는 질문 — 관리자 「안내 콘텐츠」(placement support) 우선, 아래는 못 받을 때 쓰는 기준 목록.
+// 화면에서 바로 답할 수 있는 것만. 나머지는 AI 상담·전화로.
 const FAQ: { q: string; a: string }[] = [
   { q: "신청한 돌봄을 취소하고 싶어요", a: "홈 「내 매칭 요청」에서 요청을 누르고 「요청 취소」를 누르세요. 돌봄전문가가 확정된 뒤에는 고객센터로 전화 주세요." },
   { q: "돌봄전문가를 바꾸고 싶어요", a: "고객센터로 전화 주시면 사정을 듣고 다른 분으로 연결해 드려요." },
@@ -20,6 +24,12 @@ export default function SupportPage() {
   const router = useRouter();
   const { user } = useAuth();
   const isCaregiver = user ? usesCaregiverShell(user.role) : false;
+  const faqQ = useQuery({
+    queryKey: ["public", "contents", "support", isCaregiver ? "caregiver" : "guardian"],
+    queryFn: () => contentsApi.list({ placement: "support", audience: isCaregiver ? "caregiver" : "guardian" }),
+    staleTime: 10 * 60_000, retry: false,
+  });
+  const faq = faqFrom(faqQ.data, FAQ);
 
   return (
     <div className="p-5 lg:mx-auto lg:max-w-3xl">
@@ -50,13 +60,13 @@ export default function SupportPage() {
 
       <h2 className="mt-7 mb-2 text-base font-extrabold text-warm-800">자주 묻는 질문</h2>
       <div className="space-y-2">
-        {FAQ.map((f) => (
-          <details key={f.q} className="group rounded-xl border border-warm-100 bg-white">
+        {faq.map((f) => (
+          <details key={f.key} className="group rounded-xl border border-warm-100 bg-white">
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-base font-semibold text-warm-800">
               {f.q}
               <ChevronRight className="h-5 w-5 shrink-0 text-warm-400 transition-transform group-open:rotate-90" />
             </summary>
-            <p className="px-4 pb-4 text-[15px] leading-relaxed text-warm-600">{f.a}</p>
+            <ContentBlocks blocks={f.blocks} className="px-4 pb-4 text-[15px] text-warm-600" />
           </details>
         ))}
       </div>

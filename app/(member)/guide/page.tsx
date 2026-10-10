@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { contentsApi, faqFrom } from "@/lib/api/contents";
+import { ContentBlocks } from "@/components/content-blocks";
 
 const STEPS = [
   {
@@ -58,6 +61,13 @@ const FAQ = [
 
 export default function GuidePage() {
   const router = useRouter();
+  // FAQ 는 관리자 「안내 콘텐츠」(placement guide) 우선, 못 받으면 위 기준 목록
+  const faqQ = useQuery({
+    queryKey: ["public", "contents", "guide", "guardian"],
+    queryFn: () => contentsApi.list({ placement: "guide", audience: "guardian" }),
+    staleTime: 10 * 60_000, retry: false,
+  });
+  const faq = faqFrom(faqQ.data, FAQ);
   return (
     <div className="min-h-screen bg-warm-50 pb-28">
       <div className="p-5">
@@ -100,10 +110,10 @@ export default function GuidePage() {
           <HelpCircle className="h-4 w-4 text-brand-500" /> 자주 묻는 질문
         </h2>
         <div className="space-y-2.5">
-          {FAQ.map((f) => (
-            <Card key={f.q} className="rounded-2xl p-4">
+          {faq.map((f) => (
+            <Card key={f.key} className="rounded-2xl p-4">
               <div className="text-[14px] font-bold text-warm-800">Q. {f.q}</div>
-              <p className="mt-1.5 text-[13.5px] leading-relaxed text-warm-500">{f.a}</p>
+              <ContentBlocks blocks={f.blocks} className="mt-1.5 text-[13.5px] text-warm-500" />
             </Card>
           ))}
         </div>

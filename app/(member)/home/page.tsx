@@ -24,12 +24,17 @@ import { SUPPORT } from "@/lib/support";
 import { PushPrompt } from "@/components/push-prompt";
 import { setAppBadge } from "@/lib/platform";
 import { careNote } from "@/lib/careTarget";
+import { MyNotices } from "@/components/my-notices";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
-  if (user?.role === "caregiver") return <CaregiverHome />;
-  if (user?.role === "organization") return <OrgHome />;
-  return <GuardianHome />;
+  const home = user?.role === "caregiver" ? <CaregiverHome /> : user?.role === "organization" ? <OrgHome /> : <GuardianHome />;
+  return (
+    <>
+      <MyNotices />
+      {home}
+    </>
+  );
 }
 
 /* ============ 보호자 홈 ============ */

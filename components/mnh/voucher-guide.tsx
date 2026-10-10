@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { mnhApi, MNH_BANDS, MNH_STAFF, parseTier, todayKst, won, type MnhSupportType } from "@/lib/api/mnh";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { contentsApi } from "@/lib/api/contents";
+import { ContentBlocks, NoticeCard } from "@/components/content-blocks";
 import { cn } from "@/lib/utils";
 
 const LABEL = "mb-2 block text-[14px] font-bold text-warm-700";
@@ -53,6 +55,9 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
   const q = useQuery({ queryKey: ["public", "mnh", "guide", year], queryFn: () => mnhApi.guide(year) });
   const g = q.data;
   const rows = useMemo(() => g?.support_types ?? [], [g]);
+  // 안내 문구·지역 공지는 관리자 「안내 콘텐츠」에서(CAREN-REF-01 3단계) — 못 받으면 아래 기준 문구
+  const notesQ = useQuery({ queryKey: ["public", "contents", "voucher_guide"], queryFn: () => contentsApi.list({ placement: "voucher_guide", domain: "postpartum" }), staleTime: 10 * 60_000, retry: false });
+  const noticeQ = useQuery({ queryKey: ["public", "contents", "notice", "postpartum"], queryFn: () => contentsApi.list({ kind: "notice", domain: "postpartum" }), staleTime: 10 * 60_000, retry: false });
 
   // ── 계산기 선택 ──
   const fetusOptions = useMemo(
@@ -110,6 +115,7 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
 
   return (
     <div className="space-y-5">
+      {(noticeQ.data ?? []).map((n) => <NoticeCard key={n.id} n={n} />)}
       {!g.rates_ready ? (
         <Card className="p-5 text-sm leading-relaxed text-warm-600">{g.year}년 기준표가 아직 등록되지 않았어요. 고시가 나오면 바로 반영할게요.</Card>
       ) : (
@@ -257,13 +263,22 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
       )}
 
       <Card className="space-y-2 p-4 text-[14px] leading-relaxed text-warm-700">
-        <h2 className={H2}>신청 전에 알아 두세요</h2>
-        <ul className="list-disc space-y-1 pl-5">
-          <li>바우처 신청: 출산 예정일 40일 전부터 출산 후 60일까지, 주소지 보건소·복지로·정부24에서 해요.</li>
-          <li>바우처는 출산일로부터 90일 안에 다 써야 해요(남아도 소멸).</li>
-          <li>보건소에서 받은 결정 통지의 유형(예: A-통합-①형)으로 케어앤에 계약을 신청하면 돼요.</li>
-          <li>본인부담금은 서비스 시작 전에 케어앤에 먼저 내고, 정부지원금은 국민행복카드 바우처로 결제돼요.</li>
-        </ul>
+        {notesQ.data?.length ? notesQ.data.map((c) => (
+          <div key={c.id} className="space-y-2">
+            <h2 className={H2}>{c.title}</h2>
+            <ContentBlocks blocks={c.blocks} />
+          </div>
+        )) : (
+          <>
+            <h2 className={H2}>신청 전에 알아 두세요</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>바우처 신청: 출산 예정일 40일 전부터 출산 후 60일까지, 주소지 보건소·복지로·정부24에서 해요.</li>
+              <li>바우처는 출산일로부터 90일 안에 다 써야 해요(남아도 소멸).</li>
+              <li>보건소에서 받은 결정 통지의 유형(예: A-통합-①형)으로 케어앤에 계약을 신청하면 돼요.</li>
+              <li>본인부담금은 서비스 시작 전에 케어앤에 먼저 내고, 정부지원금은 국민행복카드 바우처로 결제돼요.</li>
+            </ul>
+          </>
+        )}
         <Link href={applyHref} className="mt-2 block">
           <Button variant="brand" size="lg" className="w-full rounded-2xl">바우처 계약 신청하기</Button>
         </Link>
