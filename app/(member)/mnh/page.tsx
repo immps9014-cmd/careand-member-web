@@ -45,6 +45,7 @@ export default function MnhListPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", MNH_STATUS_CLS[c.status])}>{c.status_label}</span>
+                    {c.provisional && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-800">{c.start_change_request ? "확인 중" : "예비"}</span>}
                     <span className="text-[15px] font-bold text-warm-800 truncate">{c.client_name ?? "산모"} 님 · {c.days}일</span>
                   </div>
                   <p className="mt-1 text-[13px] text-warm-600">

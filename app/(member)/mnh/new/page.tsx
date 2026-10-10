@@ -147,7 +147,12 @@ function MnhNewPage() {
           ) : (
             <p className="text-[15px] font-bold text-warm-800">{client ? `${client.name}${client.is_self ? " (본인)" : ""}` : "불러오는 중…"}</p>
           )}
-          {client?.delivery_date && <p className="mt-1 text-[13px] text-warm-500">출산(예정)일 {mnhDay(client.delivery_date)}</p>}
+          {client?.delivery_date && <p className="mt-1 text-[13px] text-warm-500">{client.birth_confirmed === false ? "출산 예정일" : "출산일"} {mnhDay(client.delivery_date)}</p>}
+          {client?.birth_confirmed === false && (
+            <p className="mt-1.5 rounded-lg bg-sky-50 px-3 py-2 text-[12.5px] leading-relaxed text-sky-800">
+              출산 전이라 예비 계약으로 신청돼요. 아기가 태어나면 계약 화면에서 출산일을 등록해 개시일을 확정해요(예정일과 2주 이상 차이 나면 운영팀이 확인해요).
+            </p>
+          )}
         </div>
 
         <div>

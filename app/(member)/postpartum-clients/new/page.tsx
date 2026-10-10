@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { BirthStatusChips, type BirthStatus } from "@/components/mnh/birth-status";
+import { todayKst } from "@/lib/api/mnh";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -35,6 +37,7 @@ export default function NewPostpartumClientPage() {
   const [address, setAddress] = useState("");
   const [regionCode, setRegionCode] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [birthStatus, setBirthStatus] = useState<BirthStatus>("expected");
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("natural");
   const [isFirstBaby, setIsFirstBaby] = useState(true);
   // 비상연락처(선택, 2026-10-05) — 셋 다 채우면 함께 저장
@@ -55,7 +58,8 @@ export default function NewPostpartumClientPage() {
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
-  const valid = name && phone && birthDate && address && regionCode && deliveryDate && !ecPartial;
+  const birthDateBad = birthStatus === "delivered" && !!deliveryDate && deliveryDate > todayKst();
+  const valid = name && phone && birthDate && address && regionCode && deliveryDate && !birthDateBad && !ecPartial;
 
   return (
     <div className="min-h-screen bg-warm-50 pb-28">
@@ -93,8 +97,14 @@ export default function NewPostpartumClientPage() {
             </select>
           </div>
           <div>
-            <label className={SECTION_LABEL}>출산(예정)일</label>
+            <label className={SECTION_LABEL}>출산 여부</label>
+            <BirthStatusChips value={birthStatus} onChange={setBirthStatus} />
+          </div>
+          <div>
+            <label className={SECTION_LABEL}>{birthStatus === "expected" ? "출산 예정일" : "출산일"}</label>
             <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[15.5px]" />
+            {birthDateBad && <p className="mt-1 text-[12.5px] text-danger">출산일은 오늘이나 그 이전 날짜여야 해요.</p>}
+            {birthStatus === "expected" && <p className="mt-1 text-[12.5px] text-warm-500">출산 전에 신청한 바우처 계약은 예비 일정이 돼요. 아기가 태어나면 출산일을 등록해 확정해요.</p>}
           </div>
           <div>
             <label className={SECTION_LABEL}>출산 유형</label>
@@ -166,6 +176,7 @@ export default function NewPostpartumClientPage() {
               region_code: regionCode,
               delivery_date: deliveryDate,
               delivery_type: deliveryType,
+              birth_status: birthStatus,
               is_first_baby: isFirstBaby,
               ...(ecFilled ? { emergency_contact: { name: ecName.trim(), relation: ecRelation, phone: ecPhone.trim() } } : {}),
             })

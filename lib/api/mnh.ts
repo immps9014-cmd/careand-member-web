@@ -85,6 +85,10 @@ export interface MnhContract {
   rates_set: boolean;
   addons: MnhContractAddon[];
   addon_total: number | null;
+  /** 출산 전 신청한 예비 계약(출산일 등록 후 확정) */
+  provisional: boolean;
+  /** 기관 확인 대기 중인 개시일 변경 요청 */
+  start_change_request: { start_date: string; reason: string; birth_gap: number; start_gap: number; requested_at: string } | null;
   start_date: string;
   end_date: string | null;
   daily_start: string;
@@ -105,6 +109,10 @@ export interface MnhContractDetail extends MnhContract {
   holidays?: { date: string; name: string }[];
   completed_days: number;
   delivery_date: string | null;
+  birth_confirmed: boolean;
+  expected_delivery_date: string | null;
+  /** 종료 예정일이 바우처 유효기간(출산 후 90일)을 넘으면 안내 문구 */
+  voucher_warning: string | null;
   events: { id: number; type: string; date: string | null; payload: { reason?: string; new_end?: string; name?: string } | null; created_at: string }[];
   caregiver_documents: { type: string; label: string; issued_at: string | null; expires_at: string | null }[];
 }
@@ -145,7 +153,24 @@ export const mnhApi = {
     return data;
   },
   cancel: (id: number) => api.post(`/v1/mnh/contracts/${id}/cancel`, {}),
+  /** 출산일(·아기) 등록 — 예비 계약별로 같은 간격만큼 옮긴 개시일을 제안받는다 */
+  async confirmBirth(clientId: number, payload: { delivery_date: string; delivery_type?: string; newborns?: { name: string; gender: "M" | "F"; birth_weight_g: number }[] }): Promise<{ message: string; data: MnhBirthResult }> {
+    const { data } = await api.post(`/v1/matching/postpartum-clients/${clientId}/confirm-birth`, payload);
+    return data;
+  },
+  /** 예비 계약 개시일 확정 — 2주 이상 차이·담당 일정 충돌이면 review=true(운영팀 확인 대기) */
+  async confirmStart(id: number, start_date: string): Promise<{ message: string; review?: boolean; data: MnhContractDetail }> {
+    const { data } = await api.post(`/v1/mnh/contracts/${id}/confirm-start`, { start_date });
+    return data;
+  },
 };
+
+export interface MnhBirthResult {
+  delivery_date: string;
+  expected_delivery_date: string | null;
+  birth_gap_days: number;
+  provisional_contracts: { id: number; contract_no: string; start_date: string; suggested_start: string; days: number }[];
+}
 
 export const MNH_STATUS_CLS: Record<MnhStatus, string> = {
   applied: "bg-amber-50 text-amber-700",

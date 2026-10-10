@@ -273,6 +273,9 @@ export interface PostpartumClient {
   care_profile?: CareProfile | null;
   /** 산모 비상연락처(2026-10-05) — phone 은 숫자만 */
   emergency_contact?: EmergencyContact | null;
+  /** false 면 delivery_date 가 출산 예정일(2단계, 2026-10-10) */
+  birth_confirmed?: boolean;
+  expected_delivery_date?: string | null;
 }
 
 export interface EmergencyContact { name: string; relation: string; phone: string }
@@ -387,6 +390,8 @@ export interface CreatePostpartumClientPayload {
   delivery_date: string;
   delivery_type: DeliveryType;
   is_first_baby?: boolean;
+  /** expected = delivery_date 가 출산 예정일 */
+  birth_status?: "expected" | "delivered";
 }
 
 /* ===== 보호자: 아동(아이돌봄 대상) ===== */

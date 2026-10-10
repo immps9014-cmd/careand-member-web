@@ -1,5 +1,7 @@
 "use client";
 
+import { BirthStatusChips, type BirthStatus } from "@/components/mnh/birth-status";
+import { todayKst } from "@/lib/api/mnh";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -175,6 +177,7 @@ export default function NewRequestPage() {
   const [ppAddress, setPpAddress] = useState("");
   const [ppRegion, setPpRegion] = useState("");
   const [ppDeliveryDate, setPpDeliveryDate] = useState("");
+  const [ppBirthStatus, setPpBirthStatus] = useState<BirthStatus>("expected");
   const [ppDeliveryType, setPpDeliveryType] = useState<DeliveryType>("natural");
   const [ppFirstBaby, setPpFirstBaby] = useState(true);
   // 산후 세부 종류 복수 선택(산모·야간·신생아 동시 케어) — categoryId 는 이 중 기본요금이 가장 높은 것(요금 기준),
@@ -487,7 +490,7 @@ export default function NewRequestPage() {
   // 인라인 입력 완성 여부 — 본인은 가입 정보(이름·연락처), 대리는 입력한 산모 이름·연락처
   const ppInputComplete = !!(
     (ppSelf ? user?.name && user?.phone : ppName.trim() && /^01\d{8,9}$/.test(ppPhone)) &&
-    ppBirth && ppAddress && ppRegion && ppDeliveryDate && ppDeliveryType
+    ppBirth && ppAddress && ppRegion && ppDeliveryDate && ppDeliveryType && !(ppBirthStatus === "delivered" && ppDeliveryDate > todayKst())
   );
   const ppRecipientReady =
     domain === "postpartum" && (ppNeedsInput ? ppInputComplete : ppSelf ? !!ppSelfClient : !!postpartumClientId);
@@ -537,8 +540,14 @@ export default function NewRequestPage() {
                     </select>
                   </div>
                   <div>
-                    <label className={SECTION_LABEL}>출산(예정)일</label>
+                    <label className={SECTION_LABEL}>출산 여부</label>
+                    <BirthStatusChips value={ppBirthStatus} onChange={setPpBirthStatus} />
+                  </div>
+                  <div>
+                    <label className={SECTION_LABEL}>{ppBirthStatus === "expected" ? "출산 예정일" : "출산일"}</label>
                     <Input type="date" value={ppDeliveryDate} onChange={(e) => setPpDeliveryDate(e.target.value)} className="h-12 rounded-xl text-[15.5px]" />
+                    {ppBirthStatus === "delivered" && ppDeliveryDate > todayKst() && <p className="mt-1 text-[12.5px] text-danger">출산일은 오늘이나 그 이전 날짜여야 해요.</p>}
+                    {ppBirthStatus === "expected" && <p className="mt-1 text-[12.5px] text-warm-500">출산 전에 신청한 바우처 계약은 예비 일정이 돼요. 아기가 태어나면 출산일을 등록해 확정해요.</p>}
                   </div>
                   <div>
                     <label className={SECTION_LABEL}>출산 유형</label>
@@ -694,6 +703,7 @@ export default function NewRequestPage() {
           delivery_date: ppDeliveryDate,
           delivery_type: ppDeliveryType,
           is_first_baby: ppFirstBaby,
+          birth_status: ppBirthStatus,
         });
         const id = res?.data?.data?.id;
         if (!id) throw new Error("산모 정보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");

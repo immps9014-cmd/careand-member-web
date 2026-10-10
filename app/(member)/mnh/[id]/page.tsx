@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { mnhApi, mnhDocApi, MNH_STATUS_CLS, mnhDay, todayKst, won } from "@/lib/api/mnh";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { ProvisionalPanel } from "@/components/mnh/provisional-panel";
 
 const DAY: Record<string, { cls: string; label: string }> = {
   planned: { cls: "bg-warm-100 text-warm-600", label: "배정 대기" },
@@ -43,7 +44,7 @@ export default function MnhDetailPage() {
   if (q.isError) return <div className="p-6 text-sm text-warm-600">{getApiErrorMessage(q.error)}</div>;
   if (!c) return <div className="p-6 text-sm text-warm-500">불러오는 중…</div>;
   const today = todayKst();
-  const changes = c.events.filter((e) => ["postponed", "restored", "swapped", "start_changed", "holiday_work", "holiday_off", "holiday_changed"].includes(e.type));
+  const changes = c.events.filter((e) => ["postponed", "restored", "swapped", "start_changed", "holiday_work", "holiday_off", "holiday_changed", "birth_confirmed", "start_review"].includes(e.type));
 
   return (
     <div className="px-4 pt-4 pb-6 lg:mx-auto lg:max-w-3xl">
@@ -51,6 +52,7 @@ export default function MnhDetailPage() {
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <h1 className="text-xl font-extrabold tracking-tight text-warm-800">{c.client_name ?? "산모"} 님 바우처</h1>
         <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", MNH_STATUS_CLS[c.status])}>{c.status_label}</span>
+        {c.provisional && <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">예비</span>}
       </div>
       <p className="mt-1 text-[13px] text-warm-500">{c.contract_no}</p>
 
@@ -59,6 +61,8 @@ export default function MnhDetailPage() {
           신청이 접수됐어요. 운영팀이 본인부담금 납부 방법을 안내하고 담당 관리사를 배정해 드려요. 본인부담금 납부가 확인돼야 첫 방문이 시작돼요.
         </p>
       )}
+      <ProvisionalPanel c={c} />
+      {c.voucher_warning && <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-[13.5px] leading-relaxed text-amber-800">{c.voucher_warning}</p>}
       {c.status === "cancelled" && c.cancel_reason && <p className="mt-3 rounded-xl bg-warm-100 px-4 py-3 text-[13.5px]">취소: {c.cancel_reason}</p>}
 
       <Card className="mt-4 p-4">
@@ -176,6 +180,8 @@ export default function MnhDetailPage() {
                 {e.type === "restored" && `${e.date ? mnhDay(e.date) : ""} 연기 취소`}
                 {e.type === "swapped" && `${e.date ? mnhDay(e.date) : ""}부터 담당 관리사 변경`}
                 {e.type === "start_changed" && "일정 조정"}
+                {e.type === "birth_confirmed" && `출산일 반영 — ${e.date ? mnhDay(e.date) : ""}부터 일정 확정`}
+                {e.type === "start_review" && `개시일 변경 요청${e.payload?.reason ? ` — ${e.payload.reason}` : ""}`}
                 {e.type === "holiday_work" && `${e.date ? mnhDay(e.date) : ""} ${e.payload?.name ?? "공휴일"}에도 제공`}
                 {e.type === "holiday_off" && `${e.date ? mnhDay(e.date) : ""} ${e.payload?.name ?? "공휴일"} 휴무`}
                 {e.type === "holiday_changed" && `${e.date ? mnhDay(e.date) : ""} 공휴일 ${e.payload?.name ? `지정(${e.payload.name})` : "해제"}로 일정 조정`}
