@@ -15,14 +15,51 @@ export interface MnhSupportType {
   note: string | null;
 }
 
-export interface MnhOptions {
+/** 기준중위소득 150% 판정 — 가구원수(태아 포함)별 건보료 본인부담 상한(장기요양 제외) */
+export interface MnhIncomeCriterion {
+  household_size: number;
+  income_limit: number;
+  premium_employee: number;
+  premium_regional: number;
+  premium_mixed: number;
+}
+
+/** 케어앤 자체 추가요금·대여용품(바우처 밖) */
+export interface MnhAddonItem {
+  id: number;
+  kind: "extra" | "rental";
+  name: string;
+  unit_label: string;
+  price: number;
+  max_qty: number;
+  note: string | null;
+}
+
+export interface MnhContractAddon {
+  id: number;
+  kind: string;
+  name: string;
+  unit_label: string;
+  price: number;
+  qty: number;
+  amount: number;
+}
+
+/** 안내·계산기·신청이 함께 읽는 기준(GET /v1/public/mnh/guide, options 도 같은 모양) */
+export interface MnhGuide {
   year: number;
   rates_ready: boolean;
   support_types: MnhSupportType[];
   income_tiers: string[];
+  income_criteria: MnhIncomeCriterion[];
+  addons: MnhAddonItem[];
   fetus_types: Record<string, string>;
   birth_orders: Record<string, string>;
   periods: Record<string, string>;
+  addon_kinds: Record<string, string>;
+}
+
+export interface MnhOptions extends MnhGuide {
   payment_methods: Record<string, string>;
   min_days: number;
   max_days: number;
@@ -46,6 +83,8 @@ export interface MnhContract {
   gov_support: number | null;
   self_pay: number | null;
   rates_set: boolean;
+  addons: MnhContractAddon[];
+  addon_total: number | null;
   start_date: string;
   end_date: string | null;
   daily_start: string;
@@ -80,9 +119,15 @@ export interface MnhCreatePayload {
   days?: number;
   payment_method: string;
   member_note?: string;
+  addons?: { id: number; qty: number }[];
 }
 
 export const mnhApi = {
+  /** 로그인 없이 보는 바우처 안내·본인부담 계산기 */
+  async guide(year?: number): Promise<MnhGuide> {
+    const { data } = await api.get("/v1/public/mnh/guide", { params: year ? { year } : {} });
+    return data.data;
+  },
   async options(year?: number): Promise<MnhOptions> {
     const { data } = await api.get("/v1/mnh/options", { params: year ? { year } : {} });
     return data.data;
@@ -120,6 +165,25 @@ export function mnhDay(date: string): string {
 export function won(n: number | null | undefined): string {
   return n == null ? "-" : `${n.toLocaleString("ko-KR")}원`;
 }
+
+/** "B-통합-②형" → { group: "B", band: "통합", no: 2 } — ①②③ 은 단태아면 출산순위, 쌍태아 이상이면 인력 수 구분 */
+export function parseTier(t: string): { group: string; band: string; no: number } | null {
+  const m = /^([A-Z])-(가|통합|라)-([①②③④])형$/.exec(t);
+  return m ? { group: m[1], band: m[2], no: "①②③④".indexOf(m[3]) + 1 } : null;
+}
+
+/** 2026 고시 — 쌍태아 이상 유형의 ①② 별 제공인력 수(사업안내 지원기간표) */
+export const MNH_STAFF: Record<string, Record<number, number>> = {
+  B: { 1: 1, 2: 2 },
+  C: { 1: 2, 2: 3 },
+  D: { 1: 2, 2: 4 },
+};
+
+export const MNH_BANDS: { key: string; label: string; desc: string }[] = [
+  { key: "가", label: "가형", desc: "기초생활수급·차상위 등 자격확인 가정" },
+  { key: "통합", label: "통합형", desc: "기준중위소득 150% 이하" },
+  { key: "라", label: "라형", desc: "150% 초과 · 예외지원 대상" },
+];
 
 /** 오늘(한국 날짜) "YYYY-MM-DD" */
 export function todayKst(): string {

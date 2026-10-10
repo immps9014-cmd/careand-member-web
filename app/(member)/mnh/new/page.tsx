@@ -81,6 +81,7 @@ function MnhNewPage() {
   const [days, setDays] = useState(10);
   const [pay, setPay] = useState("cash");
   const [note, setNote] = useState("");
+  const [qty, setQty] = useState<Record<number, number>>({});   // 추가요금·대여 항목별 수량
 
   // 고른 태아·순위에 맞는 기준표 행(순위 무관 행 포함)
   const candidates = useMemo(
@@ -94,6 +95,9 @@ function MnhNewPage() {
   useEffect(() => { if (period && !periods.some((r) => r.period === period)) setPeriod(""); }, [periods, period]);
 
   const ratesReady = !!o?.rates_ready && candidates.length > 0;
+  const addons = o?.addons ?? [];
+  const addonPicked = addons.filter((a) => (qty[a.id] ?? 0) > 0);
+  const addonTotal = addonPicked.reduce((sum, a) => sum + a.price * (qty[a.id] ?? 0), 0);
   const valid = !!clientId && start >= tomorrow && (ratesReady ? !!chosen : days >= (o?.min_days ?? 5) && days <= (o?.max_days ?? 40));
 
   const submit = useMutation({
@@ -106,6 +110,7 @@ function MnhNewPage() {
         ...(ratesReady && chosen ? { income_tier: chosen.income_tier, period: chosen.period } : { days }),
         payment_method: pay,
         ...(note.trim() ? { member_note: note.trim() } : {}),
+        ...(addonPicked.length ? { addons: addonPicked.map((a) => ({ id: a.id, qty: qty[a.id] })) } : {}),
       }),
     onSuccess: (r) => {
       toast.success(r.message);
@@ -185,6 +190,7 @@ function MnhNewPage() {
                     <p className="mt-1 text-[12px] text-warm-500">{o.year}년 보건복지부 고시 기준 · {chosen.days}일</p>
                   </div>
                 )}
+                <Link href="/voucher-guide" className="inline-block text-[13px] font-bold text-brand-600 underline">내 유형을 모르겠어요 — 바우처 안내·계산기</Link>
               </>
             ) : (
               <div>
@@ -200,6 +206,42 @@ function MnhNewPage() {
               </div>
             )}
 
+
+            {addons.length > 0 && (
+              <div>
+                <span className={LABEL}>추가 서비스·대여용품(선택)</span>
+                <p className="-mt-1 mb-2 text-[12.5px] text-warm-500">바우처 밖에서 케어앤이 정한 가격이에요. 본인부담금과 함께 내요.</p>
+                <ul className="divide-y divide-warm-100 rounded-xl border border-warm-200 bg-white">
+                  {addons.map((a) => {
+                    const n = qty[a.id] ?? 0;
+                    const set = (v: number) => setQty((q) => ({ ...q, [a.id]: Math.max(0, Math.min(a.max_qty, v)) }));
+                    return (
+                      <li key={a.id} className="flex items-center gap-3 px-3 py-2.5">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] font-bold text-warm-800">{a.name} <span className="ml-1 text-[12px] font-normal text-warm-500">{o.addon_kinds[a.kind] ?? a.kind}</span></p>
+                          <p className="text-[12.5px] text-warm-500">{won(a.price)}/{a.unit_label}{a.note ? ` · ${a.note}` : ""}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Button type="button" variant="outline" size="icon" aria-label={`${a.name} 줄이기`} disabled={n === 0} onClick={() => set(n - 1)}><Minus /></Button>
+                          <span className="w-9 text-center text-[15px] font-extrabold tabular-nums text-warm-800" aria-live="polite">{n}{a.unit_label}</span>
+                          <Button type="button" variant="outline" size="icon" aria-label={`${a.name} 늘리기`} disabled={n >= a.max_qty} onClick={() => set(n + 1)}><Plus /></Button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {addonTotal > 0 && (
+                  <div className="mt-2 rounded-xl bg-warm-50 p-3 text-[14px] text-warm-700" aria-live="polite">
+                    <div className="flex justify-between"><span>추가요금 합계</span><span className="font-bold">{won(addonTotal)}</span></div>
+                    {chosen && (
+                      <div className="mt-1 flex justify-between border-t border-warm-200 pt-1 font-extrabold text-brand-700">
+                        <span>본인부담금 + 추가요금</span><span>{won(chosen.self_pay + addonTotal)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <span className={LABEL}>본인부담금 납부 방법</span>
               <Chips label="납부 방법" value={pay} onChange={setPay} options={Object.entries(o.payment_methods)} />

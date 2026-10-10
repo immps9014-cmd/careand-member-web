@@ -453,6 +453,9 @@ export default function MyPage() {
             <Link href="/mnh/journal" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
               이용일지 <ChevronRight className="h-5 w-5 text-warm-400" />
             </Link>
+            <Link href="/voucher-guide" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
+              바우처 안내·본인부담 계산기 <ChevronRight className="h-5 w-5 text-warm-400" />
+            </Link>
             <Link href="/epds" className="flex min-h-14 items-center justify-between px-5 py-3 text-base font-bold text-warm-800">
               산후우울 자가검사 <ChevronRight className="h-5 w-5 text-warm-400" />
             </Link>

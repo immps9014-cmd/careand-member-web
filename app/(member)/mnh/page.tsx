@@ -3,7 +3,7 @@
 // 내 바우처 계약 — 산모신생아 건강관리 기간형(CAREN-MNH-01 2단계, 2026-10-05)
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, NotebookPen, Plus } from "lucide-react";
+import { Calculator, ChevronRight, NotebookPen, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { mnhApi, MNH_STATUS_CLS, mnhDay, won } from "@/lib/api/mnh";
@@ -23,6 +23,9 @@ export default function MnhListPage() {
 
       <Link href="/request/new?domain=postpartum&mode=voucher" className="mt-4 block">
         <Button variant="brand" size="lg" className="w-full rounded-2xl"><Plus className="h-5 w-5" />새 바우처 계약 신청</Button>
+      </Link>
+      <Link href="/voucher-guide" className="mt-2 block">
+        <Button variant="outline" size="lg" className="w-full rounded-2xl"><Calculator className="h-5 w-5" />바우처 안내·본인부담 계산기</Button>
       </Link>
       <Link href="/mnh/journal" className="mt-2 block">
         <Button variant="outline" size="lg" className="w-full rounded-2xl"><NotebookPen className="h-5 w-5" />이용일지 쓰기</Button>
@@ -48,7 +51,7 @@ export default function MnhListPage() {
                     {mnhDay(c.start_date)} ~ {c.end_date ? mnhDay(c.end_date) : "?"}
                   </p>
                   <p className="text-[13px] text-warm-500">
-                    본인부담금 {c.rates_set ? won(c.self_pay) : "운영팀 확인 중"} · {c.prepaid ? "납부 확인" : "납부 전"}
+                    본인부담금 {c.rates_set ? won(c.self_pay) : "운영팀 확인 중"}{c.addon_total ? ` + 추가 ${won(c.addon_total)}` : ""} · {c.prepaid ? "납부 확인" : "납부 전"}
                     {c.caregiver_name ? ` · 담당 ${c.caregiver_name}` : ""}
                   </p>
                 </div>

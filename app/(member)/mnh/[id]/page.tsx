@@ -75,6 +75,10 @@ export default function MnhDetailPage() {
         ) : (
           <Row k="본인부담금" v={<span className="text-amber-700">운영팀 확인 중</span>} />
         )}
+        {c.addons?.map((a) => (
+          <Row key={a.id} k={`${a.name} ${a.qty}${a.unit_label}`} v={won(a.amount)} />
+        ))}
+        {!!c.addon_total && <Row k="추가요금 합계" v={<span className="text-brand-700">{won(c.addon_total)}</span>} />}
         <Row k="납부" v={c.prepaid ? `${c.payment_method_label} 납부 확인${c.prepaid_at ? ` (${c.prepaid_at.slice(0, 10)})` : ""}` : `${c.payment_method_label} · 납부 전`} />
       </Card>
 
