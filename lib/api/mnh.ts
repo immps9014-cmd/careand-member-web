@@ -57,6 +57,8 @@ export interface MnhGuide {
   birth_orders: Record<string, string>;
   periods: Record<string, string>;
   addon_kinds: Record<string, string>;
+  /** 바우처 없이 이용할 때 케어앤 일반 요금 — 다음 평일 하루 8시간(야간 케어 22시~), 전국 기준 */
+  general: { category_id: number; code: string; name: string; night: boolean; hourly: number; floor: number; ceil: number; day_hours: number; day_price: number }[];
 }
 
 export interface MnhOptions extends MnhGuide {

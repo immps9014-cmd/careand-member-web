@@ -67,6 +67,10 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
   const [fetus, setFetus] = useState("single");
   const [sub, setSub] = useState("");          // 단태아: birth_order / 그 외: "①"번호
   const [band, setBand] = useState("통합");
+  // 바우처를 쓸지 — 쓸 거예요(고시 본인부담) / 안 써요(케어앤 일반 요금) / 잘 모르겠어요(자가진단)
+  const [mode, setMode] = useState<"voucher" | "general" | "unsure">("voucher");
+  const [genCat, setGenCat] = useState<number | null>(null);
+  const [genDays, setGenDays] = useState(5);
 
   const fetusRows = rows.filter((r) => r.fetus_type === fetus);
   const subOptions: [string, string][] = Array.from(
@@ -116,7 +120,18 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
   return (
     <div className="space-y-5">
       {(noticeQ.data ?? []).map((n) => <NoticeCard key={n.id} n={n} />)}
-      {!g.rates_ready ? (
+      <Card className="p-4">
+        <span className={LABEL}>정부 바우처를 쓰시나요?</span>
+        <Chips label="바우처 이용" value={mode} onChange={(v) => setMode(v as typeof mode)}
+          options={[["voucher", "쓸 거예요"], ["general", "안 써요"], ["unsure", "잘 모르겠어요"]]} />
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-warm-500">
+          {mode === "voucher" ? "보건소 바우처로 이용하면 정부지원금을 뺀 본인부담금만 내요."
+            : mode === "general" ? "바우처 없이 케어앤 일반 요금으로 이용할 때 금액이에요."
+              : "소득 구간을 먼저 확인해 보세요. 결과에 맞는 금액으로 이어서 보여 드려요."}
+        </p>
+      </Card>
+      {mode === "general" && <GeneralCard g={g} cat={genCat} setCat={setGenCat} days={genDays} setDays={setGenDays} onCheck={() => setMode("unsure")} applyHref="/request/new?domain=postpartum" />}
+      {mode !== "voucher" ? null : !g.rates_ready ? (
         <Card className="p-5 text-sm leading-relaxed text-warm-600">{g.year}년 기준표가 아직 등록되지 않았어요. 고시가 나오면 바로 반영할게요.</Card>
       ) : (
         <Card className="space-y-5 p-4">
@@ -153,18 +168,19 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
                       <div className="flex justify-between"><dt>정부지원금</dt><dd>- {won(r.gov_support)}</dd></div>
                     </dl>
                     <div className="mt-2 flex justify-between border-t border-warm-100 pt-2 text-[15px] font-extrabold text-brand-700">
-                      <span>본인부담금</span><span>{won(r.self_pay)}</span>
+                      <span>내가 낼 돈</span><span>{won(r.self_pay)}</span>
                     </div>
+                    <p className="text-right text-[12px] text-warm-500">하루 약 {won(Math.round(r.self_pay / r.days / 100) * 100)}</p>
                   </div>
                 ))}
               </div>
-              <p className="mt-2 text-[12px] text-warm-500">{g.year}년 보건복지부 고시 기준 · 서비스 가격은 실제 이용 개시일의 연도를 따라요. 기간(단축·표준·연장)은 신청 뒤 바꿀 수 없어요.</p>
+              <p className="mt-2 text-[12px] text-warm-500">{g.year}년 보건복지부 고시 기준{g.addons.length ? " · 추가 서비스는 케어앤 가격(아래)" : ""} · 서비스 가격은 실제 이용 개시일의 연도를 따라요. 기간(단축·표준·연장)은 신청 뒤 바꿀 수 없어요.</p>
             </div>
           )}
         </Card>
       )}
 
-      {sizes.length > 0 && (
+      {mode !== "general" && sizes.length > 0 && (
         <Card className="space-y-4 p-4">
           <h2 className={H2}>소득 구간 자가진단</h2>
           <p className="text-[13px] leading-relaxed text-warm-500">
@@ -194,6 +210,12 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
                 ? <><b>기준중위소득 150% 이하</b>예요. 통합형 대상이고, 기초생활수급·차상위 가정이면 가형이에요.</>
                 : <><b>150% 초과</b>예요. 라형은 예외지원 대상(다태아·셋째아 이상·장애 산모 등)이거나 시·도가 따로 지원할 때만 받을 수 있어요. 시·도마다 달라요.</>}
               <p className="mt-1 text-[12px] opacity-80">최종 유형은 보건소 바우처 결정 통지가 기준이에요.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="brand" className="rounded-lg" onClick={() => { setBand(judged ? "통합" : "라"); setMode("voucher"); }}>
+                  {judged ? "통합형으로 계산하기" : "라형으로 계산하기"}
+                </Button>
+                {!judged && <Button type="button" size="sm" variant="outline" className="rounded-lg" onClick={() => setMode("general")}>일반 이용 금액 보기</Button>}
+              </div>
             </div>
           )}
           <details className="group">
@@ -223,7 +245,7 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
         </Card>
       )}
 
-      {g.addons.length > 0 && (
+      {mode === "voucher" && g.addons.length > 0 && (
         <Card className="space-y-3 p-4">
           <h2 className={H2}>추가 서비스·대여용품</h2>
           <p className="text-[13px] leading-relaxed text-warm-500">바우처 밖에서 케어앤이 정한 가격이에요. 계약을 신청할 때 골라요.</p>
@@ -241,7 +263,7 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
         </Card>
       )}
 
-      {periodTable.length > 0 && (
+      {mode === "voucher" && periodTable.length > 0 && (
         <Card className="space-y-3 p-4">
           <h2 className={H2}>지원 기간</h2>
           <div className="overflow-x-auto rounded-xl border border-warm-200">
@@ -289,4 +311,54 @@ export function VoucherGuide({ applyHref }: { applyHref: string }) {
 
 function fetusKey(r: MnhSupportType): string {
   return r.fetus_type === "single" ? r.birth_order : String(parseTier(r.income_tier)?.no ?? "");
+}
+
+/** 바우처 없이 — 케어앤 일반 요금(하루 8시간 × 기간). 같은 기간 바우처 본인부담과 견줘 보여 준다. */
+function GeneralCard({ g, cat, setCat, days, setDays, onCheck, applyHref }: {
+  g: import("@/lib/api/mnh").MnhGuide; cat: number | null; setCat: (v: number) => void; days: number; setDays: (v: number) => void; onCheck: () => void; applyHref: string;
+}) {
+  const rates = g.general ?? [];
+  const r = rates.find((x) => x.category_id === cat) ?? rates[0];
+  if (!r) return <Card className="p-5 text-sm text-warm-600">일반 요금을 불러오지 못했어요.</Card>;
+  const PRESET = [5, 10, 15, 20];
+  const same = g.support_types.filter((t) => t.fetus_type === "single" && t.days === days).sort((a, b) => a.self_pay - b.self_pay);
+  return (
+    <Card className="space-y-4 p-4">
+      <h2 className={H2}>바우처 없이 이용할 때</h2>
+      <div>
+        <span className={LABEL}>서비스</span>
+        <Chips label="서비스" value={String(r.category_id)} onChange={(v) => setCat(Number(v))} options={rates.map((x) => [String(x.category_id), x.name])} />
+      </div>
+      <div>
+        <span className={LABEL}>기간</span>
+        <Chips label="기간" value={PRESET.includes(days) ? String(days) : "custom"} onChange={(v) => setDays(v === "custom" ? (PRESET.includes(days) ? 7 : days) : Number(v))}
+          options={[...PRESET.map((d) => [String(d), `${d}일`] as [string, string]), ["custom", "직접"]]} />
+        {!PRESET.includes(days) && (
+          <div className="mt-2 flex items-center gap-3">
+            <Button type="button" variant="outline" size="icon" aria-label="하루 줄이기" onClick={() => setDays(Math.max(1, days - 1))}>−</Button>
+            <span className="w-14 text-center text-lg font-extrabold text-warm-800">{days}일</span>
+            <Button type="button" variant="outline" size="icon" aria-label="하루 늘리기" onClick={() => setDays(Math.min(40, days + 1))}>+</Button>
+          </div>
+        )}
+      </div>
+      <div className="rounded-xl bg-brand-50 p-4" aria-live="polite">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[14px] font-bold text-warm-700">예상 금액</span>
+          <span className="text-[22px] font-extrabold text-brand-700">{won(r.day_price * days)}</span>
+        </div>
+        <p className="mt-0.5 text-right text-[12.5px] text-warm-600">하루 {r.day_hours}시간{r.night ? "(밤 10시부터)" : ""} · 하루 {won(r.day_price)} · 시간당 {won(r.hourly)}</p>
+        <p className="text-right text-[12px] text-warm-500">보통 하루 {won(r.floor * r.day_hours)} ~ {won(r.ceil * r.day_hours)}</p>
+      </div>
+      {same.length > 0 && (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-[13.5px] leading-relaxed text-sky-900">
+          바우처를 쓰면 같은 {days}일에 내 돈 <b>{won(same[0].self_pay)}</b>부터예요({same[0].income_tier}).
+          <button type="button" onClick={onCheck} className="ml-1 font-bold underline">바우처 대상인지 확인</button>
+        </div>
+      )}
+      <p className="text-[12px] text-warm-500">케어앤 일반 요금 · 공휴일 제외 평일 기준 · 지역에 따라 달라질 수 있어요.</p>
+      <Link href={applyHref} className="block">
+        <Button variant="outline" size="lg" className="w-full rounded-2xl">일반 이용 신청하기</Button>
+      </Link>
+    </Card>
+  );
 }

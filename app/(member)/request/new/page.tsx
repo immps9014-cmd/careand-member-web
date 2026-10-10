@@ -2078,6 +2078,12 @@ export default function NewRequestPage() {
                 {" · 예상 총액 "}
                 {won(priceEstimate.data.suggested * (duration / 60) * (domain === "nursing" ? days : 1))}
               </div>
+              {domain === "postpartum" && (
+                <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-[12.5px] leading-relaxed text-sky-800">
+                  케어앤 일반 요금 기준이에요(하루 8시간이면 {won(priceEstimate.data.suggested * 8)}). 정부 바우처를 쓰면 본인부담금만 내요 —{" "}
+                  <Link href="/voucher-guide" className="font-bold underline">바우처로 얼마인지 보기</Link>
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-[13.5px] text-warm-500 mt-1">권장 시급을 불러오지 못했습니다.</p>
