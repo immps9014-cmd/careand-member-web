@@ -99,6 +99,7 @@ function GQuick({ go }: { go: GNav }) {
     { l: "긴급요청", bg: "#FFE9EC", to: "/request/new?mode=urgent", ic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0484E" strokeWidth="2"><path d="M12 3l9 16H3z" /><path d="M12 9v4M12 16h.01" /></svg> },
   ];
   const sub: { l: string; to: string }[] = [
+    { l: "적정 돌봄비", to: "/price" },
     { l: "이용가이드", to: "/guide" },
     { l: "알림", to: "/notifications" },
     { l: "고객센터", to: "/support" },
