@@ -49,13 +49,13 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "ì
   return (
     <div style={{ background: "#fff", padding: "calc(12px + var(--safe-top,0px)) 16px 12px", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${LINE}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-        <div style={{ fontSize: 23, fontWeight: 900, letterSpacing: "-.03em", color: ACCENT, fontStyle: "italic" }}>Care&amp;</div>
+        <div style={{ fontSize: 23, fontWeight: 900, letterSpacing: "-.03em", color: ACCENT, fontStyle: "italic", flexShrink: 0 }}>Care&amp;</div>
         <div
           onClick={() => go(searchTo)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(searchTo); } }}
-          style={{ flex: 1, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}
+          style={{ flex: 1, minWidth: 0, height: 42, background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 21, display: "flex", alignItems: "center", gap: 8, padding: "0 15px", cursor: "pointer" }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2.6"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
           <span style={{ fontSize: 14, color: INK2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{searchPlaceholder}</span>
@@ -78,7 +78,7 @@ function GTopBar({ go, unread, searchTo = "/request/new", searchPlaceholder = "ì
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go("/mypage"); } }}
-          style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer" }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", lineHeight: 1.15, cursor: "pointer", flexShrink: 0 }}
         >
           <span style={{ fontSize: 12, fontWeight: 700, color: INK3 }}>{roleLabel(user?.role)}</span>
           <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name ?? ""}</span>
