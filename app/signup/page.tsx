@@ -49,7 +49,7 @@ const SPECIALTIES = ["시니어돌봄", "생활지원서비스", "병원간병",
 const CAREGIVER_DOMAINS: { token: string; label: string }[] = [
   { token: "senior", label: "요양보호" },   // 보호자 화면·서비스 레지스트리와 같은 이름
   { token: "living_support", label: "생활지원서비스" },
-  { token: "nursing", label: "병원간병" },
+  { token: "nursing", label: "병원 간병" },
   { token: "postpartum", label: "산모신생아 건강관리" },
   { token: "childcare", label: "아이돌봄" },
   { token: "mental_care", label: "마음돌봄" },
