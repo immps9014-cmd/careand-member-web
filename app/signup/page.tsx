@@ -25,9 +25,10 @@ type Step = "role" | "account" | "caregiver" | "organization" | "done";
 
 const RELATIONS = ["본인", "자녀", "배우자", "부모", "형제", "기타"];
 
-/** 이용자가 가입 때 고르는 「주로 이용할 서비스」(복수). 병원간병은 기관 전용이라 제외. */
+/** 이용자가 가입 때 고르는 「주로 이용할 서비스」(복수). 병원간병은 10-07 부터 보호자도 신청 가능. */
 const USER_SERVICES = [
   { token: "senior", label: "요양보호", desc: "어르신 방문 돌봄", icon: HeartHandshake },
+  { token: "nursing", label: "병원 간병", desc: "입원 환자 간병", icon: Stethoscope },
   { token: "living_support", label: "생활지원서비스", desc: "청소·정리·동행", icon: Sparkles },
   { token: "postpartum", label: "산모신생아 건강관리", desc: "산모·신생아", icon: Baby },
   { token: "childcare", label: "아이돌봄", desc: "등하원·놀이돌봄", icon: Blocks },
@@ -36,6 +37,7 @@ const USER_SERVICES = [
 /** 대표 서비스(처음 고른 것) → 기존 가입 kind. 백엔드 intent 는 kind 에서 파생된다. */
 const SERVICE_KIND: Record<string, Kind> = {
   senior: "guardian",
+  nursing: "guardian",
   living_support: "housekeeping",
   postpartum: "postpartum",
   childcare: "childcare",
@@ -106,7 +108,7 @@ export default function SignupPage() {
       : group === "user" && services.length > 0
         ? (SERVICE_KIND[services[0]] ?? "guardian")
         : null;
-  const needsRelation = group === "user" && services.includes("senior");
+  const needsRelation = group === "user" && (services.includes("senior") || services.includes("nursing")); // 대리형(어르신·환자 보호자)
   // 산모신생아를 고르면 이용 방식(정부 바우처/시간 단위) 필수 — 앱·공개웹 가입과 같은 값, 서버 guardians.preferences.postpartum_mode
   const [ppMode, setPpMode] = useState<"voucher" | "hourly" | null>(null);
   const needsPpMode = group === "user" && services.includes("postpartum");

@@ -30,7 +30,7 @@ export default function HomePage() {
       <div className="relative flex-1 flex items-end justify-center overflow-hidden bg-[#FBEBD4]">
         {/* PC 폭 — 양옆 빈칸에 같은 이미지를 흐리게 깔아 이음매를 없앤다(폰 폭은 폭을 다 채워 필요 없음) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/app/main_hero.jpg" alt="" aria-hidden className="hidden md:block absolute inset-0 h-full w-full object-cover object-bottom scale-110 blur-2xl" />
+        <img src="/app/main_hero.jpg" alt="" aria-hidden className="hidden md:block absolute inset-0 h-full w-full object-cover object-bottom scale-110 blur-3xl opacity-40" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/app/main_hero.jpg"
