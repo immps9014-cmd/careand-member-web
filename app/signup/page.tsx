@@ -148,6 +148,7 @@ export default function SignupPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   // 돌봄전문가 자격정보
+  // 생년월일 — 계정 단계(선택, users.birth_date)와 돌봄전문가 자격 단계(필수)가 같은 값을 쓴다(2026-10-11)
   const [birthDate, setBirthDate] = useState("");
   const [gender, setGender] = useState<"M" | "F" | "">("");
   const [cgDomains, setCgDomains] = useState<string[]>(["senior"]); // 활동 도메인(복수 선택 가능)
@@ -222,6 +223,7 @@ export default function SignupPage() {
         ...(needsRelation ? { relation } : {}),
         ...(group === "user" ? { services } : {}),
         ...(needsPpMode && ppMode ? { postpartum_mode: ppMode } : {}),
+        ...(birthDate ? { birth_date: birthDate } : {}),
         agree_terms: agreeTerms,
         agree_privacy: agreePrivacy,
       }),
@@ -286,6 +288,7 @@ export default function SignupPage() {
       }
       if (password !== passwordConfirm) { toast.error("비밀번호가 일치하지 않아요."); return; }
     }
+    if (birthDate && birthDate > yesterdayYmd()) { toast.error("생년월일은 오늘 이전 날짜로 골라주세요."); return; }
     if (!agreeTerms || !agreePrivacy) { toast.error("이용약관과 개인정보 처리방침에 동의해주세요."); return; }
     signupM.mutate();
   };
@@ -546,6 +549,17 @@ export default function SignupPage() {
 
               <Field label="이름">
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" autoComplete="name" />
+              </Field>
+              <Field label="생년월일 (선택)">
+                <Input
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  min="1900-01-01"
+                  max={yesterdayYmd()}
+                  aria-label="생년월일 (선택)"
+                />
+                <p className="mt-1.5 text-xs text-warm-500">본인이 산모로 등록할 때 자동으로 채워져요.</p>
               </Field>
               <Field label="아이디">
                 <Input
@@ -987,6 +1001,12 @@ function Field({ label, error, children }: { label: string; error?: string; chil
       {error && <p className="text-xs text-danger mt-1.5" role="alert">{error}</p>}
     </div>
   );
+}
+
+/** 오늘(KST) 하루 전 YYYY-MM-DD — 생년월일 입력 상한 */
+function yesterdayYmd(): string {
+  const d = new Date(Date.now() + 9 * 3600e3 - 864e5);
+  return d.toISOString().slice(0, 10);
 }
 
 /** 산모신생아 이용 방식 — 앱(postpartum_mode.dart)·공개웹과 같은 카드 두 장. 정부 바우처 대상자가 모르고 시간 단위로 넘어가지 않게 필수로 고른다 */

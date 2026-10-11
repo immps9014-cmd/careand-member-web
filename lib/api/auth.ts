@@ -30,6 +30,8 @@ export interface SignupPayload {
   services?: string[];
   /** 산모신생아 이용 방식 — voucher 정부 바우처 · hourly 시간 단위(services 에 postpartum 있을 때만 서버가 보관) */
   postpartum_mode?: "voucher" | "hourly";
+  /** 생년월일(선택, YYYY-MM-DD) */
+  birth_date?: string;
   agree_terms: boolean;
   agree_privacy: boolean;
 }
