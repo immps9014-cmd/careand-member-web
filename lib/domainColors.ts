@@ -1,6 +1,6 @@
 /**
- * 분야 색 — 앱 lib/core/domain_colors.dart · 관리자 components/domain/domain-badge.tsx 와 같은 값(CAREN-COLOR-01 §3).
- * fill = 채움(흰 글자 4.8:1+) · tint = 옅은 바탕 · ink = 옅은 바탕 위 글자(4.5:1+). 바꿀 땐 세 곳 같이.
+ * 분야 색 — 앱 lib/core/domain_colors.dart · 관리자 components/domain/domain-badge.tsx · 공개웹 lib/domainColors.ts 와 같은 값(CAREN-COLOR-01 §3).
+ * fill = 채움(흰 글자 4.8:1+) · tint = 옅은 바탕 · ink = 옅은 바탕 위 글자(4.5:1+). 바꿀 땐 네 곳 같이.
  */
 export const DOMAIN_COLOR: Record<string, { fill: string; tint: string; ink: string }> = {
   postpartum: { fill: "#C2412D", tint: "#FBE7E3", ink: "#A83524" },
