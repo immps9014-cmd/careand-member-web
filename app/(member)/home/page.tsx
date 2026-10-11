@@ -572,22 +572,23 @@ function OrgStatusBanner({ status, name }: { status?: string; name?: string }) {
   );
 }
 
-/* 발주 CTA — 간병인 매칭 요청. 승인 전에는 비활성. */
+/* 발주 CTA — 간병인 매칭 요청. 승인 전에는 비활성. 간병 분야 색(lib/domainColors — CAREN-COLOR-01 §3). */
 function OrgCta({ go, enabled }: { go: GNav; enabled: boolean }) {
+  const c = domainColor("nursing");
   return (
     <div style={{ padding: "16px 16px 4px" }}>
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: "linear-gradient(120deg,#DDF3E0,#C7EBD6 60%,#BEE7DF)", padding: "24px 20px", minHeight: 150 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 700, color: "#2E8A5E" }}>기관 매칭 서비스</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#15402C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 간병인을<br />지금 바로 요청하세요</div>
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", background: `linear-gradient(120deg,${c.tint},#D6E4F7 60%,#CCDDF4)`, padding: "24px 20px", minHeight: 150 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: c.ink }}>기관 매칭 서비스</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#17325C", letterSpacing: "-.02em", lineHeight: 1.3, marginTop: 7 }}>필요한 간병인을<br />지금 바로 요청하세요</div>
         <button
           onClick={() => enabled ? go("/request/new") : toast("기관 승인 후 매칭 요청이 가능합니다.")}
-          style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: enabled ? "#0E6B43" : "#9FBBAB", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: enabled ? "0 6px 16px rgba(14,107,67,.28)" : "none" }}
+          style={{ marginTop: 16, height: 44, padding: "0 22px", borderRadius: 22, border: "none", background: enabled ? c.fill : "#A9BDDC", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: enabled ? "0 6px 16px rgba(47,100,181,.28)" : "none" }}
         >
           간병인 매칭 요청하기
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
         </button>
         <div style={{ position: "absolute", right: 16, top: 22, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#0E6B43" strokeWidth="1.7"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" /><path d="M4 21c.7-3.8 3.6-6 8-6s7.3 2.2 8 6" /></svg>
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke={c.fill} strokeWidth="1.7"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" /><path d="M4 21c.7-3.8 3.6-6 8-6s7.3 2.2 8 6" /></svg>
         </div>
       </div>
     </div>
