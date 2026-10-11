@@ -26,6 +26,7 @@ import { setAppBadge } from "@/lib/platform";
 import { careNote } from "@/lib/careTarget";
 import { MyNotices } from "@/components/my-notices";
 import { CaregiverPhoto } from "@/components/caregiver-photo";
+import { domainColor } from "@/lib/domainColors";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -411,18 +412,17 @@ function GMyRequests({ go }: { go: GNav }) {
 
 /* 6개 돌봄 도메인 서비스 허브 — 이미지 대신 도메인별 그라디언트 타일(추후 실사진 교체 가능).
    각 타일 탭 → 해당 서비스 신청 플로우(request/new?domain=). 케어네이션 메인 벤토 그리드 참고. */
-// 케어네이션풍 저채도 팔레트 — 붕 뜨지 않는 차분한 세이지/틸 계열. 배경은 미세 그라디언트,
-// ink는 그라디언트 동계열 딥톤(제목/설명/CTA). 도메인 순서가 바뀌어도 대비 유지.
+// 분야 색(lib/domainColors — CAREN-COLOR-01 §3): 바탕 = 옅게(tint)→흰색 그라디언트, 제목·아이콘 = 글자(ink), 버튼 = 채움(fill).
 type Tone = { grad: string; ink: { title: string; sub: string; cta: string }; badge?: { label: string; variant: "new" | "hot" | "beta" | "info" } };
-const DOMAIN_TONE: Record<string, Tone> = {
-  senior: { grad: "linear-gradient(135deg,#FDF1EC,#F8DDD0)", ink: { title: "#7A3A28", sub: "#A56A57", cta: "#B94C2E" } },
-  nursing: { grad: "linear-gradient(135deg,#F1EEEA,#E4DDD3)", ink: { title: "#4A4238", sub: "#7A7060", cta: "#6B5F4E" }, badge: { label: "기관", variant: "info" } },
-  living_support: { grad: "linear-gradient(135deg,#F6F0EA,#EBDFD2)", ink: { title: "#6B4A32", sub: "#927056", cta: "#8A6238" } },
-  postpartum: { grad: "linear-gradient(135deg,#FBEDEF,#F3D9DE)", ink: { title: "#7A3E48", sub: "#A5707A", cta: "#A65A66" }, badge: { label: "NEW", variant: "new" } },
-  childcare: { grad: "linear-gradient(135deg,#FBF2E6,#F2E2C6)", ink: { title: "#6E5228", sub: "#977442", cta: "#8F6E30" }, badge: { label: "NEW", variant: "new" } },
-  mental_care: { grad: "linear-gradient(135deg,#F7EEEC,#EFDCD6)", ink: { title: "#6E453C", sub: "#9A6D62", cta: "#8A574C" } },
+const TONE_BADGE: Record<string, Tone["badge"]> = {
+  nursing: { label: "기관", variant: "info" },
+  postpartum: { label: "NEW", variant: "new" },
+  childcare: { label: "NEW", variant: "new" },
 };
-const DEFAULT_TONE: Tone = { grad: "linear-gradient(135deg,#F7F4F1,#EAE4DD)", ink: { title: "#3A342E", sub: "#6B655C", cta: "#8A6238" } };
+function toneOf(token: string | null | undefined): Tone {
+  const c = domainColor(token);
+  return { grad: `linear-gradient(135deg,${c.tint},#FFFFFF 160%)`, ink: { title: c.ink, sub: "#4E4941", cta: c.fill }, badge: token ? TONE_BADGE[token] : undefined };
+}
 
 function GServices({ go }: { go: GNav }) {
   const user = useAuth((s) => s.user);
@@ -460,7 +460,7 @@ function GServices({ go }: { go: GNav }) {
 
       {/* Featured 타일 */}
       {(() => {
-        const tone = DOMAIN_TONE[featured.token] ?? DEFAULT_TONE;
+        const tone = toneOf(featured.token);
         const Icon = domainIcon(featured.icon);
         return (
           <button
@@ -481,7 +481,7 @@ function GServices({ go }: { go: GNav }) {
       {/* 나머지 도메인 타일 그리드 */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginTop: 10 }}>
         {rest.map((d) => {
-          const tone = DOMAIN_TONE[d.token] ?? DEFAULT_TONE;
+          const tone = toneOf(d.token);
           const Icon = domainIcon(d.icon);
           const orgOnly = false; // 2026-10-07: 보호자도 병원간병 신청 가능(기관 전용 해제)
           return (
