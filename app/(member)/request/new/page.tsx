@@ -32,6 +32,7 @@ import { careTargetNoun, newbornLine } from "@/lib/careTarget";
 import { CareProfileForm, careProfileFilled, careProfileSummary } from "@/components/care/care-profile-form";
 import type { CareProfile } from "@/lib/api/member";
 import { useServiceDomains, domainIcon, FALLBACK_DOMAINS } from "@/lib/serviceDomains";
+import { domainColor } from "@/lib/domainColors";
 
 const MODES = [
   { key: "normal", label: "일반" },
@@ -888,12 +889,12 @@ export default function NewRequestPage() {
             const cur = availableDomains.find((d) => d.token === domain);
             const CurIcon = domainIcon(cur?.icon ?? "");
             return (
-              <div className="flex items-center gap-3 rounded-2xl border border-brand-500 bg-brand-50 p-3.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shrink-0">
+              <div className="flex items-center gap-3 rounded-2xl border p-3.5" style={{ borderColor: domainColor(domain).fill, background: domainColor(domain).tint }}>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl text-white shrink-0" style={{ background: domainColor(domain).fill }}>
                   <CurIcon className="h-[18px] w-[18px]" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[14.5px] font-bold text-brand-700">{cur?.label ?? domainLabel}</div>
+                  <div className="text-[14.5px] font-bold" style={{ color: domainColor(domain).ink }}>{cur?.label ?? domainLabel}</div>
                   <div className="text-[12px] text-warm-500 truncate">{cur?.desc}</div>
                 </div>
                 <button
@@ -911,6 +912,7 @@ export default function NewRequestPage() {
           {availableDomains.map((d) => {
             const Icon = domainIcon(d.icon);
             const active = domain === d.token;
+            const c = domainColor(d.token); // 분야 색(CAREN-COLOR-01 §3) — 고른 것만 채움, 나머지는 옅게
             return (
               <button
                 key={d.token}
@@ -918,11 +920,12 @@ export default function NewRequestPage() {
                 onClick={() => selectDomain(d.token)}
                 className={
                   "relative rounded-2xl border p-3 text-center transition-colors " +
-                  (active ? "border-brand-500 bg-brand-50" : "border-warm-200 bg-white")
+                  (active ? "" : "border-warm-200 bg-white")
                 }
+                style={active ? { borderColor: c.fill, background: c.tint } : undefined}
               >
                 {active && (
-                  <span className="absolute top-2 right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-brand-500">
+                  <span className="absolute top-2 right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full" style={{ background: c.fill }}>
                     <Check className="h-2.5 w-2.5 text-white" strokeWidth={3.5} />
                   </span>
                 )}
@@ -936,12 +939,13 @@ export default function NewRequestPage() {
                 <span
                   className={
                     "mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl " +
-                    (active ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-500")
+                    (active ? "text-white" : "")
                   }
+                  style={active ? { background: c.fill } : { background: c.tint, color: c.ink }}
                 >
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
-                <div className={"text-[13.5px] font-bold " + (active ? "text-brand-700" : "text-warm-800")}>
+                <div className={"text-[13.5px] font-bold break-keep " + (active ? "" : "text-warm-800")} style={{ color: active ? c.ink : undefined }}>
                   {d.label}
                 </div>
                 <div className="text-[12px] text-warm-500 mt-0.5">{d.desc}</div>
