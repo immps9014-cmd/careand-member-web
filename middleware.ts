@@ -24,6 +24,8 @@ export function middleware(req: NextRequest) {
   }
 
   const authed = req.cookies.get("careand_auth")?.value === "1";
+  // 메인(/) — 로그인 전이면 첫 화면(통합돌봄 이미지)을 보여 주고, 로그인했으면 페이지가 /home 으로 보낸다
+  if (pathname === "/") return NextResponse.next();
   if (!authed) {
     // 복귀 URL은 경로+쿼리 전체 보존(신청화면의 ?domain= 등). 로그인 페이지가 redirect 파라미터로 되돌린다.
     const back = pathname + req.nextUrl.search;
