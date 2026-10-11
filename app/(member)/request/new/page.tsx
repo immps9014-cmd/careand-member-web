@@ -948,7 +948,7 @@ export default function NewRequestPage() {
                 <div className={"text-[13.5px] font-bold break-keep " + (active ? "" : "text-warm-800")} style={{ color: active ? c.ink : undefined }}>
                   {d.label}
                 </div>
-                <div className="text-[12px] text-warm-500 mt-0.5">{d.desc}</div>
+                <div className="text-[12px] text-warm-500 mt-0.5 break-keep">{d.desc}</div>
               </button>
             );
           })}
