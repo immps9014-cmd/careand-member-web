@@ -93,7 +93,7 @@ export function ProvisionalPanel({ c }: { c: MnhContractDetail }) {
                 <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="분만 방법">
                   {DELIVERY.map(([k, l]) => (
                     <button key={k} type="button" role="radio" aria-checked={type === k} onClick={() => setType(k)}
-                      className={cn("h-11 rounded-xl border text-[14px] font-bold", type === k ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>{l}</button>
+                      className={cn("h-11 rounded-xl border text-[14px] font-bold", type === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>{l}</button>
                   ))}
                 </div>
               </div>

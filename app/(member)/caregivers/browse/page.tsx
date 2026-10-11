@@ -243,7 +243,7 @@ function FavBox({ active, onToggle }: { active: boolean; onToggle: () => void })
       }}
       className={cn(
         "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
-        active ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white hover:border-brand-300"
+        active ? "border-brand-500 bg-brand-600 text-white" : "border-warm-300 bg-white hover:border-brand-300"
       )}
     >
       {active && <Check className="h-3.5 w-3.5" strokeWidth={3} />}

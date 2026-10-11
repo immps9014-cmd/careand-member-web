@@ -18,7 +18,7 @@ export function BirthStatusChips({ value, onChange }: { value: BirthStatus; onCh
           onClick={() => onChange(k)}
           className={cn(
             "h-11 rounded-xl border text-[14px] font-bold transition-colors",
-            value === k ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600",
+            value === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600",
           )}
         >
           {l}

@@ -57,7 +57,7 @@ export function PushPrompt() {
                   setBusy(false);
                 }
               }}
-              className="mt-2 h-11 rounded-lg bg-brand-500 px-4 text-[15px] font-bold text-white"
+              className="mt-2 h-11 rounded-lg bg-brand-600 px-4 text-[15px] font-bold text-white"
             >
               {busy ? "켜는 중…" : "알림 켜기"}
             </button>
@@ -65,7 +65,7 @@ export function PushPrompt() {
         ) : (
           <>
             <p className="mt-0.5 text-sm leading-relaxed text-warm-600">{PUSH_HELP[state as "ios-install" | "inapp"]}</p>
-            <Link href="/install" className="mt-2 inline-flex h-11 items-center rounded-lg bg-brand-500 px-4 text-[15px] font-bold text-white">
+            <Link href="/install" className="mt-2 inline-flex h-11 items-center rounded-lg bg-brand-600 px-4 text-[15px] font-bold text-white">
               설치 방법 보기
             </Link>
           </>

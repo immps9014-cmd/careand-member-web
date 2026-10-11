@@ -28,7 +28,7 @@ function FieldInput({ f, value, onChange }: { f: MnhDocField; value: string | st
             const on = cur.includes(k);
             return (
               <button key={k} type="button" aria-pressed={on} onClick={() => onChange(on ? cur.filter((x) => x !== k) : [...cur, k])}
-                className={cn("min-h-11 rounded-xl border px-3 text-[14px] font-semibold", on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>
+                className={cn("min-h-11 rounded-xl border px-3 text-[14px] font-semibold", on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
                 {l}
               </button>
             );
@@ -44,7 +44,7 @@ function FieldInput({ f, value, onChange }: { f: MnhDocField; value: string | st
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={f.label}>
           {opts.map(([k, l]) => (
             <button key={k} type="button" role="radio" aria-checked={value === k} onClick={() => onChange(k)}
-              className={cn("min-h-11 rounded-xl border px-3 text-[14px] font-semibold", value === k ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>
+              className={cn("min-h-11 rounded-xl border px-3 text-[14px] font-semibold", value === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
               {l}
             </button>
           ))}

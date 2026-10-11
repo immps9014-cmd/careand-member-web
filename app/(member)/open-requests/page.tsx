@@ -150,7 +150,7 @@ function BlockReasonSheet({
               onClick={() => setPicked(r)}
               className={
                 "px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors " +
-                (picked === r ? "bg-brand-500 text-white border-brand-500" : "bg-white text-warm-600 border-warm-200")
+                (picked === r ? "bg-brand-600 text-white border-brand-500" : "bg-white text-warm-600 border-warm-200")
               }
             >
               {r}
@@ -192,7 +192,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       onClick={onClick}
       className={
         "px-4 py-2 rounded-full text-sm font-bold transition-colors " +
-        (active ? "bg-brand-500 text-white" : "bg-white text-warm-500 border border-warm-200")
+        (active ? "bg-brand-600 text-white" : "bg-white text-warm-500 border border-warm-200")
       }
     >
       {children}

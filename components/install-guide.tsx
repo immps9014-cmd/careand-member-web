@@ -161,7 +161,7 @@ function Step({ n, title, desc, children }: { n: number; title: string; desc: st
   return (
     <div className="rounded-2xl border border-warm-100 bg-white p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-base font-extrabold text-white">{n}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-base font-extrabold text-white">{n}</span>
         <div className="min-w-0">
           <p className="text-[17px] font-extrabold text-warm-800">{title}</p>
           <p className="mt-0.5 text-[15px] leading-relaxed text-warm-600">{desc}</p>

@@ -408,7 +408,7 @@ export default function SignupPage() {
                             on ? "border-brand-500 bg-white ring-2 ring-brand-500/20" : "border-warm-200 bg-white"
                           )}
                         >
-                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-600")}>
+                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-600")}>
                             <Icon className="h-4 w-4" />
                           </span>
                           <span className="min-w-0">
@@ -955,7 +955,7 @@ function RoleCard({
       <div
         className={cn(
           "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-          active ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-600"
+          active ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-600"
         )}
       >
         {icon}
@@ -1044,7 +1044,7 @@ function PostpartumModeCards({ value, onChange }: { value: "voucher" | "hourly" 
                 on ? "border-brand-500 ring-2 ring-brand-500/20" : "border-warm-200 hover:border-warm-300"
               )}
             >
-              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-600")}>
+              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-600")}>
                 <Icon className="h-[18px] w-[18px]" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">

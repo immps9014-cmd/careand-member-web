@@ -9,14 +9,14 @@ const badgeVariants = cva(
       variant: {
         outline: "border border-warm-300 text-warm-700 bg-transparent",
         solid: "bg-warm-800 text-white",
-        brand: "bg-brand-500 text-white",
+        brand: "bg-brand-600 text-white",
         warn: "bg-warn-bg text-warn",
         danger: "bg-danger-bg text-danger",
         info: "bg-info-bg text-info",
         success: "bg-brand-50 text-brand-700",
         ai: "bg-gradient-to-br from-brand-500 to-brand-600 text-white",
         // 프로모/서비스 상태 뱃지 (P2-4)
-        new: "bg-brand-500 text-white",
+        new: "bg-brand-600 text-white",
         hot: "bg-danger text-white",
         beta: "bg-info text-white",
       },

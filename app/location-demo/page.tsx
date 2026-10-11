@@ -84,7 +84,7 @@ export default function LocationDemoPage() {
 
           {/* STEP 1 — 주소 검색 */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[11px] font-bold flex items-center justify-center">1</span>
+            <span className="w-5 h-5 rounded-full bg-brand-600 text-white text-[11px] font-bold flex items-center justify-center">1</span>
             <span className="text-sm font-bold text-warm-700">주소 검색</span>
           </div>
           <Button variant="outline" className="w-full mb-2" onClick={handleSearch}>
@@ -113,7 +113,7 @@ export default function LocationDemoPage() {
           {(loading || coords) && (
             <>
               <div className="flex items-center gap-2 mb-2">
-                <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                <span className="w-5 h-5 rounded-full bg-brand-600 text-white text-[11px] font-bold flex items-center justify-center">2</span>
                 <span className="text-sm font-bold text-warm-700">좌표 변환</span>
               </div>
               <Card className="p-4 mb-5">
@@ -141,7 +141,7 @@ export default function LocationDemoPage() {
           {coords && (
             <>
               <div className="flex items-center gap-2 mb-2">
-                <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[11px] font-bold flex items-center justify-center">3</span>
+                <span className="w-5 h-5 rounded-full bg-brand-600 text-white text-[11px] font-bold flex items-center justify-center">3</span>
                 <span className="text-sm font-bold text-warm-700">지도 위치 확인</span>
               </div>
               <MapPreview lat={coords.lat} lng={coords.lng} height={240} />

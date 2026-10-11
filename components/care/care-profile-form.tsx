@@ -30,7 +30,7 @@ function YesNo({ value, onChange, yes = "예", no = "아니요" }: { value: bool
           onClick={() => onChange(v)}
           className={
             "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-            (value === v ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+            (value === v ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
           }
         >
           {l}

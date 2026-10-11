@@ -118,7 +118,7 @@ export default function NewPostpartumClientPage() {
                     onClick={() => setDeliveryType(d.v)}
                     className={
                       "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >
                     {d.l}
@@ -139,7 +139,7 @@ export default function NewPostpartumClientPage() {
                     onClick={() => setIsFirstBaby(v)}
                     className={
                       "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
-                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >
                     {l}

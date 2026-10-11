@@ -93,7 +93,7 @@ export function ChipJournalCard({ sessionId, status }: { sessionId: number; stat
                     className={cn(
                       "min-h-[36px] rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60",
                       on
-                        ? isAlert ? "border-red-600 bg-red-600 text-white" : "border-brand-500 bg-brand-500 text-white"
+                        ? isAlert ? "border-red-600 bg-red-600 text-white" : "border-brand-500 bg-brand-600 text-white"
                         : isAlert ? "border-red-200 bg-red-50 text-red-700" : "border-warm-300 bg-white text-warm-700",
                     )}
                   >

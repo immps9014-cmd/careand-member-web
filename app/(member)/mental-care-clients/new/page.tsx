@@ -64,7 +64,7 @@ export default function NewMentalCareClientPage() {
                     onClick={() => setRelation(r)}
                     className={
                       "h-10 rounded-lg border text-[13.5px] font-bold transition-colors " +
-                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >
                     {r}
@@ -85,7 +85,7 @@ export default function NewMentalCareClientPage() {
                     onClick={() => setGender(v)}
                     className={
                       "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
-                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                      (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                     }
                   >
                     {l}

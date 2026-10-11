@@ -74,7 +74,7 @@ export default function EpdsPage() {
               onClick={() => { setClientId(c.id); setResult(null); setTaking(false); }}
               className={cn(
                 "h-10 rounded-xl border px-3.5 text-[14px] font-bold",
-                clientId === c.id ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600"
+                clientId === c.id ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600"
               )}
             >
               {c.is_self ? `${c.name} (본인)` : c.name}

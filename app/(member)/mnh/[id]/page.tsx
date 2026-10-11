@@ -16,7 +16,7 @@ import { ProvisionalPanel } from "@/components/mnh/provisional-panel";
 const DAY: Record<string, { cls: string; label: string }> = {
   planned: { cls: "bg-warm-100 text-warm-600", label: "배정 대기" },
   scheduled: { cls: "bg-sky-50 text-sky-700", label: "예정" },
-  in_progress: { cls: "bg-brand-500 text-white", label: "방문 중" },
+  in_progress: { cls: "bg-brand-600 text-white", label: "방문 중" },
   completed: { cls: "bg-brand-50 text-brand-700", label: "완료" },
 };
 

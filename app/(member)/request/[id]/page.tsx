@@ -158,7 +158,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
               <div className="text-[14px] font-bold text-brand-700">매칭이 확정되었어요</div>
               <div className="mt-0.5 text-[12.5px] text-warm-500">결제를 완료하면 돌봄 일정이 시작돼요.</div>
             </div>
-            <span className="rounded-full bg-brand-500 px-3.5 py-2 text-[13.5px] font-bold text-white">결제하기</span>
+            <span className="rounded-full bg-brand-600 px-3.5 py-2 text-[13.5px] font-bold text-white">결제하기</span>
           </Card>
         </Link>
       )}

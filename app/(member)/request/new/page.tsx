@@ -561,7 +561,7 @@ export default function NewRequestPage() {
                             onClick={() => setPpDeliveryType(d.v)}
                             className={
                               "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {d.l}
@@ -582,7 +582,7 @@ export default function NewRequestPage() {
                             onClick={() => setPpFirstBaby(v)}
                             className={
                               "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
-                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {l}
@@ -861,7 +861,7 @@ export default function NewRequestPage() {
                     onClick={() => setPreferredCgId(on ? null : c.id)}
                     className={
                       "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
-                      (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white text-warm-600")
+                      (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-300 bg-white text-warm-600")
                     }
                   >
                     {on && "✓ "}{nm}
@@ -889,7 +889,7 @@ export default function NewRequestPage() {
             const CurIcon = domainIcon(cur?.icon ?? "");
             return (
               <div className="flex items-center gap-3 rounded-2xl border border-brand-500 bg-brand-50 p-3.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shrink-0">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shrink-0">
                   <CurIcon className="h-[18px] w-[18px]" />
                 </span>
                 <div className="flex-1 min-w-0">
@@ -936,7 +936,7 @@ export default function NewRequestPage() {
                 <span
                   className={
                     "mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl " +
-                    (active ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-500")
+                    (active ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-500")
                   }
                 >
                   <Icon className="h-[18px] w-[18px]" />
@@ -976,7 +976,7 @@ export default function NewRequestPage() {
                         onClick={() => { setSeniorId(sn.id); setSnNew(false); }}
                         className={
                           "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                          (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                         }
                       >
                         {sn.name}
@@ -989,7 +989,7 @@ export default function NewRequestPage() {
                     onClick={() => { setSnNew(true); setSeniorId(""); }}
                     className={
                       "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                      (snNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
+                      (snNew ? "border-brand-500 bg-brand-600 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                     }
                   >
                     <Plus className="h-4 w-4" /> 새 대상
@@ -1022,7 +1022,7 @@ export default function NewRequestPage() {
                             onClick={() => setSnGender(v)}
                             className={
                               "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {l}
@@ -1165,7 +1165,7 @@ export default function NewRequestPage() {
                       onClick={() => setPpSelf(v)}
                       className={
                         "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {l}
@@ -1208,7 +1208,7 @@ export default function NewRequestPage() {
                             onClick={() => { setPostpartumClientId(c.id); setPpNew(false); }}
                             className={
                               "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {c.name}
@@ -1221,7 +1221,7 @@ export default function NewRequestPage() {
                         onClick={() => { setPpNew(true); setPostpartumClientId(""); }}
                         className={
                           "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                          (ppNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
+                          (ppNew ? "border-brand-500 bg-brand-600 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                         }
                       >
                         <Plus className="h-4 w-4" /> 새 산모
@@ -1298,7 +1298,7 @@ export default function NewRequestPage() {
                             onClick={() => setBbGender(v)}
                             className={
                               "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                              (bbGender === v ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (bbGender === v ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {l}
@@ -1384,7 +1384,7 @@ export default function NewRequestPage() {
                         onClick={() => { setChildId(c.id); setCcNew(false); }}
                         className={
                           "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                          (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                         }
                       >
                         {c.name}
@@ -1397,7 +1397,7 @@ export default function NewRequestPage() {
                     onClick={() => { setCcNew(true); setChildId(""); }}
                     className={
                       "inline-flex h-10 items-center gap-1 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                      (ccNew ? "border-brand-500 bg-brand-500 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
+                      (ccNew ? "border-brand-500 bg-brand-600 text-white" : "border-dashed border-warm-300 bg-white text-warm-600")
                     }
                   >
                     <Plus className="h-4 w-4" /> 새 아이
@@ -1430,7 +1430,7 @@ export default function NewRequestPage() {
                             onClick={() => setCcGender(v)}
                             className={
                               "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                              (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                              (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                             }
                           >
                             {l}
@@ -1463,7 +1463,7 @@ export default function NewRequestPage() {
                       onClick={() => setMcSelf(v)}
                       className={
                         "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {l}
@@ -1501,7 +1501,7 @@ export default function NewRequestPage() {
                                 onClick={() => setMcGender(v)}
                                 className={
                                   "h-11 rounded-xl border text-[14px] font-bold transition-colors " +
-                                  (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                                  (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                                 }
                               >
                                 {l}
@@ -1562,7 +1562,7 @@ export default function NewRequestPage() {
                         onClick={() => togglePpCat(c.id)}
                         className={
                           "h-10 rounded-xl border px-3.5 text-[14px] font-bold transition-colors " +
-                          (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                          (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                         }
                       >
                         {c.name}
@@ -1608,7 +1608,7 @@ export default function NewRequestPage() {
                       className={
                         "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                         (on
-                          ? "border-brand-500 bg-brand-500 text-white"
+                          ? "border-brand-500 bg-brand-600 text-white"
                           : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1636,7 +1636,7 @@ export default function NewRequestPage() {
                       onClick={() => toggleWeekday(d)}
                       className={
                         "h-10 rounded-xl border text-[14px] font-bold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {l}
@@ -1759,7 +1759,7 @@ export default function NewRequestPage() {
                       onClick={() => toggleItem(it)}
                       className={
                         "rounded-full border px-3 py-1.5 text-[13.5px] font-semibold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {on && "✓ "}{it}
@@ -1813,7 +1813,7 @@ export default function NewRequestPage() {
                       onClick={() => setReturnToOrigin(v)}
                       className={
                         "h-11 rounded-xl border text-[13.5px] font-bold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {l}
@@ -1862,7 +1862,7 @@ export default function NewRequestPage() {
                       onClick={() => setTransport(v)}
                       className={
                         "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
-                        (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")
+                        (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")
                       }
                     >
                       {l}
@@ -1891,7 +1891,7 @@ export default function NewRequestPage() {
                       className={
                         "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                         (on
-                          ? "border-brand-500 bg-brand-500 text-white"
+                          ? "border-brand-500 bg-brand-600 text-white"
                           : "border-warm-200 bg-white text-warm-600")
                       }
                     >
@@ -1934,7 +1934,7 @@ export default function NewRequestPage() {
                         className={
                           "h-11 rounded-xl border text-[14.5px] font-bold transition-colors " +
                           (on
-                            ? "border-brand-500 bg-brand-500 text-white"
+                            ? "border-brand-500 bg-brand-600 text-white"
                             : "border-warm-200 bg-white text-warm-600")
                         }
                       >

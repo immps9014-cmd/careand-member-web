@@ -153,7 +153,7 @@ function ReviewCard({ care }: { care: ReviewableCare }) {
               onClick={() => toggleTag(t)}
               className={
                 "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
-                (on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white text-warm-600 hover:border-brand-300")
+                (on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-300 bg-white text-warm-600 hover:border-brand-300")
               }
             >
               {on && "✓ "}

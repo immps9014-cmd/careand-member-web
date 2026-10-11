@@ -20,7 +20,7 @@ export function SeniorModeToggle({ className = "" }: { className?: string }) {
       aria-pressed={active}
       className={
         "inline-flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-bold transition-colors " +
-        (active ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white text-warm-700") +
+        (active ? "border-brand-500 bg-brand-600 text-white" : "border-warm-300 bg-white text-warm-700") +
         (className ? " " + className : "")
       }
     >

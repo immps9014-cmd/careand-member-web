@@ -1242,7 +1242,7 @@ function OnbStep({ state, label, desc, last }: { state: "done" | "active" | "tod
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-          state === "done" ? "bg-brand-500 text-white" : state === "active" ? "bg-brand-100 text-brand-700 ring-2 ring-brand-400" : "bg-warm-100 text-warm-500"
+          state === "done" ? "bg-brand-600 text-white" : state === "active" ? "bg-brand-100 text-brand-700 ring-2 ring-brand-400" : "bg-warm-100 text-warm-500"
         }`}>
           {state === "done" ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
         </div>

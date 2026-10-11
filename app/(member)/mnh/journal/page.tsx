@@ -85,7 +85,7 @@ export default function MnhJournalPage() {
           {clients.data!.map((c) => (
             <button key={c.id} type="button" aria-pressed={clientId === c.id} onClick={() => setClientId(c.id)}
               className={cn("h-10 rounded-xl border px-3.5 text-[14px] font-bold",
-                clientId === c.id ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>
+                clientId === c.id ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
               {c.is_self ? `${c.name} (본인)` : c.name}
             </button>
           ))}
@@ -198,7 +198,7 @@ function JournalBody({ clientId }: { clientId: number }) {
           return (
             <button key={k} type="button" aria-pressed={on} onClick={() => setKind(on ? null : k)}
               className={cn("flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-2xl border px-1 text-[13px] font-bold",
-                on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-700 hover:bg-warm-50")}>
+                on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-700 hover:bg-warm-50")}>
               <Icon className="h-5 w-5" aria-hidden />
               {kinds?.[k] ?? k}
             </button>
@@ -320,7 +320,7 @@ function EntryForm({ clientId, kind, overview, onDone }: {
   });
 
   const chip = (on: boolean) => cn("h-11 rounded-xl border px-3 text-[14px] font-bold",
-    on ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-700");
+    on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-700");
   const label = "mb-1.5 block text-[13px] font-bold text-warm-600";
 
   return (

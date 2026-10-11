@@ -142,7 +142,7 @@ function Bubble({ mine, text, muted }: { mine: boolean; text: string; muted?: bo
       <div
         className={
           "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-base leading-relaxed " +
-          (mine ? "rounded-br-md bg-brand-500 text-white" : "rounded-bl-md border border-warm-100 bg-white text-warm-800") +
+          (mine ? "rounded-br-md bg-brand-600 text-white" : "rounded-bl-md border border-warm-100 bg-white text-warm-800") +
           (muted ? " text-warm-500" : "")
         }
       >

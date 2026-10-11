@@ -134,7 +134,7 @@ export default function SeniorDetailPage({ params }: { params: { id: string } })
                   onClick={() => setMetricKey(m.key)}
                   className={
                     "px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors " +
-                    (m.key === metricKey ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-500")
+                    (m.key === metricKey ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-500")
                   }
                 >
                   {m.label}

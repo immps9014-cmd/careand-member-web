@@ -44,7 +44,7 @@ export default function SupportPage() {
         <div className="mt-1 text-3xl font-extrabold tracking-tight text-warm-800 tabular-nums">{SUPPORT.phone}</div>
         <a
           href={SUPPORT.tel}
-          className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-lg font-extrabold text-white"
+          className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-lg font-extrabold text-white"
         >
           <Phone className="h-5 w-5" /> 전화 걸기
         </a>

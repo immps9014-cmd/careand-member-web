@@ -77,7 +77,7 @@ export function CareIssueCard({ requestId }: { requestId: number }) {
             {Object.entries(d.categories).map(([k, l]) => (
               <button key={k} type="button" aria-pressed={category === k} onClick={() => setCategory(k)}
                 className={cn("h-10 rounded-xl border px-3 text-[14px] font-semibold",
-                  category === k ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-700")}>
+                  category === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-700")}>
                 {l}
               </button>
             ))}

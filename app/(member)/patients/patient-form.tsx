@@ -187,7 +187,7 @@ export function PatientForm({
                 onClick={() => toggleReq(tag)}
                 className={
                   "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors " +
-                  (selected ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-500")
+                  (selected ? "bg-brand-600 text-white" : "bg-warm-100 text-warm-500")
                 }
               >
                 {tag}

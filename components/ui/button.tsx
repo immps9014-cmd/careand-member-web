@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         brand:
-          "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 shadow-sm",
+          "bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-sm", // 흰 글자 대비 5.1:1(brand-500은 3.8:1) — CAREN-COLOR-01 §9
         primary:
           "bg-warm-800 text-white hover:bg-warm-900",
         secondary:

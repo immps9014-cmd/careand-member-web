@@ -48,7 +48,7 @@ export default function ClientEvalPage() {
                   const disabled = k === "final" && !d.can_final;
                   return (
                     <button key={k} type="button" role="radio" aria-checked={t === k} disabled={disabled} onClick={() => setTiming(k)}
-                      className={cn("min-h-11 flex-1 rounded-xl border text-[14px] font-bold disabled:opacity-40", t === k ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>
+                      className={cn("min-h-11 flex-1 rounded-xl border text-[14px] font-bold disabled:opacity-40", t === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
                       {k === "interim" ? "수시" : "종료"}
                     </button>
                   );
@@ -62,7 +62,7 @@ export default function ClientEvalPage() {
                 <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={it.label}>
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button key={n} type="button" role="radio" aria-checked={scores[it.key] === n} onClick={() => setScores((s) => ({ ...s, [it.key]: n }))}
-                      className={cn("min-h-12 rounded-xl border text-[15px] font-bold", scores[it.key] === n ? "border-brand-500 bg-brand-500 text-white" : "border-warm-200 bg-white text-warm-600")}>
+                      className={cn("min-h-12 rounded-xl border text-[15px] font-bold", scores[it.key] === n ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
                       {n}
                     </button>
                   ))}

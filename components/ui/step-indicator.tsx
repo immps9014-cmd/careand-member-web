@@ -43,9 +43,9 @@ export function StepIndicator({ steps, current, className, onStepClick }: StepIn
                 className={cn(
                   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-extrabold transition-colors",
                   done
-                    ? "bg-brand-500 text-white"
+                    ? "bg-brand-600 text-white"
                     : active
-                      ? "bg-brand-500 text-white ring-4 ring-brand-500/20"
+                      ? "bg-brand-600 text-white ring-4 ring-brand-500/20"
                       : "bg-warm-100 text-warm-500",
                   clickable && "cursor-pointer active:scale-95",
                 )}
