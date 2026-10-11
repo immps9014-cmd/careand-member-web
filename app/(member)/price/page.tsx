@@ -16,20 +16,27 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { won } from "@/lib/api/mnh";
 import { VoucherGuide } from "@/components/mnh/voucher-guide";
 import { cn } from "@/lib/utils";
+import { domainColor } from "@/lib/domainColors";
 
 const LABEL = "mb-2 block text-[15px] font-bold text-warm-800";
 const DURATIONS = [120, 180, 240, 480, 720, 1440];
 
-function Chips({ options, value, onChange, label }: { options: [string, string][]; value: string; onChange: (v: string) => void; label: string }) {
+// colorOf 를 주면 분야 색(CAREN-COLOR-01 §3) — 고른 것 채움·흰 글자, 나머지 옅은 바탕·분야 글자색
+function Chips({ options, value, onChange, label, colorOf }: { options: [string, string][]; value: string; onChange: (v: string) => void; label: string; colorOf?: (k: string) => { fill: string; tint: string; ink: string } }) {
   return (
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
-      {options.map(([k, v]) => (
-        <button key={k} type="button" role="radio" aria-checked={value === k} onClick={() => onChange(k)}
-          className={cn("min-h-11 rounded-xl border px-3.5 text-[14px] font-bold transition-colors",
-            value === k ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}>
-          {v}
-        </button>
-      ))}
+      {options.map(([k, v]) => {
+        const c = colorOf?.(k);
+        const on = value === k;
+        return (
+          <button key={k} type="button" role="radio" aria-checked={on} onClick={() => onChange(k)}
+            className={cn("min-h-11 rounded-xl border px-3.5 text-[14px] font-bold transition-colors",
+              c ? "" : on ? "border-brand-500 bg-brand-600 text-white" : "border-warm-200 bg-white text-warm-600")}
+            style={c ? (on ? { background: c.fill, borderColor: c.fill, color: "#fff" } : { background: c.tint, borderColor: c.tint, color: c.ink }) : undefined}>
+            {v}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -88,7 +95,7 @@ function PricePage() {
 
       <Card className="mt-4 p-4">
         <span className={LABEL}>돌봄 종류</span>
-        <Chips label="돌봄 종류" value={domain} onChange={(v) => { setDomain(v); setCat(null); }} options={domains.map((x) => [x.token, x.label])} />
+        <Chips label="돌봄 종류" value={domain} onChange={(v) => { setDomain(v); setCat(null); }} options={domains.map((x) => [x.token, x.label])} colorOf={domainColor} />
       </Card>
 
       {postpartum ? (
