@@ -25,6 +25,7 @@ import { PushPrompt } from "@/components/push-prompt";
 import { setAppBadge } from "@/lib/platform";
 import { careNote } from "@/lib/careTarget";
 import { MyNotices } from "@/components/my-notices";
+import { CaregiverPhoto } from "@/components/caregiver-photo";
 
 export default function HomePage() {
   const user = useAuth((s) => s.user);
@@ -150,7 +151,10 @@ function GCgRow({ c, pal, go }: { c: RecommendedCaregiver; pal: { fg: string; bg
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(`/caregivers/${c.id}`); } }}
       style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer" }}
     >
-      <div style={{ width: 46, height: 46, borderRadius: "50%", background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: pal.fg, flexShrink: 0 }}>{av}</div>
+      {/* 사진(캐릭터 포함, 2026-10-11) — 없으면 이름 첫 글자 */}
+      {c.photo_url
+        ? <CaregiverPhoto url={c.photo_url} name={display} size={46} />
+        : <div style={{ width: 46, height: 46, borderRadius: "50%", background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: pal.fg, flexShrink: 0 }}>{av}</div>}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 15, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{display}</span>
