@@ -28,6 +28,8 @@ export interface SignupPayload {
   relation?: string;
   /** 요청자 전용: 주로 이용할 서비스(복수, 선택 순서) — senior|living_support|postpartum|childcare|mental_care */
   services?: string[];
+  /** 산모신생아 이용 방식 — voucher 정부 바우처 · hourly 시간 단위(services 에 postpartum 있을 때만 서버가 보관) */
+  postpartum_mode?: "voucher" | "hourly";
   agree_terms: boolean;
   agree_privacy: boolean;
 }

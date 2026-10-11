@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check, Baby, Blocks, Brain } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Stethoscope, HeartHandshake, Building2, Sparkles, Check, Baby, Blocks, Brain, BadgeCheck, Clock, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SeniorModeToggle } from "@/components/senior-mode-toggle";
@@ -107,6 +107,9 @@ export default function SignupPage() {
         ? (SERVICE_KIND[services[0]] ?? "guardian")
         : null;
   const needsRelation = group === "user" && services.includes("senior");
+  // 산모신생아를 고르면 이용 방식(정부 바우처/시간 단위) 필수 — 앱·공개웹 가입과 같은 값, 서버 guardians.preferences.postpartum_mode
+  const [ppMode, setPpMode] = useState<"voucher" | "hourly" | null>(null);
+  const needsPpMode = group === "user" && services.includes("postpartum");
   // 백엔드 role은 카드 선택에서 파생 — 도메인 요청자(가사·산모·아이돌봄·마음돌봄)는 guardian으로 가입(intent로 구분)
   const REQUESTER_KINDS = ["housekeeping", "postpartum", "childcare", "mental_care"] as const;
   const role: Role | null =
@@ -218,6 +221,7 @@ export default function SignupPage() {
         ...(kind === "mental_care" ? { intent: "mental_care" as const } : {}),
         ...(needsRelation ? { relation } : {}),
         ...(group === "user" ? { services } : {}),
+        ...(needsPpMode && ppMode ? { postpartum_mode: ppMode } : {}),
         agree_terms: agreeTerms,
         agree_privacy: agreePrivacy,
       }),
@@ -413,6 +417,7 @@ export default function SignupPage() {
                       );
                     })}
                   </div>
+                  {needsPpMode && <PostpartumModeCards value={ppMode} onChange={setPpMode} />}
                 </div>
               )}
               <RoleCard
@@ -436,10 +441,10 @@ export default function SignupPage() {
                 variant="brand"
                 size="lg"
                 className="w-full"
-                disabled={!kind}
+                disabled={!kind || (needsPpMode && !ppMode)}
                 onClick={() => setStep("account")}
               >
-                다음
+                {needsPpMode && !ppMode ? "산모신생아 이용 방식을 골라 주세요" : "다음"}
               </Button>
               <p className="text-center text-xs text-warm-500 mt-4">
                 이미 계정이 있으신가요?{" "}
@@ -879,8 +884,8 @@ export default function SignupPage() {
                     back ??
                       (kind === "housekeeping"
                         ? "/request/new?domain=living_support"
-                        : kind === "postpartum"
-                        ? "/request/new?domain=postpartum"
+                        : kind === "postpartum" || (needsPpMode && ppMode === "voucher")
+                        ? `/request/new?domain=postpartum${needsPpMode && ppMode === "voucher" ? "&mode=voucher" : ""}`
                         : kind === "childcare"
                         ? "/request/new?domain=childcare"
                         : kind === "mental_care"
@@ -980,6 +985,62 @@ function Field({ label, error, children }: { label: string; error?: string; chil
       <label htmlFor={fieldId} className="text-sm font-semibold text-warm-700 block mb-1.5">{label}</label>
       {canLink ? cloneElement(children as ReactElement<{ id?: string }>, { id: fieldId }) : children}
       {error && <p className="text-xs text-danger mt-1.5" role="alert">{error}</p>}
+    </div>
+  );
+}
+
+/** 산모신생아 이용 방식 — 앱(postpartum_mode.dart)·공개웹과 같은 카드 두 장. 정부 바우처 대상자가 모르고 시간 단위로 넘어가지 않게 필수로 고른다 */
+const PP_MODES: { value: "voucher" | "hourly"; Icon: LucideIcon; title: string; tag?: string; desc: string }[] = [
+  {
+    value: "voucher",
+    Icon: BadgeCheck,
+    title: "정부 바우처로 이용",
+    tag: "정부지원",
+    desc: "산모신생아 건강관리 지원사업 · 5~40일 동안 평일 매일 방문 · 정부지원을 뺀 본인부담금만 내요",
+  },
+  { value: "hourly", Icon: Clock, title: "시간 단위로 이용", desc: "필요한 날·시간에만 방문 · 이용요금 전액 본인 부담 · 바우처가 없어도 돼요" },
+];
+
+function PostpartumModeCards({ value, onChange }: { value: "voucher" | "hourly" | null; onChange: (v: "voucher" | "hourly") => void }) {
+  return (
+    <div className="mt-4 border-t border-brand-200 pt-4" role="radiogroup" aria-label="산모신생아 이용 방식">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-bold text-warm-800">산모신생아, 어떻게 이용하세요?</div>
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">필수</span>
+      </div>
+      <p className="mt-0.5 text-xs text-warm-500">정부 바우처를 받으셨다면 꼭 「정부 바우처로 이용」을 골라 주세요.</p>
+      <div className="mt-3 space-y-2">
+        {PP_MODES.map(({ value: v, Icon, title, tag, desc }) => {
+          const on = value === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => onChange(v)}
+              className={cn(
+                "flex w-full items-start gap-3 rounded-xl border bg-white p-3.5 text-left transition-colors",
+                on ? "border-brand-500 ring-2 ring-brand-500/20" : "border-warm-200 hover:border-warm-300"
+              )}
+            >
+              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-500 text-white" : "bg-warm-100 text-warm-600")}>
+                <Icon className="h-[18px] w-[18px]" aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[15px] font-bold text-warm-800">{title}</span>
+                  {tag && <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">{tag}</span>}
+                </span>
+                <span className="mt-0.5 block text-[13px] leading-relaxed text-warm-500">{desc}</span>
+              </span>
+              <span aria-hidden className={cn("mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2", on ? "border-brand-500" : "border-warm-300")}>
+                {on && <span className="h-2.5 w-2.5 rounded-full bg-brand-500" />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
