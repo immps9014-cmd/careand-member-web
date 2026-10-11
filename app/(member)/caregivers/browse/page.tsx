@@ -10,6 +10,7 @@ import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
 import { domainLabel } from "@/lib/caregiverType";
 import { cn } from "@/lib/utils";
 import { CareandCertMark } from "@/components/care/careand-cert-mark";
+import { CaregiverPhoto } from "@/components/caregiver-photo";
 
 const stripTag = (s: string) => s.replace(/^\[.*?\]\s*/, "");
 const genderLabel = (g?: string | null) => (g === "F" ? "여" : g === "M" ? "남" : "-");
@@ -153,6 +154,7 @@ function GroupBody({
                 >
                   <td className="px-4 py-3 font-bold text-warm-800 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1.5">
+                      <CaregiverPhoto url={c.photo_url} name={name} size={32} className="mr-1" />
                       {name}
                       {c.careand_certified && <CareandCertMark compact />}
                       {c.tag && (
@@ -195,6 +197,7 @@ function GroupBody({
               className="flex items-center gap-3 border-b border-warm-50 px-4 py-3 last:border-0 active:bg-warm-50"
               onClick={() => onDetail(c.id)}
             >
+              <CaregiverPhoto url={c.photo_url} name={name} size={44} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-warm-800 truncate">{name}</span>

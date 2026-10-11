@@ -678,6 +678,8 @@ export interface MyCertificate {
 }
 
 export interface RecommendedCaregiver {
+  /** 프로필 사진(캐릭터 포함) 서명 링크 — 2026-10-11 */
+  photo_url?: string | null;
   id: number;
   name: string;
   domains?: string[];

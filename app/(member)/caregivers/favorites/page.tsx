@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { memberApi, type RecommendedCaregiver } from "@/lib/api/member";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { CaregiverPhoto } from "@/components/caregiver-photo";
 
 const FAV_KEY = ["member", "caregivers", "favorites"];
 const stripTag = (s: string | null | undefined) => (s ?? "").replace(/^\[.*?\]\s*/, "");
@@ -94,9 +95,7 @@ function FavCard({
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3 cursor-pointer" onClick={onDetail}>
-        <div className="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-lg font-extrabold text-brand-600 shrink-0">
-          {name.charAt(0) || "?"}
-        </div>
+        <CaregiverPhoto url={c.photo_url} name={name} size={48} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-base font-extrabold text-warm-800 truncate">{name}</span>

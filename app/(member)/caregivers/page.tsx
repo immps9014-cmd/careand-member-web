@@ -13,6 +13,7 @@ import { organizationApi } from "@/lib/api/organization";
 import { useAuth } from "@/lib/auth/store";
 import { caregiverDomainLabels } from "@/lib/caregiverType";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { CaregiverPhoto } from "@/components/caregiver-photo";
 
 const STATUS_LABEL: Record<string, { label: string; variant: "success" | "outline" | "warn" }> = {
   active: { label: "활동중", variant: "success" },
@@ -130,9 +131,7 @@ export default function OrgCaregiversPage() {
               const domains = caregiverDomainLabels(m.service_domains).join(" · ");
               return (
                 <Card key={m.caregiver_id} className="p-3.5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center font-bold text-brand-700">
-                    {m.name?.[0] ?? "?"}
-                  </div>
+                  <CaregiverPhoto url={m.photo_url} name={m.name} size={40} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-warm-800 truncate">{m.name ?? "이름없음"}</span>

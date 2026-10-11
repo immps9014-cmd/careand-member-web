@@ -76,6 +76,7 @@ export const organizationApi = {
 };
 
 export interface OrgCaregiver {
+  photo_url?: string | null;   // 프로필 사진(캐릭터 포함, 2026-10-11)
   caregiver_id: number;
   name: string | null;
   phone: string | null;
