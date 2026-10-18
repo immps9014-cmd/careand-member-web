@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const DOC_CSS =
   "[&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-[15px] [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_b]:font-bold [&_b]:text-warm-900 text-[14.5px] leading-relaxed text-warm-700";
-const TABLE_CSS = "[&_table]:w-full [&_th]:w-1/3 [&_th]:bg-warm-50 [&_th]:p-2 [&_th]:text-left [&_th]:align-top [&_th]:text-[13px] [&_td]:p-2 [&_td]:text-[13.5px] [&_tr]:border-b [&_tr]:border-warm-100";
+const TABLE_CSS = "[&_tr.sec_th]:bg-warm-100 [&_tr.sec_th]:font-bold [&_tr.sec_th]:text-warm-800 [&_table]:w-full [&_th]:w-1/3 [&_th]:bg-warm-50 [&_th]:p-2 [&_th]:text-left [&_th]:align-top [&_th]:text-[13px] [&_td]:p-2 [&_td]:text-[13.5px] [&_tr]:border-b [&_tr]:border-warm-100";
 
 function FieldInput({ f, value, onChange }: { f: MnhDocField; value: string | string[] | undefined; onChange: (v: string | string[]) => void }) {
   const opts = f.options ? (Array.isArray(f.options) ? f.options.map((o) => [o, o] as const) : Object.entries(f.options)) : [];
@@ -50,6 +50,19 @@ function FieldInput({ f, value, onChange }: { f: MnhDocField; value: string | st
           ))}
         </div>
       </fieldset>
+    );
+  }
+  if (f.type === "number") {
+    return (
+      <label className="block">
+        <span className="mb-1.5 block text-[14px] font-bold text-warm-700">{f.label}</span>
+        <span className="flex items-center gap-2">
+          <input type="number" inputMode={(f.step ?? 1) < 1 ? "decimal" : "numeric"} min={f.min} max={f.max} step={f.step ?? 1}
+            value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}
+            className="h-12 w-32 rounded-xl border border-warm-200 bg-white px-3 text-[15px] tabular-nums" />
+          {f.unit && <span className="text-[14px] text-warm-600">{f.unit}</span>}
+        </span>
+      </label>
     );
   }
   return (
@@ -118,7 +131,10 @@ export function DocSignView({ doc, fillAs, askSignerName, onSigned }: {
       {!signed && (
         <Card className="space-y-5 p-4">
           {mine.map((f) => (
-            <FieldInput key={f.key} f={f} value={form[f.key]} onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))} />
+            <div key={f.key} className="space-y-5">
+              {f.section && <h3 className="border-b border-warm-100 pb-1 text-[16px] font-bold text-warm-900">{f.section}</h3>}
+              <FieldInput f={f} value={form[f.key]} onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))} />
+            </div>
           ))}
           {askSignerName && (
             <label className="block">

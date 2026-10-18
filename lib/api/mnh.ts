@@ -222,9 +222,16 @@ export function todayKst(): string {
 export interface MnhDocField {
   key: string;
   label: string;
-  type: "text" | "textarea" | "date" | "checks" | "select";
+  type: "text" | "textarea" | "date" | "checks" | "select" | "number";
   filled_by: "client" | "caregiver" | "admin";
   options: string[] | Record<string, string> | null;
+  /** 이 칸 앞에 붙는 소제목(예: 산모·신생아) */
+  section?: string;
+  /** number 칸 — 범위·간격·단위 */
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
 }
 
 export interface MnhDocBrief {
