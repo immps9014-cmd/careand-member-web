@@ -33,6 +33,7 @@ function linkFor(n: MemberNotification, role?: string): string | null {
     case "CERT_GRANTED":
       return "/certificate";
     case "CAREGIVER_DOC_REJECTED":
+    case "CAREGIVER_DOC_EXPIRING":
       return "/documents";
     case "MATCH_OFFER_TIMEOUT":
     case "CARE_NOSHOW":
