@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CreditCard, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { memberApi } from "@/lib/api/member";
+import { memberApi, type Payment } from "@/lib/api/member";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
@@ -17,6 +17,13 @@ const STATUS: Record<string, { variant: "warn" | "success" | "danger" | "outline
   cancelled: { variant: "danger", label: "취소" },
   failed: { variant: "danger", label: "실패" },
 };
+
+/** 「○○님 산모신생아」 — 어르신이 아닌 분야도 이름·서비스가 보이게(10-18) */
+function paymentTitle(p: Payment): string {
+  const who = p.recipient_name ?? p.match?.senior_name;
+  if (who) return `${who}님 ${p.service_label ?? "돌봄"}`;
+  return p.service_label ? `${p.service_label} 결제` : `매칭 #${p.match?.id ?? p.id}`;
+}
 
 const METHOD_LABEL: Record<string, string> = {
   card: "카드",
@@ -77,7 +84,7 @@ export default function PaymentsPage() {
               <div className="mb-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-semibold text-warm-700">
                   <CreditCard className="h-4 w-4 text-brand-500" />
-                  {p.match?.senior_name ? `${p.match.senior_name} 돌봄` : `매칭 #${p.match?.id ?? p.id}`}
+                  {paymentTitle(p)}
                 </div>
                 <Badge variant={st.variant}>{st.label}</Badge>
               </div>

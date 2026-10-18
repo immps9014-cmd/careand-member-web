@@ -648,6 +648,10 @@ export interface Payment {
   paid_at: string | null;
   created_at: string | null;
   match?: { id: number; senior_name?: string | null };
+  /** 서비스 종류·대상자(10-18) — 모든 분야. 옛 응답엔 없음 */
+  service_domain?: string | null;
+  service_label?: string | null;
+  recipient_name?: string | null;
 }
 
 /** 영수증(기능 8) — GET /v1/payments/{id}/receipt */
