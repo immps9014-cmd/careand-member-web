@@ -22,6 +22,9 @@ const METHOD_LABEL: Record<string, string> = {
   card: "카드",
   account: "계좌이체",
   voucher_only: "바우처",
+  // 운영팀이 기록한 현장 결제(10-18)
+  cash: "현금",
+  transfer: "계좌이체",
 };
 
 // 백엔드 service_domain 값 7종(DOMAIN_LABEL 의 별칭 키는 제외)
