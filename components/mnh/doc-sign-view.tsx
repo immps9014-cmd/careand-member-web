@@ -13,7 +13,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 const DOC_CSS =
-  "[&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-[15px] [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_b]:font-bold [&_b]:text-warm-900 text-[14.5px] leading-relaxed text-warm-700";
+  "[&_table.calc]:w-full [&_table.calc]:my-2 [&_table.calc]:border-collapse [&_table.calc]:text-[13px] [&_table.calc_th]:border [&_table.calc_td]:border [&_table.calc_th]:border-warm-200 [&_table.calc_td]:border-warm-200 [&_table.calc_th]:px-1.5 [&_table.calc_td]:px-1.5 [&_table.calc_th]:py-1 [&_table.calc_td]:py-1 [&_table.calc_th]:bg-warm-50 [&_table.calc_th]:text-left [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-[15px] [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_b]:font-bold [&_b]:text-warm-900 text-[14.5px] leading-relaxed text-warm-700";
 const TABLE_CSS = "[&_tr.sec_th]:bg-warm-100 [&_tr.sec_th]:font-bold [&_tr.sec_th]:text-warm-800 [&_table]:w-full [&_th]:w-1/3 [&_th]:bg-warm-50 [&_th]:p-2 [&_th]:text-left [&_th]:align-top [&_th]:text-[13px] [&_td]:p-2 [&_td]:text-[13.5px] [&_tr]:border-b [&_tr]:border-warm-100";
 
 function FieldInput({ f, value, onChange }: { f: MnhDocField; value: string | string[] | undefined; onChange: (v: string | string[]) => void }) {
@@ -122,7 +122,7 @@ export function DocSignView({ doc, fillAs, askSignerName, onSigned }: {
         </Card>
       )}
       <Card className="p-4">
-        <div className={DOC_CSS} dangerouslySetInnerHTML={{ __html: doc.content_html }} />
+        <div className={cn(DOC_CSS, "overflow-x-auto")} dangerouslySetInnerHTML={{ __html: doc.content_html }} />
         {(signed || doc.fields.some((f) => f.filled_by !== fillAs)) && doc.fields_html && (
           <div className={cn("mt-3 overflow-hidden rounded-xl border border-warm-100", TABLE_CSS)} dangerouslySetInnerHTML={{ __html: doc.fields_html }} />
         )}
